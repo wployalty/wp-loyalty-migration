@@ -11,11 +11,11 @@
  * Requires at least: 4.9.0
  * WC requires at least: 6.5
  * WC tested up to: 7.6
- * Contributors: Wployalty, Ilaiyaraja
+ * Contributors: WPLoyalty, Ilaiyaraja
  * Author URI: https://wployalty.net/
  * License: GPLv2 or later
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
- * WPLoyalty: 1.2.2
+ * WPLoyalty: 1.2.3
  * WPLoyalty Page Link: wp-loyalty-migration
  */
 defined('ABSPATH') or die();
@@ -49,11 +49,16 @@ defined('WLRMG_PLUGIN_SLUG') or define('WLRMG_PLUGIN_SLUG', 'wp-loyalty-migratio
 defined('WLRMG_PLUGIN_PATH') or define('WLRMG_PLUGIN_PATH', __DIR__ . '/');
 defined('WLRMG_PLUGIN_URL') or define('WLRMG_PLUGIN_URL', plugin_dir_url(__FILE__));
 defined('WLRMG_PLUGIN_FILE') or define('WLRMG_PLUGIN_FILE', __FILE__);
+defined('WLRMG_PLUGIN_AUTHOR') or define('WLRMG_PLUGIN_AUTHOR', 'WPLoyalty');
+defined('WLRMG_VIEW_PATH') or define('WLRMG_VIEW_PATH', __DIR__.'/App/Views');
+defined('WLRMG_MINIMUM_PHP_VERSION') or define('WLRMG_MINIMUM_PHP_VERSION', '5.6.0');
+defined('WLRMG_MINIMUM_WP_VERSION') or define('WLRMG_MINIMUM_WP_VERSION', '4.9');
+defined('WLRMG_MINIMUM_WC_VERSION') or define('WLRMG_MINIMUM_WC_VERSION', '6.0');
 if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
     return;
 }
 require_once __DIR__.'/vendor/autoload.php';
 if (class_exists('\Wlrm\App\Router')){
-    $router = new \App\Router();
+    $router = new \Wlrm\App\Router();
     $router->init();
 }
