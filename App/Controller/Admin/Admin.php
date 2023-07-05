@@ -209,8 +209,8 @@ class Admin extends Base
         set_transient($process_identifier, true, 60);
         if (is_object($data) && !empty($data)) {
             //process
-            $action_type = isset($data->action_type) && !empty($data->action_type) ? $data->action_type : "";
-            switch ($action_type) {
+            $action = isset($data->action) && !empty($data->action) ? $data->action : "";
+            switch ($action) {
                 case 'wp_swings_migration':
                     $wp_swings = new WPSwings();
                     $wp_swings->Migrate($data);
