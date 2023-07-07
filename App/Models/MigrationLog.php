@@ -2,6 +2,7 @@
 
 namespace Wlrm\App\Models;
 
+use Wlr\App\Helpers\Input;
 use Wlr\App\Models\Base;
 
 class MigrationLog extends Base
@@ -76,5 +77,55 @@ class MigrationLog extends Base
         );
 
         return $this->insertRow($log_data);
+    }
+
+    function getActivityList($job_id, $current_page)
+    {
+        if (empty($job_id) || empty($current_page)) {
+            return array();
+        }
+        $input = new Input();
+        $settings = get_option('wlrmg_settings');
+        $default_pagination_limit = !empty($settings) && is_array($settings) && $settings['pagination_limit'] > 0 ? $settings['pagination_limit'] : 10;
+        $limit = (int)$input->post_get("per_page", $default_pagination_limit);
+        $offset = $limit * ($current_page - 1);
+        $where = self::$db->prepare(" id > %d", array(0));
+        if (!empty($job_id)) {
+            $where .= self::$db->prepare(" AND job_id=%d ", array($job_id));
+        }
+        $where .= self::$db->prepare(" ORDER BY %s DESC ", array('id'));
+        $total_count = $this->getWhere($where, "COUNT(id) as total_count", true);
+        if (($offset >= 0) && !empty($limit)) {
+            $where .= self::$db->prepare(" LIMIT %d OFFSET %d ", array($limit, $offset));
+        }
+        $log_list = $this->getWhere($where, "*", false);
+        $cron_job_modal = new MigrationJob();
+        $where = self::$db->prepare(" uid = %d ",array($job_id));
+        $job_data = $cron_job_modal->getwhere($where);
+        $export_files = $this->exportFileList(array('action' => $job_data->action, 'job_id' => $job_id));
+        return apply_filters('wlrmg_before_activity_log_list', array(
+            'data' => $log_list,
+            "total_rows" => isset($total_count->total_count) && $total_count->total_count > 0 ? $total_count->total_count : 0,
+            "current_page" => $current_page,
+            "per_page" => $limit,
+            'export_file_list' => $export_files,
+        ));
+    }
+    function exportFileList($post)
+    {
+        $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
+        $file_name = $post['action'] . '_' . $post['job_id'] . '_export_*.*';
+        $delete_file_path = trim($path . '/' . $file_name);
+        $download_list = array();
+        foreach (glob($delete_file_path) as $file_path) {
+            if (file_exists($file_path)) {
+                $file_detail = new \stdClass();
+                $file_detail->file_name = basename($file_path);
+                $file_detail->file_path = $file_path;
+                $file_detail->file_url = rtrim(WLRMG_PLUGIN_URL, '/') . '/App/File/' . $post['job_id'] . '/' . $file_detail->file_name;
+                $download_list[] = $file_detail;
+            }
+        }
+        return $download_list;
     }
 }

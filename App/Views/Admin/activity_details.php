@@ -39,18 +39,18 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                     </div>
                 </div>
             </div>
-            <?php if (isset($activity['bulk_action_activity']) && !empty($activity['bulk_action_activity']) &&
-                is_array($activity['bulk_action_activity']) && ($activity['job_id'] > 0) && !empty($activity['bulk_action_activity']['activity_list'])):
-                $bulk_action_activity = $activity['bulk_action_activity'];
+            <?php if (isset($activity['activity']) && !empty($activity['activity']) &&
+                is_array($activity['activity']) && ($activity['job_id'] > 0) && !empty($activity['activity']['activity_list'])):
+                $action_activity = $activity['activity'];
                 ?>
                 <div class="wlrmg-bulk-activity-list">
                     <div class="wlrmg-table-heading-section">
                         <div>
-                            <h4><?php esc_html_e(sprintf(__("Bulk action details - %s", "wp-loyalty-migration"), $activity['condition']['status'])); ?></h4>
+                            <h4><?php echo esc_html__("Action details", "wp-loyalty-migration"); ?></h4>
                         </div>
-                        <?php if (isset($bulk_action_activity['activity_list']) && count($bulk_action_activity['activity_list']) > 1 && $activity['condition']['status'] == 'completed'): ?>
+                        <?php if (isset($action_activity['activity_list']) && count($action_activity['activity_list']) > 1): ?>
                             <div class="wlrmg-activity-button-section">
-                                <?php if (isset($bulk_action_activity['show_export_file_download']) && !empty($bulk_action_activity['show_export_file_download'])): ?>
+                                <?php if (isset($action_activity['show_export_file_download']) && !empty($action_activity['show_export_file_download'])): ?>
                                     <button class="wlrmg-button-action" type="button"
                                             onclick="wlrmg.showExported(<?php echo $activity['job_id']; ?>,'bulk_action','<?php echo $activity['bulk_action_type']; ?>')"><?php echo __('Show Exported File', 'wp-loyalty-migration'); ?></button>
                                 <?php endif; ?>
@@ -67,7 +67,7 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                             <p><?php esc_html_e('Note', 'wp-loyalty-migration') ?></p>
                         </div>
                         <div id="wlrmg-activity-list-table-body" class="wlrmg-table-body">
-                            <?php foreach ($bulk_action_activity['activity_list'] as $bulk_activity): ?>
+                            <?php foreach ($action_activity['activity_list'] as $bulk_activity): ?>
                                 <div class="wlrmg-table-row">
                                     <div class="wlrmg-text-wrap">
                                         <p><?php echo $bulk_activity->user_email; ?></p>
@@ -81,9 +81,9 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                             <?php endforeach; ?>
                         </div>
                         <div class="wlrmg-pagination">
-                            <?php if (isset($bulk_action_activity['pagination']) && !empty($bulk_action_activity['pagination'])): ?>
-                                <?php echo $bulk_action_activity['pagination']->createLinks(
-                                    array('page_number_name' => 'bulk_action_page', 'focus_id' => 'wlrmg-activity-list-table')
+                            <?php if (isset($action_activity['pagination']) && !empty($action_activity['pagination'])): ?>
+                                <?php echo $action_activity['pagination']->createLinks(
+                                    array('page_number_name' => 'migration_page', 'focus_id' => 'wlrmg-activity-list-table')
                                 ); ?>
                             <?php endif; ?>
                         </div>

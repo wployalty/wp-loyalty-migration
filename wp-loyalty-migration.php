@@ -47,6 +47,7 @@ defined('WLRMG_PLUGIN_VERSION') or define('WLRMG_PLUGIN_VERSION', '1.0.0');
 defined('WLRMG_TEXT_DOMAIN') or define('WLRMG_TEXT_DOMAIN', 'wp-loyalty-migration');
 defined('WLRMG_PLUGIN_SLUG') or define('WLRMG_PLUGIN_SLUG', 'wp-loyalty-migration');
 defined('WLRMG_PLUGIN_PATH') or define('WLRMG_PLUGIN_PATH', __DIR__ . '/');
+defined('WLRMG_PLUGIN_DIR') or define('WLRMG_PLUGIN_DIR', __DIR__ );
 defined('WLRMG_PLUGIN_URL') or define('WLRMG_PLUGIN_URL', plugin_dir_url(__FILE__));
 defined('WLRMG_PLUGIN_FILE') or define('WLRMG_PLUGIN_FILE', __FILE__);
 defined('WLRMG_PLUGIN_AUTHOR') or define('WLRMG_PLUGIN_AUTHOR', 'WPLoyalty');

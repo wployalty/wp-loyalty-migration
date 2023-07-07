@@ -102,12 +102,39 @@ class Admin extends Base
         );
         if (!empty($job_data) && is_object($job_data)) {
             $result['date'] = isset($job_data->created_at) && !empty($job_data->created_at) ? self::$woocommerce->beforeDisplayDate($job_data->created_at, "d M,Y h:i a") : "";
-//            $result['bulk_action_activity'] = $this->getActivityLogsData($job_id);
+            $result['activity'] = $this->getActivityLogsData($job_id);
         }
         return apply_filters('wlba_before_acitivity_view_details_data', $result);
     }
-    function getActivityLogsData(){
-
+    function getActivityLogsData($job_id){
+        if (empty($job_id) || $job_id <= 0) return array();
+        $bulk_action_log = new MigrationLog();
+        $url = admin_url('admin.php?' . http_build_query(array(
+                'page' => WLRMG_PLUGIN_SLUG,
+                'view' => 'activity_details',
+                'job_id' => $job_id,
+            )));
+        $current_page = (int)self::$input->post_get("migration_page", 1);
+        $activity_list = $bulk_action_log->getActivityList($job_id, $current_page);
+        $per_page = (int)is_array($activity_list) && isset($activity_list["per_page"]) ? $activity_list["per_page"] : 0;
+        $current_page = (int)is_array($activity_list) && isset($activity_list["current_page"]) ? $activity_list["current_page"] : 0;
+        $pagination_param = array(
+            "totalRows" => (int)is_array($activity_list) && isset($activity_list["total_rows"]) ? $activity_list["total_rows"] : 0,
+            "perPage" => $per_page,
+            "baseURL" => $url,
+            "currentPage" => $current_page,
+            "queryStringSegment" => "migration_page",
+        );
+        $pagination = new Pagination($pagination_param);
+        return apply_filters('wlrmg_bulk_action_activity_details', array(
+            "base_url" => $url,
+            "pagination" => $pagination,
+            "per_page" => $per_page,
+            "page_number" => $current_page,
+            "activity_list" => (array)is_array($activity_list) && isset($activity_list["data"]) ? $activity_list["data"] : array(),
+            'show_export_file_download' => (int)is_array($activity_list) && isset($activity_list["export_file_list"]) ? count($activity_list["export_file_list"]) : 0,
+            'export_csv_file_list' => is_array($activity_list) && isset($activity_list["export_file_list"]) ? $activity_list["export_file_list"] : array(),
+        ));
     }
 
     function getActivityPage()
