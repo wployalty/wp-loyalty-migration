@@ -30,4 +30,23 @@ class Validation
             return $rule_validator->errors();
         }
     }
+    function validateSettingsData($post){
+        $rule_validator = new Validator($post);
+        $labels = array();
+        $labels_fields = array(
+            'batch_limit','pagination_limit'
+        );
+        $this_field = __("This field", "wp-loyalty-migration");
+        foreach ($labels_fields as $label) {
+            $labels[$label] = sprintf(__("%s", "wp-loyalty-migration"), $this_field);
+        }
+        $rule_validator->labels($labels);
+        $rule_validator->stopOnFirstFail(false);
+        $rule_validator->rule("required", array('batch_limit'))->message(__("{field} is required", "wp-loyalty-migration"));
+        if ($rule_validator->validate()) {
+            return true;
+        } else {
+            return $rule_validator->errors();
+        }
+    }
 }

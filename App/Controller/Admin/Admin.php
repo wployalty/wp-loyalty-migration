@@ -2,10 +2,12 @@
 
 namespace Wlrm\App\Controller\Admin;
 
+use Wlr\App\Helpers\EarnCampaign;
 use Wlr\App\Helpers\Woocommerce;
 use Wlrm\App\Controller\Base;
 use Wlrm\App\Controller\Compatibles\WPSwings;
 use Wlrm\App\Helper\CompatibleCheck;
+use Wlrm\App\Helper\Pagination;
 use Wlrm\App\Models\MigrationJob;
 use Wlrm\App\Models\MigrationLog;
 
@@ -45,6 +47,9 @@ class Admin extends Base
         }
     }
 
+    /**
+     * @return string|void
+     */
     function addMigrationPage()
     {
         if (!Woocommerce::hasAdminPrivilege()) return "";
@@ -60,6 +65,9 @@ class Admin extends Base
             case 'settings':
                 $params['main_page']['settings'] = $this->getSettingsPage();
                 break;
+            case 'activity_details':
+                $params['main_page']['activity_details'] = $this->getActivityDetailsPage();
+                break;
             case 'activity':
             default:
                 $params['main_page']['activity'] = $this->getActivityPage();
@@ -68,14 +76,122 @@ class Admin extends Base
         self::$template->setData(WLRMG_VIEW_PATH . '/Admin/main.php', $params)->display();
     }
 
+    function getActivityDetailsPage()
+    {
+        $view = (string)self::$input->post_get("view", "activity");
+        $job_id = (int)self::$input->post_get("job_id", 0);
+        $args = array(
+            "current_page" => $view,
+            "activity" => $this->getActivityDetailsData($job_id),
+            "back" => WLRMG_PLUGIN_URL . "Assets/svg/back_button.svg",
+            "no_activity_icon" => WLRMG_PLUGIN_URL . "Assets/svg/no_activity_list.svg",
+        );
+        $args = apply_filters('wlba_before_activity_details_page', $args);
+        return self::$template->setData(WLRMG_VIEW_PATH . "/Admin/activity_details.php", $args)->render();
+    }
+    function getActivityDetailsData($job_id)
+    {
+        if (empty($job_id) || $job_id <= 0) return array();
+        $job_table = new MigrationJob();
+        $where = self::$db->prepare(" uid = %d ",array($job_id));
+        $job_data = $job_table->getWhere($where);
+        $action_type = isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : '';
+        $result = array(
+            'job_id' => $job_id,
+            'action_type' => $action_type,
+        );
+        if (!empty($job_data) && is_object($job_data)) {
+            $result['date'] = isset($job_data->created_at) && !empty($job_data->created_at) ? self::$woocommerce->beforeDisplayDate($job_data->created_at, "d M,Y h:i a") : "";
+//            $result['bulk_action_activity'] = $this->getActivityLogsData($job_id);
+        }
+        return apply_filters('wlba_before_acitivity_view_details_data', $result);
+    }
+    function getActivityLogsData(){
+
+    }
+
     function getActivityPage()
     {
         $view = (string)self::$input->post_get("view", "activity");
+        $condition = (string)self::$input->post_get("condition", "all");
+        $url = admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "activity", "condition" => $condition)));
+        $activity_list = $this->getActivityLogs();
+        $per_page = (int)is_array($activity_list) && isset($activity_list["per_page"]) ? $activity_list["per_page"] : 0;
+        $current_page = (int)is_array($activity_list) && isset($activity_list["current_page"]) ? $activity_list["current_page"] : 0;
+        $params = array(
+            "totalRows" => (int)is_array($activity_list) && isset($activity_list["total_rows"]) ? $activity_list["total_rows"] : 0,
+            "perPage" => $per_page,
+            "baseURL" => $url,
+            "currentPage" => $current_page,
+        );
+        $pagination = new Pagination($params);
         $args = array(
-            'current_page' => $view,
+            "base_url" => $url,
+            "pagination" => $pagination,
+            "per_page" => $per_page,
+            "page_number" => $current_page,
+            "current_page" => $view,
+            "condition_status" => array("all" => __("All", "wp-loyalty-migration"), "wp_swings" => __("WPSwings", "wp-loyalty-migration")),
+            "condition" => $condition,
+            "activity_list" => (array)is_array($activity_list) && isset($activity_list["data"]) ? $activity_list["data"] : array(),
+            "filter" => WLRMG_PLUGIN_URL . "Assets/svg/filter.svg",
+            "current_filter_status" => WLRMG_PLUGIN_URL . "Assets/svg/current_filter_status.svg",
             "no_activity_list" => WLRMG_PLUGIN_URL . "Assets/svg/no_activity_list.svg",
         );
         return self::$template->setData(WLRMG_VIEW_PATH . '/Admin/activity.php', $args)->render();
+    }
+
+    function getActivityLogs()
+    {
+        $where = "";
+        $current_page = (int)self::$input->post_get("page_number", 1);
+        $settings = get_option('wlrmg_settings');
+        $default_pagination_limit = !empty($settings) && is_array($settings) && $settings['pagination_limit'] > 0 ? $settings['pagination_limit'] : 10;
+        $limit = (int)self::$input->post_get("per_page", $default_pagination_limit);
+        $offset = $limit * ($current_page - 1);
+        $condition = (string)self::$input->post_get("condition", "all");
+        $count_where = self::$db->prepare(" id > %d ", array(0));
+        if (!empty($condition) && $condition !== "all") {
+            $where .= self::$db->prepare("action_type = %s AND ", array($condition));
+            $count_where .= self::$db->prepare(" AND action_type = %s  ", array($condition));
+        }
+        $where .= self::$db->prepare(" id > %d ORDER BY id DESC", array(0));
+        if (($offset >= 0) && !empty($limit)) {
+            $where .= self::$db->prepare(" LIMIT %d OFFSET %d ", array($limit, $offset));
+        }
+        $job_table = new MigrationJob();
+        $bulk_action_lists = $job_table->getWhere($where, "*", false);
+        $total_count = $job_table->getWhere($count_where, "COUNT(id) as total_count", true);
+        $migration_actions = array();
+        $woocommerce_helper = Woocommerce::getInstance();
+        foreach ($bulk_action_lists as $list) {
+            if (!is_object($list)) {
+                continue;
+            }
+            $show_edit_category = '';
+            if ($list->action_type == 'wp_swings_migration') {
+                $show_edit_category = 'wp_swings';
+            }
+            $job_id = isset($list->uid) && !empty($list->uid) ? $list->uid : 0;
+            $migration_actions[] = array(
+                "image_icon" => isset($list->action_type) && !empty($list->action_type) ? $list->action_type : "",
+                "action" => isset($list->action) && !empty($list->action) ? $list->action : "",
+                "points" => isset($list->points) && !empty($list->points) ? $list->points : 0,
+                "job_id" => $job_id,
+                "status" => isset($list->status) && !empty($list->status) ? $list->status : 0,
+                "processed_count" => $list->offset,
+                "total_count" => isset($list->total) && !empty($list->total) ? $list->total : 0,
+                "date" => $woocommerce_helper->beforeDisplayDate($list->created_at, "d M,Y h:i a"),
+                "show_edit_button" => (isset($list->status) && !empty($list->status) && in_array($list->status, array("draft", "pending"))),
+                "show_edit_category" => $show_edit_category,
+            );
+        }
+        return apply_filters('wlrmg_before_activity_log_lists', array(
+            "data" => $migration_actions,
+            "total_rows" => isset($total_count->total_count) && $total_count->total_count > 0 ? $total_count->total_count : 0,
+            "current_page" => $current_page,
+            "per_page" => $limit,
+        ));
     }
 
     function getActionsPage()
@@ -92,8 +208,39 @@ class Admin extends Base
 
     function getSettingsPage()
     {
-        $args = array();
+        $view = (string)self::$input->post_get("view", "settings");
+        $args = array(
+            "batch_limit" => $this->getBatchLimit(),
+            "pagination_limit" => $this->getPaginationLimit(),
+            "current_page" => $view,
+            "back_to_apps_url" => admin_url('admin.php?' . http_build_query(array('page' => WLR_PLUGIN_SLUG))) . '#/apps',
+            "back" => WLRMG_PLUGIN_URL . "Assets/svg/back_button.svg",
+            "previous" => WLRMG_PLUGIN_URL . "Assets/svg/previous.svg",
+            "option_settings" => get_option('wlrmg_settings', array()),
+        );
         return self::$template->setData(WLRMG_VIEW_PATH . '/Admin/settings.php', $args)->render();
+    }
+
+    public function getBatchLimit()
+    {
+        return array(
+            "10" => "10",
+            "20" => "20",
+            "30" => "30",
+            "40" => "40",
+            "50" => "50",
+        );
+    }
+
+    public function getPaginationLimit()
+    {
+        return array(
+            "5" => "5",
+            "10" => "10",
+            "20" => "20",
+            "50" => "50",
+            "100" => "100",
+        );
     }
 
     function getAppDetails($plugins)
@@ -119,11 +266,15 @@ class Admin extends Base
             $suffix = SCRIPT_DEBUG ? "" : ".min";
         }
         remove_all_actions("admin_notices");
+        wp_enqueue_style(WLR_PLUGIN_SLUG . '-wlr-font', WLR_PLUGIN_URL . 'Assets/Site/Css/wlr-fonts' . $suffix . '.css', array(), WLR_PLUGIN_VERSION . '&t=' . time());
+        wp_enqueue_script(WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', array(), WLR_PLUGIN_VERSION . '&t=' . time());
+        wp_enqueue_style(WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', array(), WLR_PLUGIN_VERSION . '&t=' . time());
         wp_enqueue_style(WLRMG_PLUGIN_SLUG . "-main-style", WLRMG_PLUGIN_URL . "Assets/Admin/Css/wlrmg-main.css", array("woocommerce_admin_styles"), WLRMG_PLUGIN_VERSION);
         wp_enqueue_script(WLRMG_PLUGIN_SLUG . "-main-script", WLRMG_PLUGIN_URL . "Assets/Admin/Js/wlrmg-main" . $suffix . ".js", array("jquery"), WLRMG_PLUGIN_VERSION . "&t=" . time());
         $localize_data = apply_filters('wlrmg_before_localize_data', array(
             "ajax_url" => admin_url("admin-ajax.php"),
             "create_job" => Woocommerce::create_nonce("wlrmg_create_job_nonce"),
+            "save_settings" => Woocommerce::create_nonce("wlrmg_save_settings_nonce"),
         ));
         wp_localize_script(WLRMG_PLUGIN_SLUG . "-main-script", "wlrmg_localize_data", $localize_data);
     }
@@ -155,7 +306,7 @@ class Admin extends Base
         $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid', true);
         $max_uid = 1;
         if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid) && !empty($data_job->max_uid)) {
-                $max_uid = ($data_job->max_uid > 0) && isset($post['job_id']) && ($post['job_id'] > 0) ? $data_job->max_uid : $data_job->max_uid + 1;
+            $max_uid = ($data_job->max_uid > 0) && isset($post['job_id']) && ($post['job_id'] > 0) ? $data_job->max_uid : $data_job->max_uid + 1;
         }
         $admin_mail = self::$woocommerce->get_login_user_email();
         $job_data = array(
@@ -178,6 +329,36 @@ class Admin extends Base
         $result['success'] = true;
         $result['data']['message'] = __("Settings saved successfully.", "wp-loyalty-migration");
         $result['data']['job_id'] = $cron_job_id;
+        wp_send_json($result);
+    }
+
+    function saveSettings()
+    {
+        $result = array(
+            "success" => false,
+            "data" => array(
+                "message" => __("Security check failed", "wp-loyalty-migration"),
+            )
+        );
+        if (!$this->securityCheck('wlrmg_save_settings_nonce')) wp_send_json($result);
+        $post = self::$input->post();
+        $validate_data = self::$validation->validateSettingsData($post);
+        if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
+            foreach ($validate_data as $key => $validate) {
+                $validate_data[$key] = current($validate);
+            }
+            $data["data"]["field_error"] = $validate_data;
+            $data["data"]["message"] = __("Records not saved", "wp-loyalty-migration");
+            wp_send_json($data);
+        }
+        $need_to_remove_fields = array('action', 'wlrmg_nonce');
+        foreach ($need_to_remove_fields as $field) {
+            unset($post[$field]);
+        }
+        $data = apply_filters('wlrmg_before_save_settings', $post);
+        update_option('wlrmg_settings', $data);
+        $result['success'] = true;
+        $result['data']['message'] = __("Settings saved successfully.", "wp-loyalty-bulk-action");
         wp_send_json($result);
     }
 
