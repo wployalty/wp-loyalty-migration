@@ -15,28 +15,32 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
                     <img src="<?php echo (isset($previous) && !empty($previous)) ? $previous : ""; ?>"
                          alt="<?php echo __("Cancel", "wp-loyalty-migration") ?>">
                     <?php _e("Back to WPLoyalty", "wp-loyalty-migration"); ?></button>
-                <button type="button" class="wlrmg-button-action colored-button"
-                        onclick="wlrmg.createJob('#wlrmg-migration-form')">
-                    <img src="<?php echo (isset($save) && !empty($save)) ? $save : ""; ?>"
-                         alt="<?php echo __("Save", "wp-loyalty-migration") ?>">
-                    <?php _e("Save", "wp-loyalty-migration"); ?></button>
             </div>
         </div>
     </div>
     <div class="wlrmg-body-data">
         <form action="" method="post" id="wlrmg-migration-form">
             <div class="wlrmg-main-content active-page">
-                <div>
-                    <label for="wlrmg-action-type"><?php _e('Migrate to WPLoyalty', 'wp-loyalty-migration'); ?></label>
-                    <select name="migration_action" id="wlrmg-action-type">
-                        <option value=""><?php _e('select option', 'wp-loyalty-migration'); ?></option>
-                        <option value="wp_swings_migration" selected><?php _e('WPSwings', 'wp-loyalty-migration'); ?></option>
-                    </select>
-                </div>
-                <div>
-                    <label for="wlrmg-comment"><?php _e('Comment', 'wp-loyalty-migration'); ?></label>
-                    <textarea name="comment" id="wlrmg-comment"></textarea>
-                </div>
+                <?php if (isset($migration_cards) && is_array($migration_cards) && !empty($migration_cards)): ?>
+                    <div class="wlrmg-migation-card-section">
+                        <?php foreach ($migration_cards as $card):
+                            $is_active = (isset($card['is_active']) && $card['is_active']); ?>
+                            <div class="wlrmg-card <?php echo $is_active ? 'active' : ''; ?>" <?php echo !$is_active ? 'disabled' : ''; ?>>
+                                <div>
+                                    <h5><?php echo (isset($card['title']) && !empty($card['title'])) ? $card['title'] : ''; ?></h5>
+                                </div>
+                                <div>
+                                    <p><?php echo (isset($card['description']) && !empty($card['description'])) ? $card['description'] : ''; ?></p>
+                                </div>
+                                <?php if (isset($card['is_show_migrate_button']) && $card['is_show_migrate_button']): ?>
+                                    <div>
+                                        <button class="wlrmg-button" type="button" <?php echo !$is_active ? 'disabled' : ''; ?> <?php echo $is_active ? 'onclick="wlrmg.migrateUsers(\''.$card['type'].'\')"' : ''; ?> ><?php _e('Migrate', 'wp-loyalty-migration') ?></button>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </form>
     </div>

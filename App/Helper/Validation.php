@@ -11,7 +11,7 @@ class Validation
     {
         return preg_replace("/[^A-Za-z0-9_\-]/", "", $input);
     }
-    function validateSaveData($post){
+    function validateMigrationData($post){
         $rule_validator = new Validator($post);
         $labels = array();
         $labels_fields = array(

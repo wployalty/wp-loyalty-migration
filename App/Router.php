@@ -24,7 +24,7 @@ class Router
             register_activation_hook(WLRMG_PLUGIN_FILE,array(self::$admin,'pluginActivation'));
             add_action("admin_menu", array(self::$admin, "addAdminMenu"), 11);
             add_action("admin_enqueue_scripts",array(self::$admin,'addAssets'));
-            add_action('wp_ajax_wlrmg_create_job',array(self::$admin,'createJob'));
+            add_action('wp_ajax_wlrmg_migrate_users',array(self::$admin,'migrateUsersWithPointsJob'));
             add_action('wp_ajax_wlrmg_save_settings',array(self::$admin,'saveSettings'));
         }
         add_filter("wlr_extra_action_list", array(self::$admin, "addExtraAction"), 10, 1);

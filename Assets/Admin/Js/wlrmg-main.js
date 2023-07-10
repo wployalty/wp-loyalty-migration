@@ -3,22 +3,8 @@ if (typeof wlrmg_jquery == 'undefined') {
 }
 wlrmg = window.wlrmg || {};
 (function () {
-    wlrmg.createJob = function (form_id) {
-        let form_data = wlrmg_jquery(form_id).serialize();
-        wlrmg_jquery.ajax({
-            url: wlrmg_localize_data.ajax_url,
-            type: 'POST',
-            dataType: 'json',
-            data: form_data+"&action=wlrmg_create_job&wlrmg_nonce="+wlrmg_localize_data.create_job,
-            cache: false,
-            async: false,
-            success: function (res) {
-                console.log(res)
-                response = res.success;
-            }
-        });
-    }
-    wlrmg.saveSettings = function (){
+    alertify.set('notifier', 'position', 'top-right');
+    wlrmg.saveSettings = function () {
         let form_data = wlrmg_jquery('#wlrmg-main-page #wlrmg-settings #settings-form').serialize();
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
@@ -28,9 +14,24 @@ wlrmg = window.wlrmg || {};
             cache: false,
             async: false,
             success: function (res) {
-                console.log(res)
-             // window.location.reload()
-                // (res.success) ? alertify.success(res.data.message) : alertify.error(res.data.message);
+                (res.status) ? alertify.success(res.data.message) : alertify.error(res.data.message);
+            }
+        });
+    }
+    wlrmg.migrateUsers = function (type) {
+        wlrmg_jquery.ajax({
+            url: wlrmg_localize_data.ajax_url,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                action: 'wlrmg_migrate_users',
+                wlrmg_nonce: wlrmg_localize_data.migrate_users,
+                migration_action: type,
+            },
+            cache: false,
+            async: false,
+            success: function (res) {
+                (res.status) ? alertify.success(res.data.message) : alertify.error(res.data.message);
             }
         });
     }

@@ -11,6 +11,7 @@ $border-color: #E7E7EF;
   text-rendering: optimizeLegibility;
   scroll-behavior: smooth;
   outline: none;
+
   .wlrmg-main-header {
     display: flex;
     width: 100%;
@@ -36,6 +37,7 @@ $border-color: #E7E7EF;
       margin-left: calc(0.5rem * calc(1 - 0));
     }
   }
+
   .wlrmg-admin-main {
     display: flex;
     flex-direction: row-reverse;
@@ -77,6 +79,7 @@ $border-color: #E7E7EF;
     }
 
   }
+
   .wlrmg-admin-main .wlrmg-admin-nav {
     display: flex;
     position: relative;
@@ -119,6 +122,7 @@ $border-color: #E7E7EF;
       border-bottom-color: rgba(255, 255, 255, 1);
     }
   }
+
   .wlrmg-parent {
     background: #FFFFFF;
     width: 100%;
@@ -321,6 +325,40 @@ $border-color: #E7E7EF;
           clear: both;
         }
 
+        .wlrmg-migation-card-section {
+          display: grid;
+          grid-template-columns: repeat(3,minmax(0,1fr));
+          gap: 1rem;
+          .wlrmg-card {
+            padding: 12px;
+            border-radius: 8px;
+            position: relative;
+            min-height: max-content;
+            min-width: 180px;
+            box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+            font-size: 13px;
+            margin: 5px 0;
+            &:not(.active) {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+            h5,p{
+              font-size: 14px;
+            }
+          }
+
+          .wlrmg-button{
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            width: 100%;
+            border: 1px solid lightgray;
+            &:disabled{
+              cursor: not-allowed;
+            }
+          }
+        }
       }
 
       .wlrmg-button-action {
@@ -361,6 +399,7 @@ $border-color: #E7E7EF;
 
     }
   }
+
   .wlrmg-pagination {
     display: flex;
     flex-direction: row-reverse;
