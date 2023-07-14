@@ -35,4 +35,80 @@ wlrmg = window.wlrmg || {};
             }
         });
     }
+    wlrmg.redirectToUrl = function (url){
+        window.location.href = url;
+    }
+    wlrmg.exportPopUp = function (job_id, action_type,bulk_action_type) {
+        wlrmg_jquery.ajax({
+            url: wlrmg_localize_data.ajax_url,
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                wlba_nonce: wlrmg_localize_data.popup_nonce,
+                action: 'wlrmg_export_popup',
+                bulk_action_type: bulk_action_type,
+                action_type: action_type,
+                job_id: job_id,
+            },
+            success: function (result) {
+                if (result.success) {
+                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section").addClass('active');
+                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section .wlba-overlay").html(result.data.html);
+                }
+            }
+        });
+
+    }
+    wlrmg.startExport = function () {
+        var values = wlrmg_jquery('#wlba-export-preview').serializeArray();
+        wlrmg_jquery('#wlba-process-export-button').attr('disabled', true);
+        var request = wlrmg_jquery.ajax({
+            url: wlrmg_localize_data.ajax_url,
+            type: 'post',
+            data: values,
+            dataType: 'json',
+            cache: false
+        });
+        request.done(function (json) {
+            if (json['data']['success'] != 'completed') {
+                wlrmg_jquery('#wlba_limit_start').val(json['data']['limit_start']);
+                wlrmg_jquery('#wlba-notification').css("display", "flex");
+                wlrmg_jquery('#wlba-notification').html("<div class='alert success'>" + json['data']['notification'] + "</div>");
+                var total_count = wlrmg_jquery('#wlba-total-count').val();
+                if (total_count < json['data']['limit_start']) {
+                    wlrmg_jquery('#wlba-process-count').html(total_count);
+                } else {
+                    wlrmg_jquery('#wlba-process-count').html(json['data']['limit_start']);
+                }
+                wlrmg.startExport();
+            } else if (json['data']['success'] == 'completed') {
+                wlrmg_jquery('#wlba-notification').append("<div class='alert success'> " + json['data']['notification'] + "</div>");
+                setTimeout(function () {
+                    alertify.alert().close();
+                    location.reload();
+                },1500);
+            }
+        })
+    }
+    wlrmg.showExported = function (job_id, action_type,bulk_action_type){
+        wlrmg_jquery.ajax({
+            url: wlrmg_localize_data.ajax_url,
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                wlba_nonce: wlrmg_localize_data.popup_nonce,
+                action: 'wlba_get_exported_list',
+                bulk_action_type: bulk_action_type,
+                action_type: action_type,
+                job_id: job_id,
+            },
+            success: function (result) {
+                if (result.success) {
+                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section").addClass('active');
+                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section .wlba-overlay").html(result.data.html);
+                }
+            }
+        });
+    }
+
 })(wlrmg);

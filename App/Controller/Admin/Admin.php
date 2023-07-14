@@ -2,15 +2,14 @@
 
 namespace Wlrm\App\Controller\Admin;
 
-use Wlr\App\Helpers\EarnCampaign;
 use Wlr\App\Helpers\Woocommerce;
 use Wlrm\App\Controller\Base;
 use Wlrm\App\Controller\Compatibles\WPSwings;
+use Wlrm\App\Controller\Compatibles\Yith;
 use Wlrm\App\Helper\CompatibleCheck;
 use Wlrm\App\Helper\Pagination;
 use Wlrm\App\Models\MigrationJob;
 use Wlrm\App\Models\MigrationLog;
-use WPStaging\Core\Utils\Helper;
 
 defined("ABSPATH") or die();
 
@@ -80,9 +79,11 @@ class Admin extends Base
     function getActivityDetailsPage()
     {
         $view = (string)self::$input->post_get("view", "activity");
+        $type = (string)self::$input->post_get("type", "");
         $job_id = (int)self::$input->post_get("job_id", 0);
         $args = array(
             "current_page" => $view,
+            "action" => $type,
             "activity" => $this->getActivityDetailsData($job_id),
             "back" => WLRMG_PLUGIN_URL . "Assets/svg/back_button.svg",
             "no_activity_icon" => WLRMG_PLUGIN_URL . "Assets/svg/no_activity_list.svg",
@@ -97,16 +98,36 @@ class Admin extends Base
         $job_table = new MigrationJob();
         $where = self::$db->prepare(" uid = %d ", array($job_id));
         $job_data = $job_table->getWhere($where);
-        $action_type = isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : '';
         $result = array(
             'job_id' => $job_id,
-            'action_type' => $action_type,
         );
         if (!empty($job_data) && is_object($job_data)) {
-            $result['date'] = isset($job_data->created_at) && !empty($job_data->created_at) ? self::$woocommerce->beforeDisplayDate($job_data->created_at, "d M,Y h:i a") : "";
+            $result['job_data'] = $this->processJobData($job_data);
             $result['activity'] = $this->getActivityLogsData($job_id);
         }
         return apply_filters('wlba_before_acitivity_view_details_data', $result);
+    }
+    function processJobData($job_data){
+        if (empty($job_data) || !is_object($job_data)) return array();
+        $result = array(
+                'created_at' => isset($job_data->created_at) && !empty($job_data->created_at) ? self::$woocommerce->beforeDisplayDate($job_data->created_at) : '',
+                'offset' => isset($job_data->offset) && !empty($job_data->offset) ? $job_data->offset : 0,
+                'admin_mail' => isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '',
+                'status' => isset($job_data->status) && !empty($job_data->status) ? $job_data->status : '',
+                'action' => isset($job_data->action) && !empty($job_data->action) ? $job_data->action : '',
+        );
+        if (is_object($job_data) && isset($job_data->action)){
+            switch ($job_data->action){
+                case 'wp_swings_migration':
+                    $result['action_label'] = __('WP Swings Migration','wp-loyalty-migration');
+                    break;
+                case 'yith_migration':
+                case 'woocommerce_migration':
+                default:
+                    break;
+            }
+        }
+        return $result;
     }
 
     function getActivityLogsData($job_id)
@@ -155,6 +176,12 @@ class Admin extends Base
             "baseURL" => $url,
             "currentPage" => $current_page,
         );
+        $filter_condition_list = apply_filters('wlrmg_activity_condition_list',array(
+            "all" => __("All", "wp-loyalty-migration"))
+        );
+        if (WPSwings::checkPluginIsActive()){
+            $filter_condition_list["wp_swings"] =  __("WPSwings", "wp-loyalty-migration");
+        }
         $pagination = new Pagination($params);
         $args = array(
             "base_url" => $url,
@@ -162,7 +189,7 @@ class Admin extends Base
             "per_page" => $per_page,
             "page_number" => $current_page,
             "current_page" => $view,
-            "condition_status" => array("all" => __("All", "wp-loyalty-migration"), "wp_swings" => __("WPSwings", "wp-loyalty-migration")),
+            "condition_status" => $filter_condition_list,
             "condition" => $condition,
             "activity_list" => (array)is_array($activity_list) && isset($activity_list["data"]) ? $activity_list["data"] : array(),
             "filter" => WLRMG_PLUGIN_URL . "Assets/svg/filter.svg",
@@ -228,7 +255,6 @@ class Admin extends Base
     function getActionsPage()
     {
         $view = (string)self::$input->post_get("view", "actions");
-        $helper_base = new \Wlrm\App\Helper\Base();
         $args = array(
             'current_page' => $view,
             "back_to_apps_url" => admin_url('admin.php?' . http_build_query(array('page' => WLR_PLUGIN_SLUG))) . '#/apps',
@@ -238,25 +264,30 @@ class Admin extends Base
                     'type' => 'wp_swings_migration',
                     'title' => __('WPSwings points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
-                    'is_active' => $helper_base::checkPluginActive('wp_swings_migration'),
+                    'is_active' => WPSwings::checkPluginIsActive(),
+                    'is_job_created' => WPSwings::checkMigrationJobIsCreated(),
+                    'job_id' => WPSwings::getJobId(),
                     'is_show_migrate_button' => true,
                 ),
                 array(
                     'type' => 'yith_migration',
                     'title' => __('YITH points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
-                    'is_active' => $helper_base::checkPluginActive('yith_migration'),
+                    'is_active' => false,
+                    'is_job_created' => false,
                     'is_show_migrate_button' => true,
                 ),
                 array(
                     'type' => 'woocommerce',
                     'title' => __('Woocommerce points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
-                    'is_active' => $helper_base::checkPluginActive('woo_migration'),
+                    'is_active' => false,
+                    'is_job_created' => false,
                     'is_show_migrate_button' => true,
                 ),
             )
         );
+
         return self::$template->setData(WLRMG_VIEW_PATH . '/Admin/actions.php', $args)->render();
     }
 
@@ -454,7 +485,7 @@ class Admin extends Base
             switch ($action) {
                 case 'wp_swings_migration':
                     $wp_swings = new WPSwings();
-                    $wp_swings->Migrate($data);
+                    $wp_swings->migrateToLoyalty($data);
                     break;
                 case 'yith_migration':
                 case 'woo_migration':
@@ -463,6 +494,15 @@ class Admin extends Base
             }
         }
         delete_transient($process_identifier);
+    }
+    function menuHide(){
+        ?>
+        <style>
+            #toplevel_page_wp-loyalty-migration {
+                display: none !important;
+            }
+        </style>
+        <?php
     }
 
     function addExtraAction($action_list)

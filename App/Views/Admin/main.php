@@ -11,10 +11,10 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
         </div>
         <div class="wlrmg-admin-main">
             <div class="wlrmg-admin-nav">
-                <a href="<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => 'activity'))) ?>"
-                   class="<?php echo (in_array($current_page, array('activity', 'activity_details'))) ? "active-nav" : ""; ?>"
-                ><?php _e("Activity", "wp-loyalty-bulk-action"); ?></a>
-                <a class="<?php echo (in_array($current_page, array('actions'))) ? "active-nav" : ""; ?>"
+                <!--<a href="<?php /*echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => 'activity'))) */?>"
+                   class="<?php /*echo (in_array($current_page, array('activity', ))) ? "active-nav" : ""; */?>"
+                ><?php /*_e("Activity", "wp-loyalty-bulk-action"); */?></a>-->
+                <a class="<?php echo (in_array($current_page, array('actions','activity_details'))) ? "active-nav" : ""; ?>"
                    href="<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => 'actions'))) ?>"
                 ><?php _e("Actions", "wp-loyalty-bulk-action"); ?></a>
                 <a class="<?php echo (in_array($current_page, array('settings'))) ? "active-nav" : ""; ?>"

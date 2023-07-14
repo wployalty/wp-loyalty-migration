@@ -42,6 +42,12 @@ if (!function_exists('checkWployaltyActiveOrNot')) {
 if (!checkWployaltyActiveOrNot() || !checkWoocommerceActive()) {
     return;
 }
+if (!class_exists('\Wlr\App\Helpers\Input') && file_exists(WP_PLUGIN_DIR . '/wp-loyalty-rules/vendor/autoload.php')) {
+    require_once WP_PLUGIN_DIR . '/wp-loyalty-rules/vendor/autoload.php';
+}
+if (!class_exists('\Wlr\App\Helpers\Input')) {
+    return;
+}
 defined('WLRMG_PLUGIN_NAME') or define('WLRMG_PLUGIN_NAME', 'WPLoyalty - Migration');
 defined('WLRMG_PLUGIN_VERSION') or define('WLRMG_PLUGIN_VERSION', '1.0.0');
 defined('WLRMG_TEXT_DOMAIN') or define('WLRMG_TEXT_DOMAIN', 'wp-loyalty-migration');

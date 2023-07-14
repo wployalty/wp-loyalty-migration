@@ -12,6 +12,15 @@ $border-color: #E7E7EF;
   scroll-behavior: smooth;
   outline: none;
 
+  a {
+    text-decoration: none;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+
   .wlrmg-main-header {
     display: flex;
     width: 100%;
@@ -170,7 +179,7 @@ $border-color: #E7E7EF;
 
         .wlrmg-table-header {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 1rem;
           border-radius: 0.25rem;
           padding: 1rem 1.25rem;
@@ -198,7 +207,7 @@ $border-color: #E7E7EF;
 
           .wlrmg-table-row {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             align-content: center;
             gap: 1rem;
             border-radius: 0.25rem;
@@ -327,36 +336,51 @@ $border-color: #E7E7EF;
 
         .wlrmg-migation-card-section {
           display: grid;
-          grid-template-columns: repeat(3,minmax(0,1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 1rem;
+
           .wlrmg-card {
             padding: 12px;
             border-radius: 8px;
             position: relative;
             min-height: max-content;
             min-width: 180px;
-            box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
             font-size: 13px;
             margin: 5px 0;
+            border: 1px solid rgba(50, 50, 93, 0.25);
             &:not(.active) {
               opacity: 0.5;
               cursor: not-allowed;
             }
-            h5,p{
+
+            h5, p {
               font-size: 14px;
+            }
+            &:hover{
+
+              border: 0;
+              box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
             }
           }
 
-          .wlrmg-button{
+          .wlrmg-button-section {
+            display: flex;
+          }
+
+          .wlrmg-button {
             text-align: center;
-            padding: 8px;
+            padding: 8px 0;
             cursor: pointer;
             border-radius: 6px;
             width: 100%;
             border: 1px solid lightgray;
-            &:disabled{
+            text-decoration: none;
+            color: $color-white;
+            background: $theme-color;
+            &:disabled {
               cursor: not-allowed;
             }
+
           }
         }
       }
@@ -453,7 +477,39 @@ $border-color: #E7E7EF;
     margin: 0 30px 5px 30px;
   }
 
-  #wlrmg-activity {
+  #wlrmg-activity-details{
+    .wlrmg-activity-details-header {
+      display: flex;
+      justify-content: left;
+      align-items: center;
+      gap: 10px;
+
+      .wlrmg-back-btn {
+        cursor: $cursor;
+      }
+    }
+
+    .wlrmg-activity-details-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .wlrmg-description{
+        display: flex;
+        justify-content: flex-start;
+        gap: 3rem;
+      }
+    }
+
+    .wlrmg-job-details, .wlrmg-activity-log-list {
+      background: #FFFFFF;
+      box-shadow: 0 0 40px rgba(12, 17, 58, 0.08);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+  }
+  /*#wlrmg-activity {
 
     .wlrmg-grid-span-2 {
       grid-column: span 2/span 2;
@@ -613,5 +669,11 @@ $border-color: #E7E7EF;
     .wlrmg-filter-tick-block {
       width: 10%;
     }
+  }*/
+   select{
+    min-width: 10rem;
+     &:focus{
+       box-shadow: none;
+     }
   }
 }
