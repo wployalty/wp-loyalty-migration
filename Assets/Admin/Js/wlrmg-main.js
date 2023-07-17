@@ -14,7 +14,7 @@ wlrmg = window.wlrmg || {};
             cache: false,
             async: false,
             success: function (res) {
-                (res.status) ? alertify.success(res.data.message) : alertify.error(res.data.message);
+                (res.success) ? alertify.success(res.data.message) : alertify.error(res.data.message);
             }
         });
     }
@@ -31,7 +31,7 @@ wlrmg = window.wlrmg || {};
             cache: false,
             async: false,
             success: function (res) {
-                (res.status) ? alertify.success(res.data.message) : alertify.error(res.data.message);
+                (res.success) ? alertify.success(res.data.message) : alertify.error(res.data.message);
             }
         });
     }

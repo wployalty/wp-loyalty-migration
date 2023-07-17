@@ -22,7 +22,7 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                 </div>
                 <div class="wlrmg-description">
                     <div class="wlrmg-activity-date">
-                        <p class="wlrmg-desc-label"><?php echo esc_html__("Date added", "wp-loyalty-migration") ?></p>
+                        <p class="wlrmg-desc-label"><?php echo esc_html__("Date created", "wp-loyalty-migration") ?></p>
                         <?php if (isset($job_data["created_at"]) && !empty($job_data["created_at"])): ?>
                             <p class="wlrmg-desc-value"><?php echo esc_html__($job_data["created_at"], "wp-loyalty-migration"); ?></p>
                         <?php endif; ?>
