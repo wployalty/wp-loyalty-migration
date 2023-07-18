@@ -31,29 +31,33 @@ wlrmg = window.wlrmg || {};
             cache: false,
             async: false,
             success: function (res) {
-                (res.success) ? alertify.success(res.data.message) : alertify.error(res.data.message);
+                if(res.success)  {
+                    alertify.success(res.data.message)
+                    window.location.reload();
+                } else{
+                    alertify.error(res.data.message);
+                }
             }
         });
     }
     wlrmg.redirectToUrl = function (url){
         window.location.href = url;
     }
-    wlrmg.exportPopUp = function (job_id, action_type,bulk_action_type) {
+    wlrmg.exportPopUp = function (job_id, action) {
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'POST',
             dataType: 'JSON',
             data: {
-                wlba_nonce: wlrmg_localize_data.popup_nonce,
+                wlrmg_nonce: wlrmg_localize_data.popup_nonce,
                 action: 'wlrmg_export_popup',
-                bulk_action_type: bulk_action_type,
-                action_type: action_type,
+                migration_action: action,
                 job_id: job_id,
             },
             success: function (result) {
                 if (result.success) {
-                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section").addClass('active');
-                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section .wlba-overlay").html(result.data.html);
+                    wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").addClass('active');
+                    wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section .wlrmg-overlay").html(result.data.html);
                 }
             }
         });

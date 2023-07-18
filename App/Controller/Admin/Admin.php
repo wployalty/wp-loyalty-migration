@@ -53,7 +53,7 @@ class Admin extends Base
     function addMigrationPage()
     {
         if (!Woocommerce::hasAdminPrivilege()) return "";
-        $view = (string)self::$input->post_get("view", "activity");
+        $view = (string)self::$input->post_get("view", "actions");
         $params = array(
             'current_page' => $view,
             'main_page' => array(),
@@ -67,10 +67,6 @@ class Admin extends Base
                 break;
             case 'activity_details':
                 $params['main_page']['activity_details'] = $this->getActivityDetailsPage();
-                break;
-            case 'activity':
-            default:
-                $params['main_page']['activity'] = $this->getActivityPage();
                 break;
         }
         self::$template->setData(WLRMG_VIEW_PATH . '/Admin/main.php', $params)->display();
@@ -107,19 +103,21 @@ class Admin extends Base
         }
         return apply_filters('wlba_before_acitivity_view_details_data', $result);
     }
-    function processJobData($job_data){
+
+    function processJobData($job_data)
+    {
         if (empty($job_data) || !is_object($job_data)) return array();
         $result = array(
-                'created_at' => isset($job_data->created_at) && !empty($job_data->created_at) ? self::$woocommerce->beforeDisplayDate($job_data->created_at) : '',
-                'offset' => isset($job_data->offset) && !empty($job_data->offset) ? $job_data->offset : 0,
-                'admin_mail' => isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '',
-                'status' => isset($job_data->status) && !empty($job_data->status) ? $job_data->status : '',
-                'action' => isset($job_data->action) && !empty($job_data->action) ? $job_data->action : '',
+            'created_at' => isset($job_data->created_at) && !empty($job_data->created_at) ? self::$woocommerce->beforeDisplayDate($job_data->created_at) : '',
+            'offset' => isset($job_data->offset) && !empty($job_data->offset) ? $job_data->offset : 0,
+            'admin_mail' => isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '',
+            'status' => isset($job_data->status) && !empty($job_data->status) ? $job_data->status : '',
+            'action' => isset($job_data->action) && !empty($job_data->action) ? $job_data->action : '',
         );
-        if (is_object($job_data) && isset($job_data->action)){
-            switch ($job_data->action){
+        if (is_object($job_data) && isset($job_data->action)) {
+            switch ($job_data->action) {
                 case 'wp_swings_migration':
-                    $result['action_label'] = __('WP Swings Migration','wp-loyalty-migration');
+                    $result['action_label'] = __('WP Swings Migration', 'wp-loyalty-migration');
                     break;
                 case 'yith_migration':
                 case 'woocommerce_migration':
@@ -160,43 +158,6 @@ class Admin extends Base
             'show_export_file_download' => (int)is_array($activity_list) && isset($activity_list["export_file_list"]) ? count($activity_list["export_file_list"]) : 0,
             'export_csv_file_list' => is_array($activity_list) && isset($activity_list["export_file_list"]) ? $activity_list["export_file_list"] : array(),
         ));
-    }
-
-    function getActivityPage()
-    {
-        $view = (string)self::$input->post_get("view", "activity");
-        $condition = (string)self::$input->post_get("condition", "all");
-        $url = admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "activity", "condition" => $condition)));
-        $activity_list = $this->getActivityLogs();
-        $per_page = (int)is_array($activity_list) && isset($activity_list["per_page"]) ? $activity_list["per_page"] : 0;
-        $current_page = (int)is_array($activity_list) && isset($activity_list["current_page"]) ? $activity_list["current_page"] : 0;
-        $params = array(
-            "totalRows" => (int)is_array($activity_list) && isset($activity_list["total_rows"]) ? $activity_list["total_rows"] : 0,
-            "perPage" => $per_page,
-            "baseURL" => $url,
-            "currentPage" => $current_page,
-        );
-        $filter_condition_list = apply_filters('wlrmg_activity_condition_list',array(
-            "all" => __("All", "wp-loyalty-migration"))
-        );
-        if (WPSwings::checkPluginIsActive()){
-            $filter_condition_list["wp_swings"] =  __("WPSwings", "wp-loyalty-migration");
-        }
-        $pagination = new Pagination($params);
-        $args = array(
-            "base_url" => $url,
-            "pagination" => $pagination,
-            "per_page" => $per_page,
-            "page_number" => $current_page,
-            "current_page" => $view,
-            "condition_status" => $filter_condition_list,
-            "condition" => $condition,
-            "activity_list" => (array)is_array($activity_list) && isset($activity_list["data"]) ? $activity_list["data"] : array(),
-            "filter" => WLRMG_PLUGIN_URL . "Assets/svg/filter.svg",
-            "current_filter_status" => WLRMG_PLUGIN_URL . "Assets/svg/current_filter_status.svg",
-            "no_activity_list" => WLRMG_PLUGIN_URL . "Assets/svg/no_activity_list.svg",
-        );
-        return self::$template->setData(WLRMG_VIEW_PATH . '/Admin/activity.php', $args)->render();
     }
 
     function getActivityLogs()
@@ -360,6 +321,7 @@ class Admin extends Base
             "ajax_url" => admin_url("admin-ajax.php"),
             "migrate_users" => Woocommerce::create_nonce("wlrmg_migrate_users_nonce"),
             "save_settings" => Woocommerce::create_nonce("wlrmg_save_settings_nonce"),
+            "popup_nonce" => Woocommerce::create_nonce("wlrmg_popup_nonce"),
         ));
         wp_localize_script(WLRMG_PLUGIN_SLUG . "-main-script", "wlrmg_localize_data", $localize_data);
     }
@@ -472,8 +434,10 @@ class Admin extends Base
     function triggerMigrations()
     {
         $job_table = new MigrationJob();
-        $where = self::$db->prepare(" id > 0 AND (status IN (%s,%s) ) ORDER BY id ASC", array("pending", "processing"));
+        $where = self::$db->prepare(" id > 0 AND status IN (%s,%s) ORDER BY id ASC", array("pending", "processing"));
         $data = $job_table->getWhere($where);
+        $log = wc_get_logger();
+        $log->add('mig', json_encode($data));
         $process_identifier = 'wlrmg_cron_job_running';
         if (get_transient($process_identifier)) {
             return;
@@ -482,6 +446,7 @@ class Admin extends Base
         if (is_object($data) && !empty($data)) {
             //process
             $action = isset($data->action) && !empty($data->action) ? $data->action : "";
+            $log->add('mig', "action => ".json_encode($action));
             switch ($action) {
                 case 'wp_swings_migration':
                     $wp_swings = new WPSwings();
@@ -495,7 +460,9 @@ class Admin extends Base
         }
         delete_transient($process_identifier);
     }
-    function menuHide(){
+
+    function menuHide()
+    {
         ?>
         <style>
             #toplevel_page_wp-loyalty-migration {

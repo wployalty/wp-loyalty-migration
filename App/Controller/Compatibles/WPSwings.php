@@ -35,24 +35,29 @@ class WPSwings implements Base
 
     function migrateToLoyalty($job_data)
     {
-        if (empty($data) || !is_object($data)) {
+        if (empty($job_data) || !is_object($job_data)) {
             return;
         }
-        $job_id = (int)isset($data->uid) && !empty($data->uid) ? $data->uid : 0;
-        $admin_mail = (string)isset($data->admin_mail) && !empty($data->admin_mail) ? $data->admin_mail : '';
-        $action_type = (string)isset($data->action_type) && !empty($data->action_type) ? $data->action_type : "migration_to_wployalty";
+        $log = wc_get_logger();
+        $log->add('mig', json_encode($job_data));
+        $job_id = (int)isset($job_data->uid) && !empty($job_data->uid) ? $job_data->uid : 0;
+        $admin_mail = (string)isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '';
+        $action_type = (string)isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : "migration_to_wployalty";
         //Get WPUsers
-        $where = self::$db->prepare(" WHERE wp_user.ID > %d ", array(0));
-        $where .= self::$db->prepare(" AND wp_user.ID > %d ", array((int)$data->last_processed_id));
-        $join = " LEFT JOIN " . self::$db->usermeta . " AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points' ";
+        global $wpdb;
+        $where = $wpdb->prepare(" WHERE wp_user.ID > %d ", array(0));
+        $where .= $wpdb->prepare(" AND wp_user.ID > %d ", array((int)$job_data->last_processed_id));
+        $join = " LEFT JOIN " . $wpdb->usermeta . " AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points' ";
         $limit_offset = "";
-        if (isset($data->limit) && ($data->limit > 0)) {
-            $limit_offset .= self::$db->prepare(" LIMIT %d OFFSET %d ", array((int)$data->limit, 0));
+        if (isset($job_data->limit) && ($job_data->limit > 0)) {
+            $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
         }
-        $select = " SELECT wp_user.ID,wp_user.user_email,IFNULL(meta.meta_value, 0) AS wps_points FROM " . self::$db->users . " as wp_user ";
+        $select = " SELECT wp_user.ID,wp_user.user_email,IFNULL(meta.meta_value, 0) AS wps_points FROM " . $wpdb->users . " as wp_user ";
         $query = $select . $join . $where . $limit_offset;
-        $wp_users = self::$db->get_results(stripslashes($query));
-        $this->migrateUsers($wp_users, $job_id, $data, $admin_mail, $action_type);
+        $log->add('mig', "query => ".json_encode($query));
+        $wp_users = $wpdb->get_results(stripslashes($query));
+        $log->add('mig', "users => ".json_encode($wp_users));
+        $this->migrateUsers($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
     public function migrateUsers($wp_users, $job_id, $data, $admin_mail, $action_type)
@@ -91,7 +96,6 @@ class WPSwings implements Base
                 $data->last_processed_id = $user_id;
                 $update_status = array(
                     "status" => "processing",
-                    "offset" => $data->offset,
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => $created_at,
                 );
