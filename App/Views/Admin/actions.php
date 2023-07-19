@@ -24,8 +24,9 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
                 <?php if (isset($migration_cards) && is_array($migration_cards) && !empty($migration_cards)): ?>
                     <div class="wlrmg-migation-card-section">
                         <?php foreach ($migration_cards as $card):
+                            $is_completed = (isset($card['job_data']) && is_object($card['job_data']) && isset($card['job_data']->status) && $card['job_data']->status == "completed");
                             $is_active = (isset($card['is_active']) && $card['is_active']); ?>
-                            <div class="wlrmg-card <?php echo $is_active ? 'active' : ''; ?>" <?php echo !$is_active ? 'disabled' : ''; ?>>
+                            <div class="wlrmg-card <?php echo $is_active || $is_completed ? 'active' : ''; ?>">
                                 <div>
                                     <h5><?php echo (isset($card['title']) && !empty($card['title'])) ? $card['title'] : ''; ?></h5>
                                 </div>
@@ -36,7 +37,7 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
                                 <?php if (isset($card['job_data']) && is_object($card['job_data']) && !isset($card['job_data']->uid)): ?>
                                         <button class="wlrmg-button" type="button" <?php echo !$is_active ? 'disabled' : ''; ?> <?php echo $is_active ? 'onclick="wlrmg.migrateUsers(\''.$card['type'].'\')"' : ''; ?> ><?php _e('Migrate', 'wp-loyalty-migration') ?></button>
                                 <?php endif; ?>
-                                <?php if (isset($card['job_data']) && is_object($card['job_data']) && isset($card['job_data']->uid) && $is_active): ?>
+                                <?php if ((isset($card['job_data']) && is_object($card['job_data']) && isset($card['job_data']->uid) && $is_active) || $is_completed): ?>
                                         <a class="wlrmg-button wlrmg-view-button"
                                            title="<?php echo __("View Details", "wp-loyalty-migration") ?>"
                                            href="<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "activity_details", "type" => $card['type'],"job_id" => $card['job_data']->uid))) ?>">
