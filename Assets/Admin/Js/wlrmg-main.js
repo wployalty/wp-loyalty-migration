@@ -33,7 +33,9 @@ wlrmg = window.wlrmg || {};
             success: function (res) {
                 if(res.success)  {
                     alertify.success(res.data.message)
-                    window.location.reload();
+                    setTimeout(function (){
+                        window.location.reload();
+                    },1000);
                 } else{
                     alertify.error(res.data.message);
                 }

@@ -60,10 +60,10 @@ class MigrationLog extends Base
         return in_array($action_type, apply_filters('wlrmg_action_types', array('wp_swings_migration')));
     }
 
-    function saveLogs($data, $action_type)
+    function saveLogs($data, $action)
     {
-        if (empty($data) || !is_array($data) || !is_string($action_type) ||
-            !$this->checkActionType($action_type)) return false;
+        if (empty($data) || !is_array($data) || !is_string($action) ||
+            !$this->checkActionType($action)) return false;
         $log_data = array(
             "job_id" => (int)isset($data['job_id']) && $data['job_id'] > 0 ? $data['job_id'] : 0,
             "action" => (string)isset($data['action']) && $data['action'] ? $data['action'] : '',

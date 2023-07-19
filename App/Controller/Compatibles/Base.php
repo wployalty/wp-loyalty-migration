@@ -8,8 +8,8 @@ interface Base
 {
     static function checkPluginIsActive();
 
-    static function checkMigrationJobIsCreated();
-    static function getJobId();
+    static function getMigrationJob();
+
     function migrateToLoyalty($job_data);
 
 }

@@ -226,8 +226,7 @@ class Admin extends Base
                     'title' => __('WPSwings points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
                     'is_active' => WPSwings::checkPluginIsActive(),
-                    'is_job_created' => WPSwings::checkMigrationJobIsCreated(),
-                    'job_id' => WPSwings::getJobId(),
+                    'job_data' => WPSwings::getMigrationJob(),
                     'is_show_migrate_button' => true,
                 ),
                 array(
@@ -235,7 +234,7 @@ class Admin extends Base
                     'title' => __('YITH points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
                     'is_active' => false,
-                    'is_job_created' => false,
+                    'job_data' => new \stdClass(),
                     'is_show_migrate_button' => true,
                 ),
                 array(
@@ -243,7 +242,7 @@ class Admin extends Base
                     'title' => __('Woocommerce points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
                     'is_active' => false,
-                    'is_job_created' => false,
+                    'job_data' => new \stdClass(),
                     'is_show_migrate_button' => true,
                 ),
             )
@@ -291,13 +290,17 @@ class Admin extends Base
 
     function getAppDetails($plugins)
     {
+        $log = wc_get_logger();
+        $log->add('app detail',json_encode($plugins));
         if (is_array($plugins) && !empty($plugins)) {
+            print_r($plugins);
             foreach ($plugins as &$plugin) {
                 if (is_array($plugin) && isset($plugin['plugin']) && $plugin['plugin'] == 'wp-loyalty-migration/wp-loyalty-migration.php') {
                     $plugin['page_url'] = admin_url('admin.php?' . http_build_query(array('page' => WLRMG_PLUGIN_SLUG)));
                     break;
                 }
             }
+            $log->add('app detail',json_encode($plugins));
         }
         return $plugins;
     }
@@ -475,7 +478,13 @@ class Admin extends Base
     function addExtraAction($action_list)
     {
         if (empty($action_list) || !is_array($action_list)) return $action_list;
-        $action_list["migration_to_wployalty"] = __("User migrated via WPLoyalty migration", "wp-loyalty-migration");
+        $action_list["migration_to_wployalty"] = __("User migrated via WPLoyalty Migration", "wp-loyalty-migration");
+        return $action_list;
+    }
+    function addExtraPointLedgerAction($action_list)
+    {
+        if (empty($action_list) || !is_array($action_list)) return $action_list;
+        $action_list[] = "migration_to_wployalty";
         return $action_list;
     }
 }

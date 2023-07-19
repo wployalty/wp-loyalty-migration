@@ -21,16 +21,11 @@ class WPSwings implements Base
         }
         return in_array('points-and-rewards-for-woocommerce/points-rewards-for-woocommerce.php', $active_plugins, false);
     }
-    static function checkMigrationJobIsCreated(){
-        $job_table = new MigrationJob();
-        $job = $job_table->getWhere("action = 'wp_swings_migration'");
-        return (!empty($job) && is_object($job) && isset($job->uid));
-    }
-    static function getJobId()
+    static function getMigrationJob()
     {
         $job_table = new MigrationJob();
         $job = $job_table->getWhere("action = 'wp_swings_migration'");
-        return !empty($job) && is_object($job) && isset($job->uid)  ? $job->uid : 0;
+        return (!empty($job) && is_object($job) && isset($job->uid)) ? $job : new \stdClass();
     }
 
     function migrateToLoyalty($job_data)
@@ -38,8 +33,6 @@ class WPSwings implements Base
         if (empty($job_data) || !is_object($job_data)) {
             return;
         }
-        $log = wc_get_logger();
-        $log->add('mig', json_encode($job_data));
         $job_id = (int)isset($job_data->uid) && !empty($job_data->uid) ? $job_data->uid : 0;
         $admin_mail = (string)isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '';
         $action_type = (string)isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : "migration_to_wployalty";
@@ -54,9 +47,7 @@ class WPSwings implements Base
         }
         $select = " SELECT wp_user.ID,wp_user.user_email,IFNULL(meta.meta_value, 0) AS wps_points FROM " . $wpdb->users . " as wp_user ";
         $query = $select . $join . $where . $limit_offset;
-        $log->add('mig', "query => ".json_encode($query));
         $wp_users = $wpdb->get_results(stripslashes($query));
-        $log->add('mig', "users => ".json_encode($wp_users));
         $this->migrateUsers($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
@@ -65,7 +56,7 @@ class WPSwings implements Base
         $migration_job_model = new MigrationJob();
         $migration_log_model = new MigrationLog();
         if (count($wp_users) == 0) {
-            $data_logs['action'] = 'wp_swings_migration_failed';
+            $data_logs['action'] = 'wp_swings_migration_completed';
             $data_logs['note'] = __('No available records for processing.', 'wp-loyalty-bulk-action');
             $migration_log_model->saveLogs($data_logs, "wp_swings_migration");
             $update_data = array(
@@ -75,7 +66,6 @@ class WPSwings implements Base
             return;
         }
         $loyalty_user_model = new Users();
-
         $campaign = EarnCampaign::getInstance();
         $earn_campaign_transaction_model = new EarnCampaignTransactions();
         $helper_base = new \Wlr\App\Helpers\Base();
@@ -92,7 +82,7 @@ class WPSwings implements Base
             $created_at = strtotime(date("Y-m-d h:i:s"));
             if (is_object($user_points) && !empty($user_points) && isset($user_points->user_email)) {
                 //update last processed id
-                $data->offset = $data->offset + 1;
+                //need to add point on exist customer or not case
                 $data->last_processed_id = $user_id;
                 $update_status = array(
                     "status" => "processing",
@@ -113,7 +103,7 @@ class WPSwings implements Base
                 "note" => sprintf(__("%s customer migrated with %d %s by administrator(%s) via loyalty migration", "wp-loyalty-migration"), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
             );
             $trans_type = 'credit';
-            if ($new_points == 0) {
+            /*if ($new_points == 0) {
                 //add new user
                 $_data = array(
                     'user_email' => sanitize_email($user_email),
@@ -187,7 +177,8 @@ class WPSwings implements Base
                 }
             } else {
                 $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
-            }
+            }*/
+            $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
             $data_logs = array(
                 'job_id' => $job_id,
                 'action' => 'wp_swings_migration',
@@ -213,4 +204,6 @@ class WPSwings implements Base
             }
         }
     }
+
+
 }

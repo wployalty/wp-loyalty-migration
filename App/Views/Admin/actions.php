@@ -33,18 +33,14 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
                                     <p><?php echo (isset($card['description']) && !empty($card['description'])) ? $card['description'] : ''; ?></p>
                                 </div>
                                 <div class="wlrmg-button-section">
-                                <?php if (isset($card['is_job_created']) && !$card['is_job_created']): ?>
-
+                                <?php if (isset($card['job_data']) && is_object($card['job_data']) && !isset($card['job_data']->uid)): ?>
                                         <button class="wlrmg-button" type="button" <?php echo !$is_active ? 'disabled' : ''; ?> <?php echo $is_active ? 'onclick="wlrmg.migrateUsers(\''.$card['type'].'\')"' : ''; ?> ><?php _e('Migrate', 'wp-loyalty-migration') ?></button>
-
                                 <?php endif; ?>
-                                <?php if (isset($card['is_job_created']) && $card['is_job_created'] && $is_active): ?>
-
+                                <?php if (isset($card['job_data']) && is_object($card['job_data']) && isset($card['job_data']->uid) && $is_active): ?>
                                         <a class="wlrmg-button wlrmg-view-button"
                                            title="<?php echo __("View Details", "wp-loyalty-migration") ?>"
-                                           href="<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "activity_details", "type" => $card['type'],"job_id" => $card['job_id']))) ?>">
+                                           href="<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "activity_details", "type" => $card['type'],"job_id" => $card['job_data']->uid))) ?>">
                                             <?php echo __("View Details", "wp-loyalty-migration") ?></a>
-
                                 <?php endif; ?>
                                 </div>
                             </div>

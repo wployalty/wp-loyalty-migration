@@ -32,7 +32,8 @@ class Router
             add_action("wp_ajax_wlrmg_get_exported_list", array(self::$admin, "getExportFiles"));
 
         }
-        //add_filter("wlr_extra_action_list", array(self::$admin, "addExtraAction"), 10, 1);
+        add_filter("wlr_extra_action_list", array(self::$admin, "addExtraAction"), 10, 1);
+        add_filter("wlr_extra_point_ledger_action_list", array(self::$admin, "addExtraPointLedgerAction"), 10, 1);
         //schedule
         add_action('woocommerce_init', array(self::$admin, 'initSchedule'), 10);
         register_deactivation_hook(WLRMG_PLUGIN_FILE, array(self::$admin, 'removeSchedule'));
