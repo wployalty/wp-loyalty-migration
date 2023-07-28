@@ -57,7 +57,7 @@ class WPSwings implements Base
         $migration_log_model = new MigrationLog();
         if (count($wp_users) == 0) {
             $data_logs['action'] = 'wp_swings_migration_completed';
-            $data_logs['note'] = __('No available records for processing.', 'wp-loyalty-bulk-action');
+            $data_logs['note'] = __('No available records for processing.', 'wp-loyalty-migration');
             $migration_log_model->saveLogs($data_logs, "wp_swings_migration");
             $update_data = array(
                 "status" => "completed",
@@ -70,6 +70,7 @@ class WPSwings implements Base
         $earn_campaign_transaction_model = new EarnCampaignTransactions();
         $helper_base = new \Wlr\App\Helpers\Base();
         $log_model = new Logs();
+        $condition = isset($data->condition) && !empty($data->condition) ? json_decode($data->condition, true) : array();
         foreach ($wp_users as $wp_user) {
             $user_email = !empty($wp_user) && is_object($wp_user) && isset($wp_user->user_email) && !empty($wp_user->user_email) ? $wp_user->user_email : "";
             if (empty($user_email)) {
@@ -80,9 +81,7 @@ class WPSwings implements Base
             //check user exist in loyalty
             $user_points = $loyalty_user_model->getQueryData(array('user_email' => array('operator' => '=', 'value' => sanitize_email($user_email))), '*', array(), false, true);
             $created_at = strtotime(date("Y-m-d h:i:s"));
-            if (is_object($user_points) && !empty($user_points) && isset($user_points->user_email)) {
-                //update last processed id
-                //need to add point on exist customer or not case
+            if (is_object($user_points) && isset($user_points->user_email) && isset($condition['update_point']) && $condition['update_point'] == 'skip') {
                 $data->last_processed_id = $user_id;
                 $update_status = array(
                     "status" => "processing",
@@ -103,81 +102,6 @@ class WPSwings implements Base
                 "note" => sprintf(__("%s customer migrated with %d %s by administrator(%s) via loyalty migration", "wp-loyalty-migration"), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
             );
             $trans_type = 'credit';
-            /*if ($new_points == 0) {
-                //add new user
-                $_data = array(
-                    'user_email' => sanitize_email($user_email),
-                    'refer_code' => $refer_code,
-                    'used_total_points' => 0,
-                    'points' => (int)$new_points,
-                    'earn_total_point' => (int)$new_points,
-                    'birth_date' => 0,
-                    'birthday_date' => null,
-                    'created_date' => $created_at,
-                );
-                $wployalty_migration_status = $loyalty_user_model->insertRow($_data);
-                $status = true;
-                //campaign transaction
-                $args = array(
-                    'user_email' => $action_data['user_email'],
-                    'action_type' => $action_type,
-                    'campaign_type' => 'point',
-                    'points' => (int)$new_points,
-                    'transaction_type' => $trans_type,
-                    'campaign_id' => (int)isset($action_data['campaign_id']) && !empty($action_data['campaign_id']) ? $action_data['campaign_id'] : 0,
-                    'created_at' => $created_at,
-                    'modified_at' => 0,
-                    'product_id' => (int)isset($action_data['product_id']) && !empty($action_data['product_id']) ? $action_data['product_id'] : 0,
-                    'order_id' => (int)isset($action_data['order_id']) && !empty($action_data['order_id']) ? $action_data['order_id'] : 0,
-                    'order_currency' => isset($action_data['order_currency']) && !empty($action_data['order_currency']) ? $action_data['order_currency'] : '',
-                    'order_total' => isset($action_data['order_total']) && !empty($action_data['order_total']) ? $action_data['order_total'] : '',
-                    'referral_type' => isset($action_data['referral_type']) && !empty($action_data['referral_type']) ? $action_data['referral_type'] : '',
-                    'display_name' => isset($action_data['reward_display_name']) && !empty($action_data['reward_display_name']) ? $action_data['reward_display_name'] : null,
-                    'reward_id' => (int)isset($action_data['reward_id']) && !empty($action_data['reward_id']) ? $action_data['reward_id'] : 0,
-                    'admin_user_id' => null,
-                    'log_data' => '{}',
-                    'customer_command' => isset($action_data['customer_command']) && !empty($action_data['customer_command']) ? $action_data['customer_command'] : '',
-                    'action_sub_type' => isset($action_data['action_sub_type']) && !empty($action_data['action_sub_type']) ? $action_data['action_sub_type'] : '',
-                    'action_sub_value' => isset($action_data['action_sub_value']) && !empty($action_data['action_sub_value']) ? $action_data['action_sub_value'] : '',
-                );
-                if (is_admin()) {
-                    $admin_user = wp_get_current_user();
-                    $args['admin_user_id'] = $admin_user->ID;
-                }
-                $earn_trans_id = $earn_campaign_transaction_model->insertRow($args);
-                //wlr_log
-                if ($earn_trans_id == 0) {
-                    $status = false;
-                }
-                if ($status) {
-                    $log_data = array(
-                        'user_email' => sanitize_email($action_data['user_email']),
-                        'action_type' => $action_type,
-                        'earn_campaign_id' => (int)$earn_trans_id > 0 ? $earn_trans_id : 0,
-                        'campaign_id' => $args['campaign_id'],
-                        'note' => $action_data['note'],
-                        'customer_note' => isset($action_data['customer_note']) && !empty($action_data['customer_note']) ? $action_data['customer_note'] : '',
-                        'order_id' => $args['order_id'],
-                        'product_id' => $args['product_id'],
-                        'admin_id' => $args['admin_user_id'],
-                        'created_at' => $created_at,
-                        'modified_at' => 0,
-                        'points' => (int)$new_points,
-                        'action_process_type' => $action_data['action_process_type'],
-                        'referral_type' => isset($action_data['referral_type']) && !empty($action_data['referral_type']) ? $action_data['referral_type'] : '',
-                        'reward_id' => (int)isset($action_data['reward_id']) && !empty($action_data['reward_id']) ? $action_data['reward_id'] : 0,
-                        'user_reward_id' => (int)isset($action_data['user_reward_id']) && !empty($action_data['user_reward_id']) ? $action_data['user_reward_id'] : 0,
-                        'expire_email_date' => isset($action_data['expire_email_date']) && !empty($action_data['expire_email_date']) ? $action_data['expire_email_date'] : 0,
-                        'expire_date' => isset($action_data['expire_date']) && !empty($action_data['expire_date']) ? $action_data['expire_date'] : 0,
-                        'reward_display_name' => isset($action_data['reward_display_name']) && !empty($action_data['reward_display_name']) ? $action_data['reward_display_name'] : null,
-                        'required_points' => (int)isset($action_data['required_points']) && !empty($action_data['required_points']) ? $action_data['required_points'] : 0,
-                        'discount_code' => isset($action_data['discount_code']) && !empty($action_data['discount_code']) ? $action_data['discount_code'] : null,
-                    );
-                    $log_model->saveLog($log_data);
-                }
-            } else {
-                $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
-            }*/
             $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
             $data_logs = array(
                 'job_id' => $job_id,

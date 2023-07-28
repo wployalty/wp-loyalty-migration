@@ -15,7 +15,7 @@ class Validation
         $rule_validator = new Validator($post);
         $labels = array();
         $labels_fields = array(
-            'migration_action'
+            'migration_action','update_point'
         );
         $this_field = __("This field", "wp-loyalty-migration");
         foreach ($labels_fields as $label) {
@@ -23,7 +23,7 @@ class Validation
         }
         $rule_validator->labels($labels);
         $rule_validator->stopOnFirstFail(false);
-        $rule_validator->rule("required", array('migration_action'))->message(__("{field} is required", "wp-loyalty-migration"));
+        $rule_validator->rule("required", array('migration_action','update_point'))->message(__("{field} is required", "wp-loyalty-migration"));
         if ($rule_validator->validate()) {
             return true;
         } else {

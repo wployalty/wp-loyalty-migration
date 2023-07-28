@@ -25,6 +25,7 @@ class Router
             add_action("admin_menu", array(self::$admin, "addAdminMenu"), 11);
             add_action("admin_footer",array(self::$admin,'menuHide'));
             add_action("admin_enqueue_scripts",array(self::$admin,'addAssets'));
+            add_action('wp_ajax_wlrmg_confirm_update_points',array(self::$admin,'getConfirmContent'));
             add_action('wp_ajax_wlrmg_migrate_users',array(self::$admin,'migrateUsersWithPointsJob'));
             add_action('wp_ajax_wlrmg_save_settings',array(self::$admin,'saveSettings'));
             add_action("wp_ajax_wlrmg_export_popup", array(self::$admin, "exportPopup"));

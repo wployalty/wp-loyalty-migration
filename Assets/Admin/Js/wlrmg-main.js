@@ -18,7 +18,30 @@ wlrmg = window.wlrmg || {};
             }
         });
     }
-    wlrmg.migrateUsers = function (type) {
+    wlrmg.needConfirmPointUpdate = function (type) {
+        wlrmg_jquery.ajax({
+            url: wlrmg_localize_data.ajax_url,
+            type:"POST",
+            dataType:"json",
+            data:{
+                action:"wlrmg_confirm_update_points",
+                type:type,
+                wlrmg_nonce:wlrmg_localize_data.migrate_users,
+            },
+            cache:false,
+            async:false,
+            success:function (json){
+                if (json['status'] === true) {
+                    wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").addClass('active');
+                    wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section .wlrmg-overlay").html(json['data']['html']);
+                }
+            }
+        });
+    }
+
+    wlrmg.migrateUsers = function () {
+        let type = wlrmg_jquery("#wlrmg-popup #migration_type").val();
+        let update_point = wlrmg_jquery("#wlrmg-popup #update_point").val();
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'POST',
@@ -27,22 +50,23 @@ wlrmg = window.wlrmg || {};
                 action: 'wlrmg_migrate_users',
                 wlrmg_nonce: wlrmg_localize_data.migrate_users,
                 migration_action: type,
+                update_point: update_point,
             },
             cache: false,
             async: false,
             success: function (res) {
-                if(res.success)  {
+                if (res.success) {
                     alertify.success(res.data.message)
-                    setTimeout(function (){
+                    setTimeout(function () {
                         window.location.reload();
-                    },1000);
-                } else{
+                    }, 1000);
+                } else {
                     alertify.error(res.data.message);
                 }
             }
         });
     }
-    wlrmg.redirectToUrl = function (url){
+    wlrmg.redirectToUrl = function (url) {
         window.location.href = url;
     }
     wlrmg.exportPopUp = function (job_id, action) {
@@ -92,11 +116,11 @@ wlrmg = window.wlrmg || {};
                 setTimeout(function () {
                     alertify.alert().close();
                     location.reload();
-                },1500);
+                }, 1500);
             }
         })
     }
-    wlrmg.showExported = function (job_id, action_type,bulk_action_type){
+    wlrmg.showExported = function (job_id, action_type, bulk_action_type) {
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'POST',

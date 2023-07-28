@@ -35,7 +35,7 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
                                 </div>
                                 <div class="wlrmg-button-section">
                                 <?php if (isset($card['job_data']) && is_object($card['job_data']) && !isset($card['job_data']->uid)): ?>
-                                        <button class="wlrmg-button" type="button" <?php echo !$is_active ? 'disabled' : ''; ?> <?php echo $is_active ? 'onclick="wlrmg.migrateUsers(\''.$card['type'].'\')"' : ''; ?> ><?php _e('Migrate', 'wp-loyalty-migration') ?></button>
+                                        <button class="wlrmg-button" type="button" <?php echo !$is_active ? 'disabled' : ''; ?> <?php echo $is_active ? 'onclick="wlrmg.needConfirmPointUpdate(\''.$card['type'].'\')"' : ''; ?> ><?php _e('Migrate', 'wp-loyalty-migration') ?></button>
                                 <?php endif; ?>
                                 <?php if ((isset($card['job_data']) && is_object($card['job_data']) && isset($card['job_data']->uid) && $is_active) || $is_completed): ?>
                                         <a class="wlrmg-button wlrmg-view-button"

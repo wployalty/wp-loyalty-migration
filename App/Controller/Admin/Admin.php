@@ -291,7 +291,7 @@ class Admin extends Base
     function getAppDetails($plugins)
     {
         $log = wc_get_logger();
-        $log->add('app detail',json_encode($plugins));
+        $log->add('app detail', json_encode($plugins));
         if (is_array($plugins) && !empty($plugins)) {
             print_r($plugins);
             foreach ($plugins as &$plugin) {
@@ -300,7 +300,7 @@ class Admin extends Base
                     break;
                 }
             }
-            $log->add('app detail',json_encode($plugins));
+            $log->add('app detail', json_encode($plugins));
         }
         return $plugins;
     }
@@ -366,11 +366,15 @@ class Admin extends Base
             $max_uid = ($data_job->max_uid > 0) && isset($post['job_id']) && ($post['job_id'] > 0) ? $data_job->max_uid : $data_job->max_uid + 1;
         }
         $admin_mail = self::$woocommerce->get_login_user_email();
+        $condition = array(
+                'update_point' => isset($post['update_point']) && !empty($post['update_point']) ? $post['update_point'] : 'skip',
+        );
         $job_data = array(
             "uid" => $max_uid,
             "admin_mail" => $admin_mail,
             "action_type" => 'migration_to_wployalty',
             "action" => isset($post['migration_action']) && !empty($post['migration_action']) ? $post['migration_action'] : "",
+            "condition" => json_encode($condition),
             "status" => 'pending',
             "limit" => (int)isset($batch_limit) && $batch_limit > 0 ? $batch_limit : 0,
             "offset" => 0,
@@ -385,6 +389,39 @@ class Admin extends Base
         $result['success'] = true;
         $result['data']['message'] = __("Migration job created successfully.", "wp-loyalty-migration");
         $result['data']['job_id'] = $cron_job_id;
+        wp_send_json($result);
+    }
+
+    function getConfirmContent()
+    {
+        $result = array(
+            "success" => false,
+            "data" => array(
+                "message" => __("Security check failed", "wp-loyalty-migration"),
+            )
+        );
+        if (!$this->securityCheck('wlrmg_migrate_users_nonce')) wp_send_json($result);
+        $type = (string)self::$input->post_get('type','');
+        $validate_data = self::$validation->validateInputAlpha($type);
+//        if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
+//            foreach ($validate_data as $key => $validate) {
+//                $validate_data[$key] = current($validate);
+//            }
+//            $result["data"]["field_error"] = $validate_data;
+//            $result["data"]["message"] = __("Cant able to ", "wp-loyalty-migration");
+//            wp_send_json($result);
+//        }
+        $html ="";
+//        $view = (string)self::$input->post_get("view", "action");
+        $args = array(
+                'type' => $type,
+        );
+        if ($type == "wp_swings_migration"){
+            $html = self::$template->setData(WLRMG_VIEW_PATH . '/Admin/popup.php', $args)->render();
+        }
+        $result['status'] =true;
+        $result['data']['html'] = $html;
+        $result['data']['message'] = __('Update points to customers','wp-loyalty-migration');
         wp_send_json($result);
     }
 
@@ -414,7 +451,7 @@ class Admin extends Base
         $data = apply_filters('wlrmg_before_save_settings', $post);
         update_option('wlrmg_settings', $data);
         $result['success'] = true;
-        $result['data']['message'] = __("Settings saved successfully.", "wp-loyalty-bulk-action");
+        $result['data']['message'] = __("Settings saved successfully.", "wp-loyalty-migration");
         wp_send_json($result);
     }
 
@@ -449,7 +486,7 @@ class Admin extends Base
         if (is_object($data) && !empty($data)) {
             //process
             $action = isset($data->action) && !empty($data->action) ? $data->action : "";
-            $log->add('mig', "action => ".json_encode($action));
+            $log->add('mig', "action => " . json_encode($action));
             switch ($action) {
                 case 'wp_swings_migration':
                     $wp_swings = new WPSwings();
@@ -481,6 +518,7 @@ class Admin extends Base
         $action_list["migration_to_wployalty"] = __("User migrated via WPLoyalty Migration", "wp-loyalty-migration");
         return $action_list;
     }
+
     function addExtraPointLedgerAction($action_list)
     {
         if (empty($action_list) || !is_array($action_list)) return $action_list;
