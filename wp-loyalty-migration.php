@@ -52,12 +52,12 @@ defined('WLRMG_PLUGIN_NAME') or define('WLRMG_PLUGIN_NAME', 'WPLoyalty - Migrati
 defined('WLRMG_PLUGIN_VERSION') or define('WLRMG_PLUGIN_VERSION', '1.0.0');
 defined('WLRMG_TEXT_DOMAIN') or define('WLRMG_TEXT_DOMAIN', 'wp-loyalty-migration');
 defined('WLRMG_PLUGIN_SLUG') or define('WLRMG_PLUGIN_SLUG', 'wp-loyalty-migration');
-defined('WLRMG_PLUGIN_PATH') or define('WLRMG_PLUGIN_PATH', __DIR__ . '/');
-defined('WLRMG_PLUGIN_DIR') or define('WLRMG_PLUGIN_DIR', __DIR__ );
+defined('WLRMG_PLUGIN_PATH') or define('WLRMG_PLUGIN_PATH', str_replace("\\",'/',__DIR__). '/');
+defined('WLRMG_PLUGIN_DIR') or define('WLRMG_PLUGIN_DIR', str_replace("\\",'/',__DIR__) );
 defined('WLRMG_PLUGIN_URL') or define('WLRMG_PLUGIN_URL', plugin_dir_url(__FILE__));
 defined('WLRMG_PLUGIN_FILE') or define('WLRMG_PLUGIN_FILE', __FILE__);
 defined('WLRMG_PLUGIN_AUTHOR') or define('WLRMG_PLUGIN_AUTHOR', 'WPLoyalty');
-defined('WLRMG_VIEW_PATH') or define('WLRMG_VIEW_PATH', __DIR__.'/App/Views');
+defined('WLRMG_VIEW_PATH') or define('WLRMG_VIEW_PATH', str_replace("\\",'/',__DIR__).'/App/Views');
 defined('WLRMG_MINIMUM_PHP_VERSION') or define('WLRMG_MINIMUM_PHP_VERSION', '5.6.0');
 defined('WLRMG_MINIMUM_WP_VERSION') or define('WLRMG_MINIMUM_WP_VERSION', '4.9');
 defined('WLRMG_MINIMUM_WC_VERSION') or define('WLRMG_MINIMUM_WC_VERSION', '6.0');

@@ -4,6 +4,8 @@ namespace Wlrm\App\Controller\Admin;
 
 use Wlr\App\Helpers\Woocommerce;
 use Wlrm\App\Controller\Base;
+use Wlrm\App\Controller\Compatibles\WLPRPointsRewards;
+use Wlrm\App\Controller\Compatibles\WooPointsRewards;
 use Wlrm\App\Controller\Compatibles\WPSwings;
 use Wlrm\App\Controller\Compatibles\Yith;
 use Wlrm\App\Helper\CompatibleCheck;
@@ -230,19 +232,19 @@ class Admin extends Base
                     'is_show_migrate_button' => true,
                 ),
                 array(
-                    'type' => 'yith_migration',
-                    'title' => __('YITH points and rewards', 'wp-loyalty-migration'),
+                    'type' => 'wlpr_migration',
+                    'title' => __('WooCommerce Loyalty Points and Rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
-                    'is_active' => false,
-                    'job_data' => new \stdClass(),
+                    'is_active' => WLPRPointsRewards::checkPluginIsActive(),
+                    'job_data' => WLPRPointsRewards::getMigrationJob(),
                     'is_show_migrate_button' => true,
                 ),
                 array(
                     'type' => 'woocommerce',
                     'title' => __('Woocommerce points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
-                    'is_active' => false,
-                    'job_data' => new \stdClass(),
+                    'is_active' => WooPointsRewards::checkPluginIsActive(),
+                    'job_data' =>WooPointsRewards::getMigrationJob(),
                     'is_show_migrate_button' => true,
                 ),
             )
@@ -403,23 +405,25 @@ class Admin extends Base
         if (!$this->securityCheck('wlrmg_migrate_users_nonce')) wp_send_json($result);
         $type = (string)self::$input->post_get('type','');
         $validate_data = self::$validation->validateInputAlpha($type);
-//        if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
-//            foreach ($validate_data as $key => $validate) {
-//                $validate_data[$key] = current($validate);
-//            }
-//            $result["data"]["field_error"] = $validate_data;
-//            $result["data"]["message"] = __("Cant able to ", "wp-loyalty-migration");
-//            wp_send_json($result);
-//        }
+        /*if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
+            foreach ($validate_data as $key => $validate) {
+                $validate_data[$key] = current($validate);
+            }
+            $result["data"]["field_error"] = $validate_data;
+            $result["data"]["message"] = __("Cant able to ", "wp-loyalty-migration");
+            wp_send_json($result);
+        }*/
         $html ="";
-//        $view = (string)self::$input->post_get("view", "action");
         $args = array(
                 'type' => $type,
         );
-        if ($type == "wp_swings_migration"){
+        switch($type){
+            case 'wp_swings_migration':
+            case 'wlpr_migration':
             $html = self::$template->setData(WLRMG_VIEW_PATH . '/Admin/popup.php', $args)->render();
+                break;
         }
-        $result['status'] =true;
+        $result['status'] = true;
         $result['data']['html'] = $html;
         $result['data']['message'] = __('Update points to customers','wp-loyalty-migration');
         wp_send_json($result);
