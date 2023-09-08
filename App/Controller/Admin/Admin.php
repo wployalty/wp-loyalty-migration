@@ -121,8 +121,13 @@ class Admin extends Base
                 case 'wp_swings_migration':
                     $result['action_label'] = __('WP Swings Migration', 'wp-loyalty-migration');
                     break;
-                case 'yith_migration':
+                case 'wlpr_migration':
+                    $result['action_label'] = __('Woocommerce Loyalty Points and Rewards Migration', 'wp-loyalty-migration');
+                    break;
                 case 'woocommerce_migration':
+                    $result['action_label'] = __('Woocommerce Point and Rewards Migration', 'wp-loyalty-migration');
+                    break;
+                case 'yith_migration':
                 default:
                     break;
             }
