@@ -240,7 +240,7 @@ class Admin extends Base
                     'is_show_migrate_button' => true,
                 ),
                 array(
-                    'type' => 'woocommerce',
+                    'type' => 'woocommerce_migration',
                     'title' => __('Woocommerce points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
                     'is_active' => WooPointsRewards::checkPluginIsActive(),
@@ -420,6 +420,7 @@ class Admin extends Base
         switch($type){
             case 'wp_swings_migration':
             case 'wlpr_migration':
+            case 'woocommerce_migration':
             $html = self::$template->setData(WLRMG_VIEW_PATH . '/Admin/popup.php', $args)->render();
                 break;
         }
@@ -496,8 +497,15 @@ class Admin extends Base
                     $wp_swings = new WPSwings();
                     $wp_swings->migrateToLoyalty($data);
                     break;
+                case 'wlpr_migration':
+                    $wlpr_point_reward = new WLPRPointsRewards();
+                    $wlpr_point_reward->migrateToLoyalty($data);
+                    break;
+                case 'woocommerce_migration':
+                    $woo_point_reward = new WooPointsRewards();
+                    $woo_point_reward->migrateToLoyalty($data);
+                    break;
                 case 'yith_migration':
-                case 'woo_migration':
                 default:
                     return;
             }

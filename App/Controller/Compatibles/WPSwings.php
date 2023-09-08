@@ -67,9 +67,7 @@ class WPSwings implements Base
         }
         $loyalty_user_model = new Users();
         $campaign = EarnCampaign::getInstance();
-        $earn_campaign_transaction_model = new EarnCampaignTransactions();
         $helper_base = new \Wlr\App\Helpers\Base();
-        $log_model = new Logs();
         $condition = isset($data->condition) && !empty($data->condition) ? json_decode($data->condition, true) : array();
         foreach ($wp_users as $wp_user) {
             $user_email = !empty($wp_user) && is_object($wp_user) && isset($wp_user->user_email) && !empty($wp_user->user_email) ? $wp_user->user_email : "";

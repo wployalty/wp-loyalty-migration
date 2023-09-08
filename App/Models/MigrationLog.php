@@ -57,7 +57,7 @@ class MigrationLog extends Base
 
     function checkActionType($action_type)
     {
-        return in_array($action_type, apply_filters('wlrmg_action_types', array('wp_swings_migration')));
+        return in_array($action_type, apply_filters('wlrmg_action_types', array('wp_swings_migration','wlpr_migration','woocommerce_migration')));
     }
 
     function saveLogs($data, $action)

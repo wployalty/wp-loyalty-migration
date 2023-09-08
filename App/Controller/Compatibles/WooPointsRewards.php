@@ -19,7 +19,7 @@ class WooPointsRewards implements Base
     static function getMigrationJob()
     {
         $job_table = new MigrationJob();
-        $job = $job_table->getWhere("action = 'wp_swings_migration'");
+        $job = $job_table->getWhere("action = 'woocommerce_migration'");
         return (!empty($job) && is_object($job) && isset($job->uid)) ? $job : new \stdClass();
     }
 
