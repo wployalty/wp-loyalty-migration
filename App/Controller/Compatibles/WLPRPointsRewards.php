@@ -40,9 +40,12 @@ class WLPRPointsRewards implements Base
         if (isset($job_data->limit) && ($job_data->limit > 0)) {
             $where .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
         }
-        $select = " SELECT * FROM " . $wpdb->prefix . "_wlpr_points ";
+        $select = " SELECT * FROM " . $wpdb->prefix . "wlpr_points ";
         $query = $select . $where;
+        $log = wc_get_logger();
+        $log->add('mig', "action => " . json_encode(stripslashes($query)));
         $users = $wpdb->get_results(stripslashes($query));
+        $log->add('mig', "users => " . json_encode($users));
         $this->migrateUsers($users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
