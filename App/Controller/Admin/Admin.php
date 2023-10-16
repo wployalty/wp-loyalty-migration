@@ -12,6 +12,7 @@ use Wlrm\App\Helper\CompatibleCheck;
 use Wlrm\App\Helper\Pagination;
 use Wlrm\App\Models\MigrationJob;
 use Wlrm\App\Models\MigrationLog;
+use Wlrm\App\Models\ScheduledJobs;
 
 defined("ABSPATH") or die();
 
@@ -33,8 +34,8 @@ class Admin extends Base
     function createRequiredTable()
     {
         try {
-            $job = new MigrationJob();
-            $job->create();
+            $job_table = new ScheduledJobs();
+            $job_table->create();
             $log = new MigrationLog();
             $log->create();
         } catch (\Exception $e) {
@@ -94,7 +95,7 @@ class Admin extends Base
     {
         if (empty($job_id) || $job_id <= 0) return array();
         $job_table = new MigrationJob();
-        $where = self::$db->prepare(" uid = %d ", array($job_id));
+        $where = self::$db->prepare(" uid = %d AND source_app =%s", array($job_id,'wlr_migration'));
         $job_data = $job_table->getWhere($where);
         $result = array(
             'job_id' => $job_id,
