@@ -16,8 +16,8 @@ class MigrationJob extends Base
             "uid" => "%d",
             "admin_mail" => "%s",
             "action_type" => "%s",
-            "action" => "%s",
-            "condition" => "%s",
+            "action" => "%s",//category
+            "condition" => "%s",//conditions
             "status" => "%s",
             "limit" => "%d",
             "offset" => "%d",

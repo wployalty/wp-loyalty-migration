@@ -25,7 +25,7 @@ wlrmg = window.wlrmg || {};
             dataType:"json",
             data:{
                 action:"wlrmg_confirm_update_points",
-                type:type,
+                category:type,
                 wlrmg_nonce:wlrmg_localize_data.migrate_users,
             },
             cache:false,

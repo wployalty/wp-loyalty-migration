@@ -6,6 +6,7 @@ use Wlr\App\Helpers\EarnCampaign;
 use Wlr\App\Models\Users;
 use Wlrm\App\Models\MigrationJob;
 use Wlrm\App\Models\MigrationLog;
+use Wlrm\App\Models\ScheduledJobs;
 
 class WLPRPointsRewards implements Base
 {
@@ -22,7 +23,7 @@ class WLPRPointsRewards implements Base
     static function getMigrationJob()
     {
         $job_table = new MigrationJob();
-        $job = $job_table->getWhere("action = 'wlpr_migration'");
+        $job = $job_table->getWhere("category = 'wlpr_migration'");
         return (!empty($job) && is_object($job) && isset($job->uid)) ? $job : new \stdClass();
     }
 
@@ -50,7 +51,7 @@ class WLPRPointsRewards implements Base
     }
 
     function migrateUsers($users, $job_id, $data, $admin_mail, $action_type){
-        $migration_job_model = new MigrationJob();
+        $migration_job_model = new ScheduledJobs();
         $migration_log_model = new MigrationLog();
         if (count($users) == 0) {
             $data_logs['action'] = 'wlpr_migration_completed';
@@ -59,13 +60,13 @@ class WLPRPointsRewards implements Base
             $update_data = array(
                 "status" => "completed",
             );
-            $migration_job_model->updateRow($update_data, array("uid" => $job_id));
+            $migration_job_model->updateRow($update_data, array("uid" => $job_id,'source_app'=>'wlr_migration'));
             return;
         }
         $loyalty_user_model = new Users();
         $campaign = EarnCampaign::getInstance();
         $helper_base = new \Wlr\App\Helpers\Base();
-        $condition = isset($data->condition) && !empty($data->condition) ? json_decode($data->condition, true) : array();
+        $conditions = isset($data->conditions) && !empty($data->conditions) ? json_decode($data->conditions, true) : array();
         foreach ($users as $user) {
             $user_email = !empty($user) && is_object($user) && isset($user->user_email) && !empty($user->user_email) ? $user->user_email : "";
             if (empty($user_email)) {
@@ -76,14 +77,14 @@ class WLPRPointsRewards implements Base
             //check user exist in loyalty
             $user_points = $loyalty_user_model->getQueryData(array('user_email' => array('operator' => '=', 'value' => sanitize_email($user_email))), '*', array(), false, true);
             $created_at = strtotime(date("Y-m-d h:i:s"));
-            if (is_object($user_points) && isset($user_points->user_email) && isset($condition['update_point']) && $condition['update_point'] == 'skip') {
+            if (is_object($user_points) && isset($user_points->user_email) && isset($conditions['update_point']) && $conditions['update_point'] == 'skip') {
                 $data->last_processed_id = $user_id;
                 $update_status = array(
                     "status" => "processing",
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => $created_at,
                 );
-                $migration_job_model->updateRow($update_status, array('uid' => $job_id));
+                $migration_job_model->updateRow($update_status, array('uid' => $job_id,'source_app'=>'wlr_migration'));
                 continue;
             }
             $refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
@@ -119,7 +120,7 @@ class WLPRPointsRewards implements Base
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => strtotime(date("Y-m-d h:i:s")),
                 );
-                $migration_job_model->updateRow($update_status, array('uid' => $job_id));
+                $migration_job_model->updateRow($update_status, array('uid' => $job_id,'source_app'=>'wlr_migration'));
             }
         }
 

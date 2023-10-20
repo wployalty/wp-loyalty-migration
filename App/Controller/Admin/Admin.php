@@ -10,8 +10,8 @@ use Wlrm\App\Controller\Compatibles\WPSwings;
 use Wlrm\App\Controller\Compatibles\Yith;
 use Wlrm\App\Helper\CompatibleCheck;
 use Wlrm\App\Helper\Pagination;
-use Wlrm\App\Models\MigrationJob;
 use Wlrm\App\Models\MigrationLog;
+use Wlrm\App\Models\ScheduledJobs;
 
 defined("ABSPATH") or die();
 
@@ -33,7 +33,7 @@ class Admin extends Base
     function createRequiredTable()
     {
         try {
-            $job = new MigrationJob();
+            $job = new ScheduledJobs();
             $job->create();
             $log = new MigrationLog();
             $log->create();
@@ -93,8 +93,8 @@ class Admin extends Base
     function getActivityDetailsData($job_id)
     {
         if (empty($job_id) || $job_id <= 0) return array();
-        $job_table = new MigrationJob();
-        $where = self::$db->prepare(" uid = %d ", array($job_id));
+        $job_table = new ScheduledJobs();
+        $where = self::$db->prepare(" uid = %d AND source_app = %s ", array($job_id,'wlr_migration'));
         $job_data = $job_table->getWhere($where);
         $result = array(
             'job_id' => $job_id,
@@ -297,17 +297,13 @@ class Admin extends Base
 
     function getAppDetails($plugins)
     {
-        $log = wc_get_logger();
-        $log->add('app detail', json_encode($plugins));
         if (is_array($plugins) && !empty($plugins)) {
-            print_r($plugins);
             foreach ($plugins as &$plugin) {
                 if (is_array($plugin) && isset($plugin['plugin']) && $plugin['plugin'] == 'wp-loyalty-migration/wp-loyalty-migration.php') {
                     $plugin['page_url'] = admin_url('admin.php?' . http_build_query(array('page' => WLRMG_PLUGIN_SLUG)));
                     break;
                 }
             }
-            $log->add('app detail', json_encode($plugins));
         }
         return $plugins;
     }
@@ -355,9 +351,9 @@ class Admin extends Base
             $result["data"]["message"] = __("Records not saved", "wp-loyalty-migration");
             wp_send_json($result);
         }
-        $cron_job_modal = new MigrationJob();
+        $cron_job_modal = new ScheduledJobs();
         /* check job exist or not */
-        $where = self::$db->prepare('id > %d AND action =%s', array(0, $post['migration_action']));
+        $where = self::$db->prepare('id > %d AND source_app = %s AND category =%s', array(0,'wlr_migration', $post['migration_action']));
         $check_data_job = $cron_job_modal->getWhere($where, '*', true);
         if (!empty($check_data_job)) {
             $result['data']['message'] = __('Migration job already created', 'wp-loyalty-migration');
@@ -368,27 +364,39 @@ class Admin extends Base
         && $wlrmg_setttings['batch_limit'] > 0 ? $wlrmg_setttings['batch_limit'] : 10;
         $where = self::$db->prepare('id > %d', array(0));
         $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid', true);
-        $max_uid = 1;
+        /*$max_uid = 1;
         if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid) && !empty($data_job->max_uid)) {
             $max_uid = ($data_job->max_uid > 0) && isset($post['job_id']) && ($post['job_id'] > 0) ? $data_job->max_uid : $data_job->max_uid + 1;
+        }*/
+        $max_uid = 1;
+        if (isset($post['job_id']) && !empty($post['job_id'])) {
+            $max_uid = $post['job_id'];
+        } else {
+            $cron_job_modal = new ScheduledJobs();
+            $where = self::$db->prepare('source_app=%s AND id > %d', array("wlr_migration", 0));
+            $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid', true);
+            if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid)) {
+                $max_uid = $data_job->max_uid + 1;
+            }
         }
         $admin_mail = self::$woocommerce->get_login_user_email();
-        $condition = array(
+        $conditions = array(
                 'update_point' => isset($post['update_point']) && !empty($post['update_point']) ? $post['update_point'] : 'skip',
         );
         $job_data = array(
             "uid" => $max_uid,
+            "source_app" =>'wlr_migration',
             "admin_mail" => $admin_mail,
+            "category" => isset($post['migration_action']) && !empty($post['migration_action']) ? $post['migration_action'] : "",
             "action_type" => 'migration_to_wployalty',
-            "action" => isset($post['migration_action']) && !empty($post['migration_action']) ? $post['migration_action'] : "",
-            "condition" => json_encode($condition),
+            "conditions" => json_encode($conditions),
             "status" => 'pending',
             "limit" => (int)isset($batch_limit) && $batch_limit > 0 ? $batch_limit : 0,
             "offset" => 0,
             "last_processed_id" => 0,
             "created_at" => strtotime(date("Y-m-d h:i:s")),
         );
-        $job_table_model = new MigrationJob();
+        $job_table_model = new ScheduledJobs();
         $cron_job_id = $job_table_model->insertRow($job_data);
         if ($cron_job_id <= 0) {
             wp_send_json($result);
@@ -408,8 +416,8 @@ class Admin extends Base
             )
         );
         if (!$this->securityCheck('wlrmg_migrate_users_nonce')) wp_send_json($result);
-        $type = (string)self::$input->post_get('type','');
-        $validate_data = self::$validation->validateInputAlpha($type);
+        $category = (string)self::$input->post_get('category','');
+        $validate_data = self::$validation->validateInputAlpha($category);
         /*if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
             foreach ($validate_data as $key => $validate) {
                 $validate_data[$key] = current($validate);
@@ -420,9 +428,9 @@ class Admin extends Base
         }*/
         $html ="";
         $args = array(
-                'type' => $type,
+                'category' => $category,
         );
-        switch($type){
+        switch($category){
             case 'wp_swings_migration':
             case 'wlpr_migration':
             case 'woocommerce_migration':
@@ -483,7 +491,7 @@ class Admin extends Base
 
     function triggerMigrations()
     {
-        $job_table = new MigrationJob();
+        $job_table = new ScheduledJobs();
         $where = self::$db->prepare(" id > 0 AND status IN (%s,%s) ORDER BY id ASC", array("pending", "processing"));
         $data = $job_table->getWhere($where);
         $log = wc_get_logger();
@@ -495,9 +503,9 @@ class Admin extends Base
         set_transient($process_identifier, true, 60);
         if (is_object($data) && !empty($data)) {
             //process
-            $action = isset($data->action) && !empty($data->action) ? $data->action : "";
-            $log->add('mig', "action => " . json_encode($action));
-            switch ($action) {
+            $category = isset($data->category) && !empty($data->category) ? $data->category : "";
+            $log->add('mig', "category => " . json_encode($category));
+            switch ($category) {
                 case 'wp_swings_migration':
                     $wp_swings = new WPSwings();
                     $wp_swings->migrateToLoyalty($data);

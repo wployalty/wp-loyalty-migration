@@ -11,7 +11,7 @@
  * Requires at least: 4.9.0
  * WC requires at least: 6.5
  * WC tested up to: 7.6
- * Contributors: WPLoyalty, Ilaiyaraja
+ * Contributors: WPLoyalty, Ilaiyaraja A
  * Author URI: https://wployalty.net/
  * License: GPLv2 or later
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
