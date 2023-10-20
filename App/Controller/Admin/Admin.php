@@ -33,8 +33,8 @@ class Admin extends Base
     function createRequiredTable()
     {
         try {
-            $job = new ScheduledJobs();
-            $job->create();
+            $job_table = new ScheduledJobs();
+            $job_table->create();
             $log = new MigrationLog();
             $log->create();
         } catch (\Exception $e) {
@@ -93,8 +93,8 @@ class Admin extends Base
     function getActivityDetailsData($job_id)
     {
         if (empty($job_id) || $job_id <= 0) return array();
-        $job_table = new ScheduledJobs();
-        $where = self::$db->prepare(" uid = %d AND source_app = %s ", array($job_id,'wlr_migration'));
+        $job_table = new MigrationJob();
+        $where = self::$db->prepare(" uid = %d AND source_app =%s", array($job_id,'wlr_migration'));
         $job_data = $job_table->getWhere($where);
         $result = array(
             'job_id' => $job_id,
