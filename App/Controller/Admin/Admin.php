@@ -157,7 +157,7 @@ class Admin extends Base
             "queryStringSegment" => "migration_page",
         );
         $pagination = new Pagination($pagination_param);
-        return apply_filters('wlrmg_bulk_action_activity_details', array(
+        return apply_filters('wlrmg_activity_details', array(
             "base_url" => $url,
             "pagination" => $pagination,
             "per_page" => $per_page,
@@ -165,59 +165,6 @@ class Admin extends Base
             "activity_list" => (array)is_array($activity_list) && isset($activity_list["data"]) ? $activity_list["data"] : array(),
             'show_export_file_download' => (int)is_array($activity_list) && isset($activity_list["export_file_list"]) ? count($activity_list["export_file_list"]) : 0,
             'export_csv_file_list' => is_array($activity_list) && isset($activity_list["export_file_list"]) ? $activity_list["export_file_list"] : array(),
-        ));
-    }
-
-    function getActivityLogs()
-    {
-        $where = "";
-        $current_page = (int)self::$input->post_get("page_number", 1);
-        $settings = get_option('wlrmg_settings');
-        $default_pagination_limit = !empty($settings) && is_array($settings) && $settings['pagination_limit'] > 0 ? $settings['pagination_limit'] : 10;
-        $limit = (int)self::$input->post_get("per_page", $default_pagination_limit);
-        $offset = $limit * ($current_page - 1);
-        $condition = (string)self::$input->post_get("condition", "all");
-        $count_where = self::$db->prepare(" id > %d ", array(0));
-        if (!empty($condition) && $condition !== "all") {
-            $where .= self::$db->prepare("action_type = %s AND ", array($condition));
-            $count_where .= self::$db->prepare(" AND action_type = %s  ", array($condition));
-        }
-        $where .= self::$db->prepare(" id > %d ORDER BY id DESC", array(0));
-        if (($offset >= 0) && !empty($limit)) {
-            $where .= self::$db->prepare(" LIMIT %d OFFSET %d ", array($limit, $offset));
-        }
-        $job_table = new MigrationJob();
-        $bulk_action_lists = $job_table->getWhere($where, "*", false);
-        $total_count = $job_table->getWhere($count_where, "COUNT(id) as total_count", true);
-        $migration_actions = array();
-        $woocommerce_helper = Woocommerce::getInstance();
-        foreach ($bulk_action_lists as $list) {
-            if (!is_object($list)) {
-                continue;
-            }
-            $show_edit_category = '';
-            if ($list->action_type == 'wp_swings_migration') {
-                $show_edit_category = 'wp_swings';
-            }
-            $job_id = isset($list->uid) && !empty($list->uid) ? $list->uid : 0;
-            $migration_actions[] = array(
-                "image_icon" => isset($list->action_type) && !empty($list->action_type) ? $list->action_type : "",
-                "action" => isset($list->action) && !empty($list->action) ? $list->action : "",
-                "points" => isset($list->points) && !empty($list->points) ? $list->points : 0,
-                "job_id" => $job_id,
-                "status" => isset($list->status) && !empty($list->status) ? $list->status : 0,
-                "processed_count" => $list->offset,
-                "total_count" => isset($list->total) && !empty($list->total) ? $list->total : 0,
-                "date" => $woocommerce_helper->beforeDisplayDate($list->created_at, "d M,Y h:i a"),
-                "show_edit_button" => (isset($list->status) && !empty($list->status) && in_array($list->status, array("draft", "pending"))),
-                "show_edit_category" => $show_edit_category,
-            );
-        }
-        return apply_filters('wlrmg_before_activity_log_lists', array(
-            "data" => $migration_actions,
-            "total_rows" => isset($total_count->total_count) && $total_count->total_count > 0 ? $total_count->total_count : 0,
-            "current_page" => $current_page,
-            "per_page" => $limit,
         ));
     }
 
@@ -366,12 +313,7 @@ class Admin extends Base
         $wlrmg_setttings = get_option('wlrmg_settings');
         $batch_limit = (int)is_array($wlrmg_setttings) && isset($wlrmg_setttings['batch_limit']) && !empty($wlrmg_setttings['batch_limit'])
         && $wlrmg_setttings['batch_limit'] > 0 ? $wlrmg_setttings['batch_limit'] : 10;
-        /* $where = self::$db->prepare('id > %d', array(0));
-        $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid', true);
-       $max_uid = 1;
-        if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid) && !empty($data_job->max_uid)) {
-            $max_uid = ($data_job->max_uid > 0) && isset($post['job_id']) && ($post['job_id'] > 0) ? $data_job->max_uid : $data_job->max_uid + 1;
-        }*/
+
         $max_uid = 1;
         if (isset($post['job_id']) && !empty($post['job_id'])) {
             $max_uid = $post['job_id'];
@@ -499,7 +441,7 @@ class Admin extends Base
     function triggerMigrations()
     {
         $job_table = new ScheduledJobs();
-        $where = self::$db->prepare(" id > 0 AND status IN (%s,%s) ORDER BY id ASC", array("pending", "processing"));
+        $where = self::$db->prepare("  source_app = %s AND id > 0 AND status IN (%s,%s) ORDER BY id ASC", array("wlr_migration","pending", "processing"));
         $data = $job_table->getWhere($where);
         $log = wc_get_logger();
         $log->add('mig', json_encode($data));
