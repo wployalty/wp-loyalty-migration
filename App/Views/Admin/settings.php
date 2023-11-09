@@ -16,7 +16,7 @@ $option_settings = isset($option_settings) && !empty($option_settings) && is_arr
                     <img src="<?php echo (isset($previous) && !empty($previous)) ? $previous : ""; ?>"
                          alt="<?php echo __("Cancel", "wp-loyalty-migration") ?>">
                     <?php _e("Back to WPLoyalty", "wp-loyalty-migration"); ?></button>
-                <button class="wlrmg-button-action colored-button" onclick="wlrmg.saveSettings()">
+                <button class="wlrmg-button-action colored-button" id="wlrmg-save-settings" onclick="wlrmg.saveSettings()">
                     <i class="wlr wlrf-save"></i><?php _e('Save', 'wp-loyalty-migration'); ?>
                 </button>
             </div>

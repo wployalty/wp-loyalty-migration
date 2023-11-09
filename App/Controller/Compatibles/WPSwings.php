@@ -56,6 +56,9 @@ class WPSwings implements Base
     {
         $migration_job_model = new ScheduledJobs();
         $migration_log_model = new MigrationLog();
+        $data_logs = array(
+            'job_id' => $job_id,
+        );
         if (count($wp_users) == 0) {
             $data_logs['action'] = 'wp_swings_migration_completed';
             $data_logs['note'] = __('No available records for processing.', 'wp-loyalty-migration');
@@ -97,8 +100,8 @@ class WPSwings implements Base
                 "points" => $new_points,
                 "referral_code" => $refer_code,
                 "action_process_type" => "earn_point",
-                "customer_note" => sprintf(__("Added %d %s by site administrator(%s) via loyalty migration", "wp-loyalty-migration"), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
-                "note" => sprintf(__("%s customer migrated with %d %s by administrator(%s) via loyalty migration", "wp-loyalty-migration"), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
+                "customer_note" => sprintf(__("Added %d %s by site administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
+                "note" => sprintf(__("%s customer migrated with %d %s by administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
             );
             $trans_type = 'credit';
             $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);

@@ -18,7 +18,7 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
             <div class="wlrmg-job-details">
                 <div
                     class="wlrmg-header">
-                    <h4><?php echo esc_html(sprintf(__("Activity - %s ( %s )", "wp-loyalty-migration"), $job_data['action_label'],$job_data['status'])); ?></h4>
+                    <h4><?php echo esc_html(sprintf(__("Activity - %s ", "wp-loyalty-migration"), $job_data['action_label'])); ?></h4>
                 </div>
                 <div class="wlrmg-description">
                     <div class="wlrmg-activity-date">
@@ -28,10 +28,16 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                         <?php endif; ?>
                     </div>
                     <div class="wlrmg-activity-date">
-                        <p class="wlrmg-desc-label"><?php echo esc_html__("Processed", "wp-loyalty-migration") ?></p>
+                        <p class="wlrmg-desc-label"><?php echo esc_html__("Processed items", "wp-loyalty-migration") ?></p>
                         <?php if (isset($job_data["offset"])): ?>
                             <p class="wlrmg-desc-value"><?php echo esc_html__($job_data["offset"], "wp-loyalty-migration"); ?></p>
                         <?php endif; ?>
+                    </div>
+                    <div>
+                        <p class=".wlrmg-desc-label"><?php echo esc_html__('Status','wp-loyalty-migration');?></p>
+                        <p class="wlrmg-desc-value wlrmg-activity-status">
+                        <span class="<?php echo !empty($job_data['status']) ? "wlrmg-".$job_data['status'] : "" ;?>"><?php echo ucfirst($job_data['status']);?></span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -44,17 +50,17 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                         <div>
                             <h4><?php echo esc_html__("Action details", "wp-loyalty-migration"); ?></h4>
                         </div>
-                       <!-- <?php
-/*                        if (isset($action_activity['activity_list']) && count($action_activity['activity_list']) > 1): */?>
-                            <div class="wlrmg-activity-button-section">
+                        <?php
+                        if (isset($action_activity['activity_list']) && count($action_activity['activity_list']) > 0): ?>
+                            <!--<div class="wlrmg-activity-button-section">
                                 <?php /*if (isset($action_activity['show_export_file_download']) && !empty($action_activity['show_export_file_download'])): */?>
                                     <button class="wlrmg-button-action" type="button"
                                             onclick="wlrmg.showExported(<?php /*echo $activity['job_id']; */?>,'bulk_action','<?php /*echo $action; */?>')"><?php /*echo __('Show Exported File', 'wp-loyalty-migration'); */?></button>
                                 <?php /*endif; */?>
                                 <button class="wlrmg-button-action wlrmg-export-button" type="button"
                                         onclick="wlrmg.exportPopUp(<?php /*echo $activity['job_id']; */?>,'<?php /*echo $action; */?>')"><?php /*echo __('Export', 'wp-loyalty-migration'); */?></button>
-                            </div>
-                        --><?php /*endif; */?>
+                            </div>-->
+                        <?php endif; ?>
                     </div>
                     <div id="wlrmg-activity-list-table" class="wlrmg-table">
                         <div id="wlrmg-activity-list-table-header" class="wlrmg-table-header">

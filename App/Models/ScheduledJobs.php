@@ -55,7 +55,7 @@ class ScheduledJobs extends Base
                  `created_at` BIGINT DEFAULT 0,
 				 `updated_at` BIGINT DEFAULT 0,
 				  PRIMARY KEY (`{$this->getPrimaryKey()}`),
-                  UNIQUE KEY (`uid`)
+                  UNIQUE KEY (`uid`))
 				 ";
         $this->createTable($create_table_query);
     }

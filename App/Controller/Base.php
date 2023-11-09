@@ -28,5 +28,13 @@ class Base
         $wlba_nonce = (string)self::$input->post_get("wlrmg_nonce", "");
         return (!Woocommerce::hasAdminPrivilege() || !Woocommerce::verify_nonce($wlba_nonce, $nonce_name)) == false;
     }
+    function getTemplatePath($path = '')
+    {
+        if (!is_string($path)) return '';
+        $path = trim($path, '/');
+        $template_path = trim(get_template_directory(), '/') . '/' . WLRMG_PLUGIN_SLUG . '/' . $path;
+        if (!file_exists($template_path)) $template_path = WLRMG_VIEW_PATH . '/' . $path;
+        return $template_path;
+    }
 
 }

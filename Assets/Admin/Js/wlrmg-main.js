@@ -2,9 +2,19 @@ if (typeof wlrmg_jquery == 'undefined') {
     wlrmg_jquery = jQuery.noConflict();
 }
 wlrmg = window.wlrmg || {};
+wlrmg_jquery(document).ready(function () {
+    wlrmg_jquery('#wlrmg-main-page .wlrmg-multi-select').select2();
+});
 (function () {
     alertify.set('notifier', 'position', 'top-right');
     wlrmg.saveSettings = function () {
+        var button = wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings");
+        if (button.attr('disabled') === 'disabled') {
+            return;
+        }
+        button.attr('disabled', true);
+        wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings").css({'cursor':'not-allowed','opacity':'0.4'});
+
         let form_data = wlrmg_jquery('#wlrmg-main-page #wlrmg-settings #settings-form').serialize();
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
@@ -12,9 +22,11 @@ wlrmg = window.wlrmg || {};
             dataType: 'json',
             data: form_data + '&action=wlrmg_save_settings&wlrmg_nonce=' + wlrmg_localize_data.save_settings,
             cache: false,
-            async: false,
             success: function (res) {
                 (res.success) ? alertify.success(res.data.message) : alertify.error(res.data.message);
+                button.removeAttr('onclick');
+                button.attr('disabled', false).attr('onclick', 'wlrmg.saveSettings()');
+                wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings").css({'cursor':'pointer','opacity':'1'});
             }
         });
     }
@@ -34,6 +46,8 @@ wlrmg = window.wlrmg || {};
                 if (json['status'] === true) {
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").addClass('active');
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section .wlrmg-overlay").html(json['data']['html']);
+                    console.log(wlrmg_jquery('#wlrmg-main-page #wlrmg-overlay-section #update_point.wlrmg-multi-select'));
+                    wlrmg_jquery('#wlrmg-main-page #wlrmg-overlay-section #update_point.wlrmg-multi-select').select2();
                 }
             }
         });

@@ -85,11 +85,15 @@ class MigrationLog extends Base
             return array();
         }
         $input = new Input();
+        $cron_job_modal = new ScheduledJobs();
+        $where = self::$db->prepare(" uid = %d AND source_app=%s",array($job_id,'wlr_migration'));
+        $job_data = $cron_job_modal->getwhere($where);
+
         $settings = get_option('wlrmg_settings');
         $default_pagination_limit = !empty($settings) && is_array($settings) && $settings['pagination_limit'] > 0 ? $settings['pagination_limit'] : 10;
         $limit = (int)$input->post_get("per_page", $default_pagination_limit);
         $offset = $limit * ($current_page - 1);
-        $where = self::$db->prepare(" id > %d", array(0));
+        $where = self::$db->prepare(" id > %d AND action NOT IN(%s)", array(0,$job_data->category.'_completed'));
         if (!empty($job_id)) {
             $where .= self::$db->prepare(" AND job_id=%d ", array($job_id));
         }
@@ -99,10 +103,8 @@ class MigrationLog extends Base
             $where .= self::$db->prepare(" LIMIT %d OFFSET %d ", array($limit, $offset));
         }
         $log_list = $this->getWhere($where, "*", false);
-        $cron_job_modal = new MigrationJob();
-        $where = self::$db->prepare(" uid = %d ",array($job_id));
-        $job_data = $cron_job_modal->getwhere($where);
-        $export_files = $this->exportFileList(array('action' => $job_data->action, 'job_id' => $job_id));
+
+        $export_files = $this->exportFileList(array('category' => $job_data->category, 'job_id' => $job_id));
         return apply_filters('wlrmg_before_activity_log_list', array(
             'data' => $log_list,
             "total_rows" => isset($total_count->total_count) && $total_count->total_count > 0 ? $total_count->total_count : 0,
@@ -114,7 +116,7 @@ class MigrationLog extends Base
     function exportFileList($post)
     {
         $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
-        $file_name = $post['action'] . '_' . $post['job_id'] . '_export_*.*';
+        $file_name = $post['category'] . '_' . $post['job_id'] . '_export_*.*';
         $delete_file_path = trim($path . '/' . $file_name);
         $download_list = array();
         foreach (glob($delete_file_path) as $file_path) {

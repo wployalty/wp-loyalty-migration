@@ -93,9 +93,10 @@ class Admin extends Base
     function getActivityDetailsData($job_id)
     {
         if (empty($job_id) || $job_id <= 0) return array();
-        $job_table = new MigrationJob();
+        $job_table = new ScheduledJobs();
         $where = self::$db->prepare(" uid = %d AND source_app =%s", array($job_id,'wlr_migration'));
         $job_data = $job_table->getWhere($where);
+
         $result = array(
             'job_id' => $job_id,
         );
@@ -114,10 +115,10 @@ class Admin extends Base
             'offset' => isset($job_data->offset) && !empty($job_data->offset) ? $job_data->offset : 0,
             'admin_mail' => isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '',
             'status' => isset($job_data->status) && !empty($job_data->status) ? $job_data->status : '',
-            'action' => isset($job_data->action) && !empty($job_data->action) ? $job_data->action : '',
+            'action' => isset($job_data->category) && !empty($job_data->category) ? $job_data->category : '',
         );
-        if (is_object($job_data) && isset($job_data->action)) {
-            switch ($job_data->action) {
+        if (is_object($job_data) && isset($job_data->category)) {
+            switch ($job_data->category) {
                 case 'wp_swings_migration':
                     $result['action_label'] = __('WP Swings Migration', 'wp-loyalty-migration');
                     break;
@@ -321,8 +322,8 @@ class Admin extends Base
         wp_enqueue_style(WLR_PLUGIN_SLUG . '-wlr-font', WLR_PLUGIN_URL . 'Assets/Site/Css/wlr-fonts' . $suffix . '.css', array(), WLR_PLUGIN_VERSION . '&t=' . time());
         wp_enqueue_script(WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', array(), WLR_PLUGIN_VERSION . '&t=' . time());
         wp_enqueue_style(WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', array(), WLR_PLUGIN_VERSION . '&t=' . time());
-        wp_enqueue_style(WLRMG_PLUGIN_SLUG . "-main-style", WLRMG_PLUGIN_URL . "Assets/Admin/Css/wlrmg-main.css", array("woocommerce_admin_styles"), WLRMG_PLUGIN_VERSION);
-        wp_enqueue_script(WLRMG_PLUGIN_SLUG . "-main-script", WLRMG_PLUGIN_URL . "Assets/Admin/Js/wlrmg-main" . $suffix . ".js", array("jquery"), WLRMG_PLUGIN_VERSION . "&t=" . time());
+        wp_enqueue_style(WLRMG_PLUGIN_SLUG . "-main-style", WLRMG_PLUGIN_URL . "Assets/Admin/Css/wlrmg-main.css", array("woocommerce_admin_styles"), WLRMG_PLUGIN_VERSION. "&t=" . time());
+        wp_enqueue_script(WLRMG_PLUGIN_SLUG . "-main-script", WLRMG_PLUGIN_URL . "Assets/Admin/Js/wlrmg-main" . $suffix . ".js", array("jquery","select2"), WLRMG_PLUGIN_VERSION . "&t=" . time());
         $localize_data = apply_filters('wlrmg_before_localize_data', array(
             "ajax_url" => admin_url("admin-ajax.php"),
             "migrate_users" => Woocommerce::create_nonce("wlrmg_migrate_users_nonce"),
@@ -340,8 +341,11 @@ class Admin extends Base
                 "message" => __("Security check failed", "wp-loyalty-migration"),
             )
         );
-        if (!$this->securityCheck('wlrmg_migrate_users_nonce')) wp_send_json($result);
+        if (!$this->securityCheck('wlrmg_migrate_users_nonce')) {
+            wp_send_json($result);
+        }
         $post = self::$input->post();
+
         $validate_data = self::$validation->validateMigrationData($post);
         if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
             foreach ($validate_data as $key => $validate) {
@@ -362,9 +366,9 @@ class Admin extends Base
         $wlrmg_setttings = get_option('wlrmg_settings');
         $batch_limit = (int)is_array($wlrmg_setttings) && isset($wlrmg_setttings['batch_limit']) && !empty($wlrmg_setttings['batch_limit'])
         && $wlrmg_setttings['batch_limit'] > 0 ? $wlrmg_setttings['batch_limit'] : 10;
-        $where = self::$db->prepare('id > %d', array(0));
+        /* $where = self::$db->prepare('id > %d', array(0));
         $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid', true);
-        /*$max_uid = 1;
+       $max_uid = 1;
         if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid) && !empty($data_job->max_uid)) {
             $max_uid = ($data_job->max_uid > 0) && isset($post['job_id']) && ($post['job_id'] > 0) ? $data_job->max_uid : $data_job->max_uid + 1;
         }*/
@@ -373,7 +377,7 @@ class Admin extends Base
             $max_uid = $post['job_id'];
         } else {
             $cron_job_modal = new ScheduledJobs();
-            $where = self::$db->prepare('source_app=%s AND id > %d', array("wlr_migration", 0));
+            $where = self::$db->prepare(' id > %d', array( 0));
             $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid', true);
             if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid)) {
                 $max_uid = $data_job->max_uid + 1;
@@ -399,6 +403,7 @@ class Admin extends Base
         $job_table_model = new ScheduledJobs();
         $cron_job_id = $job_table_model->insertRow($job_data);
         if ($cron_job_id <= 0) {
+            $result['data']['message'] = __("Migration job can't be created.", "wp-loyalty-migration");
             wp_send_json($result);
         }
         $result['success'] = true;
@@ -415,7 +420,9 @@ class Admin extends Base
                 "message" => __("Security check failed", "wp-loyalty-migration"),
             )
         );
-        if (!$this->securityCheck('wlrmg_migrate_users_nonce')) wp_send_json($result);
+        if (!$this->securityCheck('wlrmg_migrate_users_nonce')) {
+            wp_send_json($result);
+        }
         $category = (string)self::$input->post_get('category','');
         $validate_data = self::$validation->validateInputAlpha($category);
         /*if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
@@ -549,5 +556,51 @@ class Admin extends Base
         if (empty($action_list) || !is_array($action_list)) return $action_list;
         $action_list[] = "migration_to_wployalty";
         return $action_list;
+    }
+    function exportPopup()
+    {
+        $result = array(
+            "success" => false,
+            "data" => array(),
+        );
+        if (!$this->securityCheck('wlrmg_popup_nonce')) {
+            $result['data']['message'] = __("Security check failed", "wp-loyalty-bulk-action");
+            wp_send_json($result);
+        }
+        if (!is_writable(WLRMG_PLUGIN_DIR . '/App/File/') && function_exists('chmod')) {
+            $add_permission = @chmod(WLRMG_PLUGIN_DIR . '/App/File/', 0777);
+            if (!$add_permission) {
+                wp_send_json_error(array('message' => __('Permission denied to write a file', 'wp-loyalty-bulk-action')));
+            }
+        }
+        $post = self::$input->post();
+        $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
+        $file_name = $post['migration_action'] . '_' . $post['job_id'] . '_export_*.*';
+        $delete_file_path = trim($path . '/' . $file_name);
+        foreach (glob($delete_file_path) as $file_path) {
+            if (file_exists($file_path)) {
+                wp_delete_file($file_path);
+            }
+        }
+        $base_url = admin_url('admin.php?' . http_build_query(array('page' => WLRMG_PLUGIN_SLUG, 'view' => 'activity_details', 'job_id' => $post['job_id'])));
+        $log_table = new MigrationLog();
+        $query = self::$db->prepare(" id > 0 AND action != %s AND job_id = %d AND user_email !='' ", array($post['migration_action']."_completed", (int)$post["job_id"]));
+        $log_count = $log_table->getWhere($query, "count(*) as total_count", true);
+        $page_details = array(
+            'base_url' => $base_url,
+            'total_count' => $log_count->total_count,
+            'process_count' => 0,
+            'limit_start' => 0,
+            'limit' => 5,
+            'wlrmg_nonce' => Woocommerce::create_nonce('wlrmg_export_nonce'),
+            'job_id' => $post['job_id'],
+            'category' => $post['migration_action'],
+        );
+        $template_path = $this->getTemplatePath("Admin/export_logs.php");
+        $html = self::$template->setData($template_path, $page_details)->render();
+        $result['success'] = true;
+        $result['data']['success'] = 'completed';
+        $result['data']['html'] = $html;
+        wp_send_json($result);
     }
 }
