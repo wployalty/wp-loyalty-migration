@@ -1,4 +1,10 @@
-<?php defined("ABSPATH") or die();
+<?php
+/**
+ * @author      Wployalty (Ilaiyaraja)
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ * @link        https://www.wployalty.net
+ * */
+defined("ABSPATH") or die();
 $current_page = (isset($current_page) && !empty($current_page)) ? $current_page : $current_page = "activity_details";
 $activity = (isset($activity) && !empty($activity)) ? $activity : array();
 $job_data = isset($activity['job_data']) && !empty($activity['job_data']) ? $activity['job_data'] : array();

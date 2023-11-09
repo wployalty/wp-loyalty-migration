@@ -1,4 +1,9 @@
 <?php
+/**
+ * @author      Wployalty (Ilaiyaraja)
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ * @link        https://www.wployalty.net
+ * */
 defined('ABSPATH') or die();
 $current_page = (isset($current_page) && !empty($current_page)) ? $current_page : $current_page = "actions";
 ?>

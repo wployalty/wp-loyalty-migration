@@ -1,4 +1,10 @@
-<?php defined("ABSPATH") or die(); ?>
+<?php
+/**
+ * @author      Wployalty (Ilaiyaraja)
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ * @link        https://www.wployalty.net
+ * */
+defined("ABSPATH") or die(); ?>
 
 <div class="wlrmg-export-popup">
     <div class="wlrmg-section">
