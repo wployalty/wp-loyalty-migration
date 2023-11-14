@@ -95,11 +95,17 @@ class MigrationLog extends Base
 
         $settings = get_option('wlrmg_settings');
         $default_pagination_limit = !empty($settings) && is_array($settings) && $settings['pagination_limit'] > 0 ? $settings['pagination_limit'] : 10;
+        $search = (string)$input->post_get("search", "");
+        $search = sanitize_text_field($search);
         $limit = (int)$input->post_get("per_page", $default_pagination_limit);
         $offset = $limit * ($current_page - 1);
         $where = self::$db->prepare(" id > %d AND action NOT IN(%s)", array(0,$job_data->category.'_completed'));
         if (!empty($job_id)) {
             $where .= self::$db->prepare(" AND job_id=%d ", array($job_id));
+        }
+        if (!empty($search)) {
+            $search_key = '%' . $search . '%';
+            $where .= self::$db->prepare(' AND (user_email like %s )', array($search_key));
         }
         $where .= self::$db->prepare(" ORDER BY %s DESC ", array('id'));
         $total_count = $this->getWhere($where, "COUNT(id) as total_count", true);

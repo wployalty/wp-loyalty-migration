@@ -12,6 +12,13 @@ wlrmg_jquery(document).ready(function () {
 });
 (function () {
     alertify.set('notifier', 'position', 'top-right');
+    wlrmg.searchActivityByEmail = function (url){
+        let email = wlrmg_jquery("#wlrmg-main-page #wlrmg-activity-details #search_email").val();
+        if(email !== ""){
+            url = url+"&search="+email;
+        }
+        window.location.href = url+"#wlrmg-activity-list-table";
+    }
     wlrmg.saveSettings = function () {
         var button = wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings");
         if (button.attr('disabled') === 'disabled') {
@@ -109,8 +116,9 @@ wlrmg_jquery(document).ready(function () {
 
     }
     wlrmg.startExport = function () {
-        var values = wlrmg_jquery('#wlba-export-preview').serializeArray();
-        wlrmg_jquery('#wlba-process-export-button').attr('disabled', true);
+        var values = wlrmg_jquery('#wlrmg-export-preview').serializeArray();
+        wlrmg_jquery('#wlrmg-process-export-button').attr('disabled', true);
+        wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'none');
         var request = wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'post',
@@ -120,18 +128,19 @@ wlrmg_jquery(document).ready(function () {
         });
         request.done(function (json) {
             if (json['data']['success'] != 'completed') {
-                wlrmg_jquery('#wlba_limit_start').val(json['data']['limit_start']);
-                wlrmg_jquery('#wlba-notification').css("display", "flex");
-                wlrmg_jquery('#wlba-notification').html("<div class='alert success'>" + json['data']['notification'] + "</div>");
-                var total_count = wlrmg_jquery('#wlba-total-count').val();
+                wlrmg_jquery('#wlrmg_limit_start').val(json['data']['limit_start']);
+                wlrmg_jquery('#wlrmg-notification').css("display", "flex");
+                wlrmg_jquery('#wlrmg-notification').html("<div class='alert success'>" + json['data']['notification'] + "</div>");
+                var total_count = wlrmg_jquery('#wlrmg-total-count').val();
                 if (total_count < json['data']['limit_start']) {
-                    wlrmg_jquery('#wlba-process-count').html(total_count);
+                    wlrmg_jquery('#wlrmg-process-count').html(total_count);
                 } else {
-                    wlrmg_jquery('#wlba-process-count').html(json['data']['limit_start']);
+                    wlrmg_jquery('#wlrmg-process-count').html(json['data']['limit_start']);
                 }
                 wlrmg.startExport();
             } else if (json['data']['success'] == 'completed') {
-                wlrmg_jquery('#wlba-notification').append("<div class='alert success'> " + json['data']['notification'] + "</div>");
+                wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'block');
+                wlrmg_jquery('#wlrmg-notification').append("<div class='alert success'> " + json['data']['notification'] + "</div>");
                 setTimeout(function () {
                     alertify.alert().close();
                     location.reload();
@@ -139,25 +148,31 @@ wlrmg_jquery(document).ready(function () {
             }
         })
     }
-    wlrmg.showExported = function (job_id, action_type, bulk_action_type) {
+    wlrmg.showExported = function (job_id, action_type) {
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'POST',
             dataType: 'JSON',
             data: {
-                wlba_nonce: wlrmg_localize_data.popup_nonce,
-                action: 'wlba_get_exported_list',
-                bulk_action_type: bulk_action_type,
+                wlrmg_nonce: wlrmg_localize_data.popup_nonce,
+                action: 'wlrmg_get_exported_list',
                 action_type: action_type,
                 job_id: job_id,
             },
             success: function (result) {
                 if (result.success) {
-                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section").addClass('active');
-                    wlrmg_jquery("#wlba-main-page #wlba-overlay-section .wlba-overlay").html(result.data.html);
+                    wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").addClass('active');
+                    wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section .wlrmg-overlay").html(result.data.html);
                 }
             }
         });
+    }
+
+    wlrmg.closePopUp = function (is_reload){
+        wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").removeClass('active');
+        if (is_reload){
+            window.location.reload();
+        }
     }
 
 })(wlrmg);

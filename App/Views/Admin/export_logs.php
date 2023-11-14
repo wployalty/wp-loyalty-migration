@@ -23,11 +23,9 @@ defined("ABSPATH") or die(); ?>
                            value="<?php echo isset($category) && !empty($category) ? $category : ''; ?>">
                     <input type="hidden" id="wlrmg_limit_start" name="limit_start"
                            value="<?php echo isset($limit_start) && !empty($limit_start) ? $limit_start : 0; ?>"/>
-                    <input type="hidden" id="action_type" name="action_type"
-                           value="<?php echo isset($action_type) && !empty($action_type) ? $action_type : ''; ?>"/>
                     <input type="hidden" id="job_id" name="job_id"
                            value="<?php echo isset($job_id) && !empty($job_id) ? $job_id : 0; ?>"/>
-                    <input type="hidden" name="wlba_nonce"
+                    <input type="hidden" name="wlrmg_nonce"
                            value="<?php echo isset($wlrmg_nonce) && !empty($wlrmg_nonce) ? $wlrmg_nonce : " "; ?>"/>
                     <input type="hidden" id="limit" name="limit"
                            value="<?php echo (isset($limit) && !empty($limit)) ? $limit : 5; ?>"/>

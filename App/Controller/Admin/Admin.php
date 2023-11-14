@@ -6,6 +6,7 @@
  * */
 namespace Wlrm\App\Controller\Admin;
 
+use ParseCsv\Csv;
 use Wlr\App\Helpers\Woocommerce;
 use Wlrm\App\Controller\Base;
 use Wlrm\App\Controller\Compatibles\WLPRPointsRewards;
@@ -82,9 +83,12 @@ class Admin extends Base
     {
         $view = (string)self::$input->post_get("view", "activity");
         $type = (string)self::$input->post_get("type", "");
+        $search = (string)self::$input->post_get("search", "");
         $job_id = (int)self::$input->post_get("job_id", 0);
         $args = array(
             "current_page" => $view,
+            "job_id" => $job_id,
+            "search" => $search,
             "action" => $type,
             "activity" => $this->getActivityDetailsData($job_id),
             "back" => WLRMG_PLUGIN_URL . "Assets/svg/back_button.svg",
@@ -548,5 +552,120 @@ class Admin extends Base
         $result['data']['success'] = 'completed';
         $result['data']['html'] = $html;
         wp_send_json($result);
+    }
+
+    function handleExport()
+    {
+        $result = array(
+            "success" => false,
+            "data" => array(),
+        );
+        if (!$this->securityCheck('wlrmg_export_nonce')) {
+            $result['data']['message'] = __("Security check failed", "wp-loyalty-bulk-action");
+            wp_send_json($result);
+        }
+        $post = self::$input->post();
+        $limit_start = (int)self::$input->post_get('limit_start', 0);
+        $limit = (int)self::$input->post_get('limit', 5);
+        $total_count = (int)self::$input->post_get('total_count', 0);
+        if ($total_count > $limit_start) {
+            $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
+            if (!is_dir($path)) {
+                mkdir($path, 0777, true);
+                @chmod($path, 0777);
+            }
+            $file_name = $post['category'] . '_' . $post['job_id'] . '_export_';
+            $file_count = 0;
+            if ($limit_start >= 499) {
+                $file_count = round(($limit_start / 499));
+            }
+            $file_path = trim($path . '/' . $file_name . $file_count . '.csv');
+            $log_table = new MigrationLog();
+            global $wpdb;
+            $table = $log_table->getTableName();
+            $where = " id > 0 ";
+            $where .= $wpdb->prepare("  AND action = %s AND job_id = %d AND user_email !='' ", array($post["category"], (int)$post["job_id"]));
+            $where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d;', array($limit, $limit_start));
+            $csv_helper = new Csv();
+            $select = "user_email,referral_code,points";
+            $csv_helper->titles = array('email', 'referral_code','points');
+
+            $query = "SELECT {$select} FROM {$table} WHERE {$where}";
+            $file_data = $wpdb->get_results($query, ARRAY_A);
+            if (!empty($file_data)) {
+                foreach ($file_data as &$single_file_data) {
+                    if (isset($single_file_data['user_email'])) {
+                        $single_file_data['email'] = $single_file_data['user_email'];
+                    }
+                }
+                $csv_helper->loadFile($file_path);
+                $count = $csv_helper->getTotalDataRowCount();
+                if ($count <= 0) {
+                    $header = array();
+                    $header[] = $csv_helper->titles;
+                    $csv_helper->save($file_path, $header, true);
+                }
+                $csv_helper->save($file_path, $file_data, true);
+            }
+            $result['success'] = true;
+            $result['data']['success'] = 'incomplete';
+            $limit_start = $limit_start + $limit;
+            if ($limit_start >= $total_count) {
+                $limit_start = $total_count;
+            }
+            $result['data']['limit_start'] = $limit_start;
+            $result['data']['notification'] = sprintf(__('Exported %s customer', 'wp-loyalty-bulk-action'), $limit_start);//__(sprintf('Insert/Update %s customer', count($file_data)), WLPR_TEXT_DOMAIN) . '<br>';
+        } else {
+            $result['success'] = true;
+            $result['data']['success'] = 'completed';
+            $result['data']['notification'] = sprintf(__('Completed', 'wp-loyalty-bulk-action'), $limit_start);
+            $result['data']['redirect'] = admin_url('admin.php?' . http_build_query(array('page' => WLRMG_PLUGIN_SLUG, 'view' => 'activity_details', 'job_id' => $post['job_id'])));
+        }
+        wp_send_json($result);
+    }
+    function exportFileList($post)
+    {
+        $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
+        $file_name = $post['category'] . '_' . $post['job_id'] . '_export_*.*';
+        $delete_file_path = trim($path . '/' . $file_name);
+        $download_list = array();
+        foreach (glob($delete_file_path) as $file_path) {
+            if (file_exists($file_path)) {
+                $file_detail = new \stdClass();
+                $file_detail->file_name = basename($file_path);
+                $file_detail->file_path = $file_path;
+                $file_detail->file_url = rtrim(WLRMG_PLUGIN_URL, '/') . '/App/File/' . $post['job_id'] . '/' . $file_detail->file_name;
+                $download_list[] = $file_detail;
+            }
+        }
+        return $download_list;
+    }
+    function getExportFiles()
+    {
+        $result = array(
+            "success" => false,
+            "data" => array(),
+        );
+        if (!$this->securityCheck('wlrmg_popup_nonce')) {
+            $result['data']['message'] = __("Security check failed", "wp-loyalty-bulk-action");
+            wp_send_json($result);
+        }
+        $post = self::$input->post();
+        $job_id = (int)self::$input->post_get('job_id', 0);
+        if (empty($job_id)) {
+            $result['data']['message'] = __("Job id not found", "wp-loyalty-bulk-action");
+            wp_send_json($result);
+        }
+        $export_files = $this->exportFileList(array('category' => $post['action_type'], 'job_id' => $job_id));
+        $page_details = array(
+            'job_id' => $job_id,
+            'export_files' => $export_files,
+        );
+        $template_path = $this->getTemplatePath("Admin/export_log_files.php");
+        $html = self::$template->setData($template_path, $page_details)->render();
+        $result['success'] = true;
+        $result['data']['html'] = $html;
+        wp_send_json($result);
+
     }
 }
