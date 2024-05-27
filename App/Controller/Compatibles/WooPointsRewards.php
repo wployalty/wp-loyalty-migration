@@ -4,6 +4,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  * @link        https://www.wployalty.net
  * */
+
 namespace Wlrm\App\Controller\Compatibles;
 
 use Wlr\App\Helpers\EarnCampaign;
@@ -53,7 +54,9 @@ class WooPointsRewards implements Base
         $wp_users = $wpdb->get_results(stripslashes($query));
         $this->migrateUsers($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }
-    public function migrateUsers($wp_users, $job_id, $data, $admin_mail, $action_type){
+
+    public function migrateUsers($wp_users, $job_id, $data, $admin_mail, $action_type)
+    {
         $migration_job_model = new ScheduledJobs();
         $migration_log_model = new MigrationLog();
         $data_logs = array(
@@ -90,7 +93,7 @@ class WooPointsRewards implements Base
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => $created_at,
                 );
-                $migration_job_model->updateRow($update_status, array('uid' => $job_id,'source_app'=>'wlr_migration'));
+                $migration_job_model->updateRow($update_status, array('uid' => $job_id, 'source_app' => 'wlr_migration'));
                 continue;
             }
             $refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
@@ -126,7 +129,7 @@ class WooPointsRewards implements Base
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => strtotime(date("Y-m-d h:i:s")),
                 );
-                $migration_job_model->updateRow($update_status, array('uid' => $job_id,'source_app'=>'wlr_migration'));
+                $migration_job_model->updateRow($update_status, array('uid' => $job_id, 'source_app' => 'wlr_migration'));
             }
         }
     }

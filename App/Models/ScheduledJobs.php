@@ -4,11 +4,13 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  * @link        https://www.wployalty.net
  * */
+
 namespace Wlrm\App\Models;
 
 use Wlr\App\Models\Base;
 
 defined("ABSPATH") or die();
+
 class ScheduledJobs extends Base
 {
     function __construct()

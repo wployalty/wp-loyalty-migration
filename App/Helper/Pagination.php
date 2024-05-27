@@ -4,6 +4,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  * @link        https://www.wployalty.net
  * */
+
 namespace Wlrm\App\Helper;
 
 use Wlr\App\Helpers\Input;

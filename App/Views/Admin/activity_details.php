@@ -15,15 +15,15 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
      class="wlrmg-body-active-content <?php echo ($current_page == "activity_details") ? "active-content" : ""; ?>">
     <div class="wlrmg-activity-details-header">
         <a href="<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "actions"))) ?>"><img
-                src="<?php echo (isset($back) && !empty($back)) ? $back : ""; ?>" class="wlrmg-back-btn"
-                alt="<?php echo esc_html__("Back", "wp-loyalty-migration") ?>"></a>
+                    src="<?php echo (isset($back) && !empty($back)) ? $back : ""; ?>" class="wlrmg-back-btn"
+                    alt="<?php echo esc_html__("Back", "wp-loyalty-migration") ?>"></a>
         <h3><?php _e("ACTIVITY DETAILS", "wp-loyalty-migration"); ?></h3>
     </div>
     <?php if (!empty($activity)): ?>
         <div class="wlrmg-activity-details-content">
             <div class="wlrmg-job-details">
                 <div
-                    class="wlrmg-header">
+                        class="wlrmg-header">
                     <h4><?php echo esc_html(sprintf(__("Activity - %s ", "wp-loyalty-migration"), $job_data['action_label'])); ?></h4>
                 </div>
                 <div class="wlrmg-description">
@@ -40,9 +40,9 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                         <?php endif; ?>
                     </div>
                     <div>
-                        <p class=".wlrmg-desc-label"><?php echo esc_html__('Status','wp-loyalty-migration');?></p>
+                        <p class=".wlrmg-desc-label"><?php echo esc_html__('Status', 'wp-loyalty-migration'); ?></p>
                         <p class="wlrmg-desc-value wlrmg-activity-status">
-                        <span class="<?php echo !empty($job_data['status']) ? "wlrmg-".$job_data['status'] : "" ;?>"><?php echo ucfirst($job_data['status']);?></span>
+                            <span class="<?php echo !empty($job_data['status']) ? "wlrmg-" . $job_data['status'] : ""; ?>"><?php echo ucfirst($job_data['status']); ?></span>
                         </p>
                     </div>
                 </div>
@@ -57,26 +57,27 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                             <h4><?php echo esc_html__("Action details", "wp-loyalty-migration"); ?></h4>
                         </div>
                         <div class="wlrmg-table-search-export">
-                        <div class="search-box">
-                            <input type="text" name="search" id="search_email"
-                                   placeholder="<?php esc_attr_e('Search by email', 'wp-loyalty-rules') ?>"
-                                   value="<?php echo isset($search) && !empty($search) ? esc_attr($search) : ""; ?>"/>
-                            <span onclick="wlrmg.searchActivityByEmail('<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "activity_details", "type"=>$action,"job_id"=>$job_id ))); ?>');">
+                            <div class="search-box">
+                                <input type="text" name="search" id="search_email"
+                                       placeholder="<?php esc_attr_e('Search by email', 'wp-loyalty-rules') ?>"
+                                       value="<?php echo isset($search) && !empty($search) ? esc_attr($search) : ""; ?>"/>
+                                <span id="search_button"
+                                      onclick="wlrmg.searchActivityByEmail('<?php echo admin_url("admin.php?" . http_build_query(array("page" => WLRMG_PLUGIN_SLUG, "view" => "activity_details", "type" => $action, "job_id" => $job_id))); ?>');">
                                 <i class="wlrf-search"></i>
                             </span>
 
-                        </div>
-                        <?php
-                        if (isset($action_activity['activity_list']) && count($action_activity['activity_list']) > 0): ?>
-                            <div class="wlrmg-activity-button-section">
-                                <?php if (isset($action_activity['show_export_file_download']) && !empty($action_activity['show_export_file_download'])): ?>
-                                    <button class="wlrmg-button-action" type="button"
-                                            onclick="wlrmg.showExported(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Show Exported File', 'wp-loyalty-migration'); ?></button>
-                                <?php endif; ?>
-                                <button class="wlrmg-button-action wlrmg-export-button" type="button"
-                                        onclick="wlrmg.exportPopUp(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Export', 'wp-loyalty-migration'); ?></button>
                             </div>
-                        <?php endif; ?>
+                            <?php
+                            if (isset($action_activity['activity_list']) && count($action_activity['activity_list']) > 0): ?>
+                                <div class="wlrmg-activity-button-section">
+                                    <?php if (isset($action_activity['show_export_file_download']) && !empty($action_activity['show_export_file_download'])): ?>
+                                        <button class="wlrmg-button-action" type="button"
+                                                onclick="wlrmg.showExported(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Show Exported File', 'wp-loyalty-migration'); ?></button>
+                                    <?php endif; ?>
+                                    <button class="wlrmg-button-action wlrmg-export-button" type="button"
+                                            onclick="wlrmg.exportPopUp(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Export', 'wp-loyalty-migration'); ?></button>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div id="wlrmg-activity-list-table" class="wlrmg-table">
@@ -113,14 +114,14 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
         <div class="no-activity-block">
             <div>
                 <img
-                    src="<?php echo isset($no_activity_icon) && !empty($no_activity_icon) ? $no_activity_icon : "" ?>"/>
+                        src="<?php echo isset($no_activity_icon) && !empty($no_activity_icon) ? $no_activity_icon : "" ?>"/>
             </div>
             <div>
                 <span class="no-activity-label-1"><?php echo esc_html__("No activities yet", "wp-loyalty-migration") ?></span>
             </div>
             <div>
                 <span
-                    class="no-activity-label-2"><?php echo esc_html__("You are in pending status", "wp-loyalty-migration") ?></span>
+                        class="no-activity-label-2"><?php echo esc_html__("You are in pending status", "wp-loyalty-migration") ?></span>
             </div>
         </div>
     <?php endif; ?>

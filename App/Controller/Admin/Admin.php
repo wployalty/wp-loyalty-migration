@@ -4,6 +4,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  * @link        https://www.wployalty.net
  * */
+
 namespace Wlrm\App\Controller\Admin;
 
 use ParseCsv\Csv;
@@ -102,7 +103,7 @@ class Admin extends Base
     {
         if (empty($job_id) || $job_id <= 0) return array();
         $job_table = new ScheduledJobs();
-        $where = self::$db->prepare(" uid = %d AND source_app =%s", array($job_id,'wlr_migration'));
+        $where = self::$db->prepare(" uid = %d AND source_app =%s", array($job_id, 'wlr_migration'));
         $job_data = $job_table->getWhere($where);
 
         $result = array(
@@ -205,7 +206,7 @@ class Admin extends Base
                     'title' => __('Woocommerce points and rewards', 'wp-loyalty-migration'),
                     'description' => __('Migrate users with points', 'wp-loyalty-migration'),
                     'is_active' => WooPointsRewards::checkPluginIsActive(),
-                    'job_data' =>WooPointsRewards::getMigrationJob(),
+                    'job_data' => WooPointsRewards::getMigrationJob(),
                     'is_show_migrate_button' => true,
                 ),
             )
@@ -277,8 +278,8 @@ class Admin extends Base
         wp_enqueue_style(WLR_PLUGIN_SLUG . '-wlr-font', WLR_PLUGIN_URL . 'Assets/Site/Css/wlr-fonts' . $suffix . '.css', array(), WLR_PLUGIN_VERSION . '&t=' . time());
         wp_enqueue_script(WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', array(), WLR_PLUGIN_VERSION . '&t=' . time());
         wp_enqueue_style(WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', array(), WLR_PLUGIN_VERSION . '&t=' . time());
-        wp_enqueue_style(WLRMG_PLUGIN_SLUG . "-main-style", WLRMG_PLUGIN_URL . "Assets/Admin/Css/wlrmg-main.css", array("woocommerce_admin_styles"), WLRMG_PLUGIN_VERSION. "&t=" . time());
-        wp_enqueue_script(WLRMG_PLUGIN_SLUG . "-main-script", WLRMG_PLUGIN_URL . "Assets/Admin/Js/wlrmg-main" . $suffix . ".js", array("jquery","select2"), WLRMG_PLUGIN_VERSION . "&t=" . time());
+        wp_enqueue_style(WLRMG_PLUGIN_SLUG . "-main-style", WLRMG_PLUGIN_URL . "Assets/Admin/Css/wlrmg-main.css", array("woocommerce_admin_styles"), WLRMG_PLUGIN_VERSION . "&t=" . time());
+        wp_enqueue_script(WLRMG_PLUGIN_SLUG . "-main-script", WLRMG_PLUGIN_URL . "Assets/Admin/Js/wlrmg-main" . $suffix . ".js", array("jquery", "select2"), WLRMG_PLUGIN_VERSION . "&t=" . time());
         $localize_data = apply_filters('wlrmg_before_localize_data', array(
             "ajax_url" => admin_url("admin-ajax.php"),
             "migrate_users" => Woocommerce::create_nonce("wlrmg_migrate_users_nonce"),
@@ -312,7 +313,7 @@ class Admin extends Base
         }
         $cron_job_modal = new ScheduledJobs();
         /* check job exist or not */
-        $where = self::$db->prepare('id > %d AND source_app = %s AND category =%s', array(0,'wlr_migration', $post['migration_action']));
+        $where = self::$db->prepare('id > %d AND source_app = %s AND category =%s', array(0, 'wlr_migration', $post['migration_action']));
         $check_data_job = $cron_job_modal->getWhere($where, '*', true);
         if (!empty($check_data_job)) {
             $result['data']['message'] = __('Migration job already created', 'wp-loyalty-migration');
@@ -327,7 +328,7 @@ class Admin extends Base
             $max_uid = $post['job_id'];
         } else {
             $cron_job_modal = new ScheduledJobs();
-            $where = self::$db->prepare(' id > %d', array( 0));
+            $where = self::$db->prepare(' id > %d', array(0));
             $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid', true);
             if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid)) {
                 $max_uid = $data_job->max_uid + 1;
@@ -335,11 +336,11 @@ class Admin extends Base
         }
         $admin_mail = self::$woocommerce->get_login_user_email();
         $conditions = array(
-                'update_point' => isset($post['update_point']) && !empty($post['update_point']) ? $post['update_point'] : 'skip',
+            'update_point' => isset($post['update_point']) && !empty($post['update_point']) ? $post['update_point'] : 'skip',
         );
         $job_data = array(
             "uid" => $max_uid,
-            "source_app" =>'wlr_migration',
+            "source_app" => 'wlr_migration',
             "admin_mail" => $admin_mail,
             "category" => isset($post['migration_action']) && !empty($post['migration_action']) ? $post['migration_action'] : "",
             "action_type" => 'migration_to_wployalty',
@@ -373,7 +374,7 @@ class Admin extends Base
         if (!$this->securityCheck('wlrmg_migrate_users_nonce')) {
             wp_send_json($result);
         }
-        $category = (string)self::$input->post_get('category','');
+        $category = (string)self::$input->post_get('category', '');
         $validate_data = self::$validation->validateInputAlpha($category);
         /*if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
             foreach ($validate_data as $key => $validate) {
@@ -383,20 +384,20 @@ class Admin extends Base
             $result["data"]["message"] = __("Cant able to ", "wp-loyalty-migration");
             wp_send_json($result);
         }*/
-        $html ="";
+        $html = "";
         $args = array(
-                'category' => $category,
+            'category' => $category,
         );
-        switch($category){
+        switch ($category) {
             case 'wp_swings_migration':
             case 'wlpr_migration':
             case 'woocommerce_migration':
-            $html = self::$template->setData(WLRMG_VIEW_PATH . '/Admin/popup.php', $args)->render();
+                $html = self::$template->setData(WLRMG_VIEW_PATH . '/Admin/popup.php', $args)->render();
                 break;
         }
         $result['status'] = true;
         $result['data']['html'] = $html;
-        $result['data']['message'] = __('Update points to customers','wp-loyalty-migration');
+        $result['data']['message'] = __('Update points to customers', 'wp-loyalty-migration');
         wp_send_json($result);
     }
 
@@ -449,7 +450,7 @@ class Admin extends Base
     function triggerMigrations()
     {
         $job_table = new ScheduledJobs();
-        $where = self::$db->prepare("  source_app = %s AND id > 0 AND status IN (%s,%s) ORDER BY id ASC", array("wlr_migration","pending", "processing"));
+        $where = self::$db->prepare("  source_app = %s AND id > 0 AND status IN (%s,%s) ORDER BY id ASC", array("wlr_migration", "pending", "processing"));
         $data = $job_table->getWhere($where);
         $log = wc_get_logger();
         $log->add('mig', json_encode($data));
@@ -507,6 +508,7 @@ class Admin extends Base
         $action_list[] = "migration_to_wployalty";
         return $action_list;
     }
+
     function exportPopup()
     {
         $result = array(
@@ -534,7 +536,7 @@ class Admin extends Base
         }
         $base_url = admin_url('admin.php?' . http_build_query(array('page' => WLRMG_PLUGIN_SLUG, 'view' => 'activity_details', 'job_id' => $post['job_id'])));
         $log_table = new MigrationLog();
-        $query = self::$db->prepare(" id > 0 AND action != %s AND job_id = %d AND user_email !='' ", array($post['migration_action']."_completed", (int)$post["job_id"]));
+        $query = self::$db->prepare(" id > 0 AND action != %s AND job_id = %d AND user_email !='' ", array($post['migration_action'] . "_completed", (int)$post["job_id"]));
         $log_count = $log_table->getWhere($query, "count(*) as total_count", true);
         $page_details = array(
             'base_url' => $base_url,
@@ -588,7 +590,7 @@ class Admin extends Base
             $where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d;', array($limit, $limit_start));
             $csv_helper = new Csv();
             $select = "user_email,referral_code,points";
-            $csv_helper->titles = array('email', 'referral_code','points');
+            $csv_helper->titles = array('email', 'referral_code', 'points');
 
             $query = "SELECT {$select} FROM {$table} WHERE {$where}";
             $file_data = $wpdb->get_results($query, ARRAY_A);
@@ -623,6 +625,7 @@ class Admin extends Base
         }
         wp_send_json($result);
     }
+
     function exportFileList($post)
     {
         $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
@@ -640,6 +643,7 @@ class Admin extends Base
         }
         return $download_list;
     }
+
     function getExportFiles()
     {
         $result = array(

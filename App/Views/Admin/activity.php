@@ -41,8 +41,8 @@ $condition_status = isset($condition_status) && !empty($condition_status) ? $con
             <div class="wlrmg-no-activity-yet">
                 <div>
                     <img
-                        src="<?php echo (isset($no_activity_list) && !empty($no_activity_list)) ? $no_activity_list : ""; ?>"
-                        alt="<?php echo __("Filter", "wp-loyalty-migration") ?>">
+                            src="<?php echo (isset($no_activity_list) && !empty($no_activity_list)) ? $no_activity_list : ""; ?>"
+                            alt="<?php echo __("Filter", "wp-loyalty-migration") ?>">
                 </div>
                 <div>
                     <p style="font-size: 20px; color: #161F31;"><?php echo __("No activities yet", "wp-loyalty-migration") ?></p>
@@ -72,8 +72,8 @@ $condition_status = isset($condition_status) && !empty($condition_status) ? $con
                     <div class="wlrmg-activity-list-row">
                         <div class="wlrmg-activity-row-data">
                             <img
-                                src="<?php echo (isset($activity["image_icon"]) && !empty($activity["image_icon"])) ? $activity["image_icon"] : ""; ?>"
-                                alt="<?php echo __("Order point", "wp-loyalty-migration") ?>">
+                                    src="<?php echo (isset($activity["image_icon"]) && !empty($activity["image_icon"])) ? $activity["image_icon"] : ""; ?>"
+                                    alt="<?php echo __("Order point", "wp-loyalty-migration") ?>">
                         </div>
                         <div class="wlrmg-activity-row-data ">
                             <?php echo $activity["job_id"]; ?>

@@ -4,6 +4,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  * @link        https://www.wployalty.net
  * */
+
 namespace Wlrm\App\Controller;
 
 use Wlr\App\Helpers\Input;
@@ -32,6 +33,7 @@ class Base
         $wlba_nonce = (string)self::$input->post_get("wlrmg_nonce", "");
         return (!Woocommerce::hasAdminPrivilege() || !Woocommerce::verify_nonce($wlba_nonce, $nonce_name)) == false;
     }
+
     function getTemplatePath($path = '')
     {
         if (!is_string($path)) return '';

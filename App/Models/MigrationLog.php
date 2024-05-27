@@ -4,6 +4,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  * @link        https://www.wployalty.net
  * */
+
 namespace Wlrm\App\Models;
 
 use Wlr\App\Helpers\Input;
@@ -61,7 +62,7 @@ class MigrationLog extends Base
 
     function checkActionType($action_type)
     {
-        return in_array($action_type, apply_filters('wlrmg_action_types', array('wp_swings_migration','wlpr_migration','woocommerce_migration')));
+        return in_array($action_type, apply_filters('wlrmg_action_types', array('wp_swings_migration', 'wlpr_migration', 'woocommerce_migration')));
     }
 
     function saveLogs($data, $action)
@@ -90,7 +91,7 @@ class MigrationLog extends Base
         }
         $input = new Input();
         $cron_job_modal = new ScheduledJobs();
-        $where = self::$db->prepare(" uid = %d AND source_app=%s",array($job_id,'wlr_migration'));
+        $where = self::$db->prepare(" uid = %d AND source_app=%s", array($job_id, 'wlr_migration'));
         $job_data = $cron_job_modal->getwhere($where);
 
         $settings = get_option('wlrmg_settings');
@@ -99,7 +100,7 @@ class MigrationLog extends Base
         $search = sanitize_text_field($search);
         $limit = (int)$input->post_get("per_page", $default_pagination_limit);
         $offset = $limit * ($current_page - 1);
-        $where = self::$db->prepare(" id > %d AND action NOT IN(%s)", array(0,$job_data->category.'_completed'));
+        $where = self::$db->prepare(" id > %d AND action NOT IN(%s)", array(0, $job_data->category . '_completed'));
         if (!empty($job_id)) {
             $where .= self::$db->prepare(" AND job_id=%d ", array($job_id));
         }
@@ -123,6 +124,7 @@ class MigrationLog extends Base
             'export_file_list' => $export_files,
         ));
     }
+
     function exportFileList($post)
     {
         $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];

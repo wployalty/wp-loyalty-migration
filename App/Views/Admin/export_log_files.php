@@ -14,7 +14,7 @@ defined("ABSPATH") or die(); ?>
                 <i class="wlr wlrf-close-circle wlrmg-cursor" onclick="wlrmg.closePopUp();"></i>
             </div>
             <div class="wlrmg-popup-download-files">
-                <?php if (isset($export_files) && !empty($export_files)):?>
+                <?php if (isset($export_files) && !empty($export_files)): ?>
                     <?php foreach ($export_files as $file): ?>
                         <div class="wlrmg-exported-file">
                             <div class="wlrmg-file-name">

@@ -9,15 +9,22 @@ if (typeof wlrmg_jquery == 'undefined') {
 wlrmg = window.wlrmg || {};
 wlrmg_jquery(document).ready(function () {
     wlrmg_jquery('#wlrmg-main-page .wlrmg-multi-select').select2();
+
+    wlrmg_jquery("#search_email").keypress(function (event) {
+        if (event.which === 13) {
+            event.preventDefault();
+            wlrmg_jquery("#search_button").click();
+        }
+    });
 });
 (function () {
     alertify.set('notifier', 'position', 'top-right');
-    wlrmg.searchActivityByEmail = function (url){
+    wlrmg.searchActivityByEmail = function (url) {
         let email = wlrmg_jquery("#wlrmg-main-page #wlrmg-activity-details #search_email").val();
-        if(email !== ""){
-            url = url+"&search="+email;
+        if (email !== "") {
+            url = url + "&search=" + email;
         }
-        window.location.href = url+"#wlrmg-activity-list-table";
+        window.location.href = url + "#wlrmg-activity-list-table";
     }
     wlrmg.saveSettings = function () {
         var button = wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings");
@@ -25,7 +32,10 @@ wlrmg_jquery(document).ready(function () {
             return;
         }
         button.attr('disabled', true);
-        wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings").css({'cursor':'not-allowed','opacity':'0.4'});
+        wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings").css({
+            'cursor': 'not-allowed',
+            'opacity': '0.4'
+        });
 
         let form_data = wlrmg_jquery('#wlrmg-main-page #wlrmg-settings #settings-form').serialize();
         wlrmg_jquery.ajax({
@@ -38,23 +48,26 @@ wlrmg_jquery(document).ready(function () {
                 (res.success) ? alertify.success(res.data.message) : alertify.error(res.data.message);
                 button.removeAttr('onclick');
                 button.attr('disabled', false).attr('onclick', 'wlrmg.saveSettings()');
-                wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings").css({'cursor':'pointer','opacity':'1'});
+                wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings").css({
+                    'cursor': 'pointer',
+                    'opacity': '1'
+                });
             }
         });
     }
     wlrmg.needConfirmPointUpdate = function (type) {
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
-            type:"POST",
-            dataType:"json",
-            data:{
-                action:"wlrmg_confirm_update_points",
-                category:type,
-                wlrmg_nonce:wlrmg_localize_data.migrate_users,
+            type: "POST",
+            dataType: "json",
+            data: {
+                action: "wlrmg_confirm_update_points",
+                category: type,
+                wlrmg_nonce: wlrmg_localize_data.migrate_users,
             },
-            cache:false,
-            async:false,
-            success:function (json){
+            cache: false,
+            async: false,
+            success: function (json) {
                 if (json['status'] === true) {
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").addClass('active');
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section .wlrmg-overlay").html(json['data']['html']);
@@ -168,9 +181,9 @@ wlrmg_jquery(document).ready(function () {
         });
     }
 
-    wlrmg.closePopUp = function (is_reload){
+    wlrmg.closePopUp = function (is_reload) {
         wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").removeClass('active');
-        if (is_reload){
+        if (is_reload) {
             window.location.reload();
         }
     }
