@@ -7,14 +7,13 @@
 
 namespace Wlrm\App\Controller\Compatibles;
 
-defined('ABSPATH') or die();
+defined( 'ABSPATH' ) or die();
 
-interface Base
-{
-    static function checkPluginIsActive();
+interface Base {
+	static function checkPluginIsActive();
 
-    static function getMigrationJob();
+	static function getMigrationJob();
 
-    function migrateToLoyalty($job_data);
+	function migrateToLoyalty( $job_data );
 
 }
