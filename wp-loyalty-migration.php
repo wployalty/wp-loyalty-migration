@@ -66,6 +66,14 @@ if ( ! file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 }
 require_once __DIR__ . '/vendor/autoload.php';
 if ( class_exists( '\Wlrm\App\Router' ) ) {
+
+	$myUpdateChecker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		'https://github.com/wployalty/wployalty_migration',
+		__FILE__,
+		'wp-loyalty-migration'
+	);
+	$myUpdateChecker->getVcsApi()->enableReleaseAssets();
+
 	$router = new \Wlrm\App\Router();
 	$router->init();
 }
