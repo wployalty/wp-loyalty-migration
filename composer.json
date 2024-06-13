@@ -1,15 +1,18 @@
 {
-  "name": "vendor_name/wployalty_migration",
-  "description": "description",
+  "name": "wployalty/wployalty_migration",
+  "description": "WPLoyalty migration addon",
   "minimum-stability": "stable",
   "license": "proprietary",
   "authors": [
     {
-      "name": "cartrabbit",
-      "email": "email@example.com"
+      "name": "Ilaiyaraja A",
+      "email": "ilayaraja@cartrabbit.in"
     }
   ],
   "require": {
+    "parsecsv/php-parsecsv": "^1.3",
+    "ext-json": "*",
+    "yahnis-elsts/plugin-update-checker": ">=v5.0"
   },
   "autoload": {
     "psr-4": {
