@@ -129,6 +129,7 @@ class Admin extends Base {
 			'admin_mail' => isset( $job_data->admin_mail ) && ! empty( $job_data->admin_mail ) ? $job_data->admin_mail : '',
 			'status'     => isset( $job_data->status ) && ! empty( $job_data->status ) ? $job_data->status : '',
 			'action'     => isset( $job_data->category ) && ! empty( $job_data->category ) ? $job_data->category : '',
+			'conditions' => isset( $job_data->conditions ) && ! empty( $job_data->conditions ) ? json_decode( $job_data->conditions, true ) : array(),
 		);
 		if ( is_object( $job_data ) && isset( $job_data->category ) ) {
 			switch ( $job_data->category ) {
@@ -145,6 +146,10 @@ class Admin extends Base {
 				default:
 					break;
 			}
+		}
+		if ( ! empty( $result['conditions']['update_point'] ) ) {
+			$result['conditions']['update_point'] = ( $result['conditions']['update_point'] == 'add' ) ? __( 'Add points to customer', 'wp-loyalty-migration' )
+				: __( 'Skip customer', 'wp-loyalty-migration' );
 		}
 
 		return $result;

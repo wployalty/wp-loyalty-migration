@@ -5,9 +5,10 @@
  * @link        https://www.wployalty.net
  * */
 defined( "ABSPATH" ) or die();
-$current_page         = ( isset( $current_page ) && ! empty( $current_page ) ) ? $current_page : $current_page = "activity_details";
-$activity             = ( isset( $activity ) && ! empty( $activity ) ) ? $activity : array();
-$job_data             = isset( $activity['job_data'] ) && ! empty( $activity['job_data'] ) ? $activity['job_data'] : array();
+$current_page = ( isset( $current_page ) && ! empty( $current_page ) ) ? $current_page : $current_page = "activity_details";
+$activity     = ( isset( $activity ) && ! empty( $activity ) ) ? $activity : array();
+$job_data     = isset( $activity['job_data'] ) && ! empty( $activity['job_data'] ) ? $activity['job_data'] : array();
+
 $action               = ( isset( $action ) && ! empty( $action ) ) ? $action : '';
 $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
 ?>
@@ -48,6 +49,14 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                             <span class="<?php echo ! empty( $job_data['status'] ) ? "wlrmg-" . $job_data['status'] : ""; ?>"><?php echo ucfirst( $job_data['status'] ); ?></span>
                         </p>
                     </div>
+					<?php if ( ! empty( $job_data['conditions']['update_point'] ) ): ?>
+                        <div>
+                            <p class=".wlrmg-desc-label"><?php echo esc_html__( 'Update points', 'wp-loyalty-migration' ); ?></p>
+                            <p class="wlrmg-desc-value ">
+                                <span><?php echo ucfirst( $job_data['conditions']['update_point'] ); ?></span>
+                            </p>
+                        </div>
+					<?php endif; ?>
                 </div>
             </div>
 			<?php if ( isset( $activity['activity'] ) && ! empty( $activity['activity'] ) &&
