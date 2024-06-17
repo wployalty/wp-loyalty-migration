@@ -310,8 +310,7 @@ class Admin extends Base {
 		if ( ! $this->securityCheck( 'wlrmg_migrate_users_nonce' ) ) {
 			wp_send_json( $result );
 		}
-		$post = self::$input->post();
-
+		$post          = self::$input->post();
 		$validate_data = self::$validation->validateMigrationData( $post );
 		if ( is_array( $validate_data ) && ! empty( $validate_data ) && count( $validate_data ) > 0 ) {
 			foreach ( $validate_data as $key => $validate ) {
@@ -350,7 +349,8 @@ class Admin extends Base {
 		}
 		$admin_mail      = self::$woocommerce->get_login_user_email();
 		$conditions      = array(
-			'update_point' => isset( $post['update_point'] ) && ! empty( $post['update_point'] ) ? $post['update_point'] : 'skip',
+			'update_point'       => isset( $post['update_point'] ) && ! empty( $post['update_point'] ) ? $post['update_point'] : 'skip',
+			'update_banned_user' => isset( $post['update_banned_user'] ) && ! empty( $post['update_banned_user'] ) ? $post['update_banned_user'] : 'skip',
 		);
 		$job_data        = array(
 			"uid"               => $max_uid,

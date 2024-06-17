@@ -5,6 +5,7 @@ $border-color: #E7E7EF;
 :root {
   --wp-admin-theme-color: #4F47EB;
 }
+
 #wlrmg-main-page {
   font-family: Helvetica, sans-serif, Arial, sans-serif;
   margin-right: 15px;
@@ -29,6 +30,7 @@ $border-color: #E7E7EF;
     width: 100%;
     align-items: center;
     margin-bottom: 1rem;
+
     h1 {
       color: rgba(22, 31, 49, 1);
       font-weight: 700;
@@ -227,7 +229,8 @@ $border-color: #E7E7EF;
             .wlrmg-text-nowrap {
               white-space: nowrap;
             }
-            div{
+
+            div {
               margin-left: 14px;
             }
 
@@ -238,36 +241,43 @@ $border-color: #E7E7EF;
           }
         }
       }
-      .wlrmg-table-search-export{
+
+      .wlrmg-table-search-export {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 1rem;
       }
-      .search-box{
+
+      .search-box {
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         border-radius: 4px;
-        border: 1px solid  #ccc;
-        input{
+        border: 1px solid #ccc;
+
+        input {
           outline: none;
           border: none;
           box-shadow: none;
-          &:focus{
+
+          &:focus {
             outline: none;
           }
 
         }
-        a{
+
+        a {
           text-decoration: none;
         }
-        i{
+
+        i {
           font-size: 16px;
           padding: 6px;
         }
       }
+
       .wlrmg-heading-data {
         display: flex;
         width: 100%;
@@ -450,6 +460,7 @@ $border-color: #E7E7EF;
 
     }
   }
+
   .wlrmg-button {
     text-align: center;
     padding: 8px 0;
@@ -532,22 +543,23 @@ $border-color: #E7E7EF;
       }
     }
 
-    .wlrmg-activity-status span{
+    .wlrmg-activity-status span {
       width: 4rem;
       padding: 4px 8px;
       border-radius: 3px;
     }
 
-    .wlrmg-processing{
+    .wlrmg-processing {
       color: blue;
       background: rgba(0, 0, 255, 0.30);
     }
 
-    .wlrmg-pending{
+    .wlrmg-pending {
       color: orange;
       background: rgba(255, 165, 0, 0.30);
     }
-    .wlrmg-completed{
+
+    .wlrmg-completed {
       color: green;
       background: rgba(0, 128, 0, 0.30);
     }
@@ -572,7 +584,8 @@ $border-color: #E7E7EF;
     }
 
   }
-  .wlrmg-close-icon{
+
+  .wlrmg-close-icon {
     border: 1px solid;
     border-radius: 50%;
     padding: 1px 4px;
@@ -595,7 +608,8 @@ $border-color: #E7E7EF;
   .wlrmg-overlay-section.active {
     visibility: visible;
     opacity: 1;
-    select{
+
+    select {
       min-width: 19rem;
       min-height: 45px;
       border-color: #e7e7ef;
@@ -725,6 +739,7 @@ $border-color: #E7E7EF;
     background: white;
     border-radius: 6px;
   }
+
   .select2-container {
     height: auto;
     outline: none;
@@ -768,6 +783,7 @@ $border-color: #E7E7EF;
       }
     }
   }
+
   select {
     min-width: 19rem;
     min-height: 45px;
@@ -802,11 +818,11 @@ $border-color: #E7E7EF;
     .wlrmg-popup-body {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 1.5rem;
     }
 
     .wlrmg-popup-foot {
-      button{
+      button {
         float: right;
         padding: 10px;
         border-radius: 6px;
@@ -817,10 +833,12 @@ $border-color: #E7E7EF;
     }
 
   }
+
   /* cursor */
-  .wlrmg-cursor{
+  .wlrmg-cursor {
     cursor: pointer;
   }
+
   .wlrmg-pop-select-button {
     background: $theme-color;
     border-radius: 6px;
@@ -838,6 +856,7 @@ $border-color: #E7E7EF;
     cursor: $cursor;
   }
 }
+
 .wlrmg-activity-button-section {
   display: flex;
   gap: 10px;
@@ -901,14 +920,15 @@ $border-color: #E7E7EF;
 /* select2 css end */
 @media only screen and (max-width: 830px) {
   #wlrmg-main-page .wlrmg-parent .wlrmg-body-content .wlrmg-body-data .wlrmg-migation-card-section {
-    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  #wlrmg-main-page .wlrmg-parent .wlrmg-body-content .wlrmg-table-search-export{
+  #wlrmg-main-page .wlrmg-parent .wlrmg-body-content .wlrmg-table-search-export {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
   }
 }
+
 @media only screen and (max-width: 570px) {
   #wlrmg-main-page .wlrmg-parent .wlrmg-body-content .wlrmg-body-data .wlrmg-migation-card-section {
     display: flex;

@@ -89,7 +89,12 @@ class WLPRPointsRewards implements Base {
 				)
 			), '*', array(), false, true );
 			$created_at  = strtotime( date( "Y-m-d h:i:s" ) );
-			if ( is_object( $user_points ) && isset( $user_points->user_email ) && isset( $conditions['update_point'] ) && $conditions['update_point'] == 'skip' ) {
+			if ( is_object( $user_points ) &&
+			     (
+				     ( isset( $user_points->user_email ) && isset( $conditions['update_point'] ) && $conditions['update_point'] == 'skip' ) ||
+				     ( isset( $user_points->is_banned_user ) && $user_points->is_banned_user == 1 && isset( $conditions['update_banned_user'] ) && $conditions['update_banned_user'] == 'skip' )
+			     )
+			) {
 				$data->last_processed_id = $user_id;
 				$update_status           = array(
 					"status"            => "processing",
@@ -114,7 +119,7 @@ class WLPRPointsRewards implements Base {
 				"referral_code"       => $refer_code,
 				"action_process_type" => "earn_point",
 				"customer_note"       => sprintf( __( "Added %d %s by site administrator(%s) via WPLoyalty migration", "wp-loyalty-migration" ), $new_points, $campaign->getPointLabel( $new_points ), $admin_mail ),
-				"note"                => sprintf( __( "%s customer migrated with %d %s by administrator(%s) via WPLoyalty migration", "wp-loyalty-migration" ), $user_email, $new_points, $campaign->getPointLabel( $new_points ), $admin_mail ),
+				"note"                => sprintf( __( "%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration", "wp-loyalty-migration" ), $user_email, $new_points, $campaign->getPointLabel( $new_points ), $admin_mail ),
 			);
 			$trans_type                 = 'credit';
 			$wployalty_migration_status = $campaign->addExtraPointAction( $action_type, (int) $new_points, $action_data, $trans_type );

@@ -71,8 +71,8 @@ wlrmg_jquery(document).ready(function () {
                 if (json['status'] === true) {
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").addClass('active');
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section .wlrmg-overlay").html(json['data']['html']);
-                    console.log(wlrmg_jquery('#wlrmg-main-page #wlrmg-overlay-section #update_point.wlrmg-multi-select'));
-                    wlrmg_jquery('#wlrmg-main-page #wlrmg-overlay-section #update_point.wlrmg-multi-select').select2();
+                    wlrmg_jquery('#wlrmg-main-page #wlrmg-overlay-section .wlrmg-multi-select').select2();
+
                 }
             }
         });
@@ -81,6 +81,7 @@ wlrmg_jquery(document).ready(function () {
     wlrmg.migrateUsers = function () {
         let type = wlrmg_jquery("#wlrmg-popup #migration_type").val();
         let update_point = wlrmg_jquery("#wlrmg-popup #update_point").val();
+        let update_banned_user = wlrmg_jquery("#wlrmg-popup #update_banned_user").val();
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'POST',
@@ -90,6 +91,7 @@ wlrmg_jquery(document).ready(function () {
                 wlrmg_nonce: wlrmg_localize_data.migrate_users,
                 migration_action: type,
                 update_point: update_point,
+                update_banned_user: update_banned_user,
             },
             cache: false,
             async: false,

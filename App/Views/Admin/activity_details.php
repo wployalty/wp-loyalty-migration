@@ -57,6 +57,14 @@ $earn_campaign_helper = \Wlr\App\Helpers\EarnCampaign::getInstance();
                             </p>
                         </div>
 					<?php endif; ?>
+					<?php if ( ! empty( $job_data['conditions']['update_banned_user'] ) ): ?>
+                        <div>
+                            <p class=".wlrmg-desc-label"><?php echo esc_html__( 'Update banned user', 'wp-loyalty-migration' ); ?></p>
+                            <p class="wlrmg-desc-value ">
+                                <span><?php echo ucfirst( $job_data['conditions']['update_banned_user'] ); ?></span>
+                            </p>
+                        </div>
+					<?php endif; ?>
                 </div>
             </div>
 			<?php if ( isset( $activity['activity'] ) && ! empty( $activity['activity'] ) &&
