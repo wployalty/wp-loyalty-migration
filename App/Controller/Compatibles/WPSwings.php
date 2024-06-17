@@ -105,7 +105,11 @@ class WPSwings implements Base {
 				) );
 				continue;
 			}
-			$refer_code                 = $helper_base->get_unique_refer_code( '', false, $user_email );
+			if ( is_object( $user_points ) && isset( $user_points->refer_code ) ) {
+				$refer_code = $user_points->refer_code;
+			} else {
+				$refer_code = $helper_base->get_unique_refer_code( '', false, $user_email );
+			}
 			$action_data                = array(
 				"user_email"          => $user_email,
 				"customer_command"    => $data->comment,

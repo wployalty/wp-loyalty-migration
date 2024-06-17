@@ -17,9 +17,9 @@ class Router {
 	/**
 	 * @return false|void
 	 */
-	function init() {
+	static function init() {
 		self::$admin = empty( self::$admin ) ? new Controller\Admin\Admin() : self::$admin;
-		add_filter( 'wlr_loyalty_apps', array( self::$admin, 'getAppDetails' ) );
+//		add_filter( 'wlr_loyalty_apps', array( self::$admin, 'getAppDetails' ) );
 		$activation_check = new CompatibleCheck();
 		if ( ! $activation_check->init_check() ) {
 			if ( is_admin() ) {
