@@ -43,16 +43,28 @@ class WPSwings implements Base {
 		$action_type = (string) isset( $job_data->action_type ) && ! empty( $job_data->action_type ) ? $job_data->action_type : "migration_to_wployalty";
 		//Get WPUsers
 		global $wpdb;
-		$where        = $wpdb->prepare( " WHERE wp_user.ID > %d ", array( 0 ) );
-		$where        .= $wpdb->prepare( " AND wp_user.ID > %d ", array( (int) $job_data->last_processed_id ) );
+		$where        = $wpdb->prepare( " WHERE wp_user.ID > %d AND wp_user.ID > %d ", array(
+			0,
+			(int) $job_data->last_processed_id
+		) );
 		$join         = " LEFT JOIN " . $wpdb->usermeta . " AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points' ";
 		$limit_offset = "";
 		if ( isset( $job_data->limit ) && ( $job_data->limit > 0 ) ) {
 			$limit_offset .= $wpdb->prepare( " LIMIT %d OFFSET %d ", array( (int) $job_data->limit, 0 ) );
 		}
-		$select   = " SELECT wp_user.ID,wp_user.user_email,IFNULL(meta.meta_value, 0) AS wps_points FROM " . $wpdb->users . " as wp_user ";
-		$query    = $select . $join . $where . $limit_offset;
-		$wp_users = $wpdb->get_results( stripslashes( $query ) );
+
+		$select   = "
+    SELECT 
+        wp_user.ID,
+        wp_user.user_email,
+        COALESCE(meta.meta_value, 0) AS wps_points 
+    FROM 
+        " . $wpdb->users . " AS wp_user 
+    " . $join .
+		            $where .
+		            " ORDER BY wp_user.ID ASC " .
+		            $limit_offset;
+		$wp_users = $wpdb->get_results( stripslashes( $select ) );
 		$this->migrateUsers( $wp_users, $job_id, $job_data, $admin_mail, $action_type );
 	}
 

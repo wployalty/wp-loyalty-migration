@@ -41,15 +41,18 @@ class WooPointsRewards implements Base {
 		$last_processed_id = (int) isset( $job_data->last_processed_id ) && ! empty( $job_data->last_processed_id ) ? $job_data->last_processed_id : 0;
 		//Get WPUsers
 		global $wpdb;
-		$where        = $wpdb->prepare( " WHERE woo_points_table.user_id > %d ", array( (int) $last_processed_id ) );
-		$join         = " LEFT JOIN " . $wpdb->users . " AS wp_user ON wp_user.ID = woo_points_table.user_id ";
+		$where        = $wpdb->prepare( " WHERE wp_user.ID > %d ", (int) $last_processed_id );
+		$join         = " LEFT JOIN " . $wpdb->prefix . "wc_points_rewards_user_points AS woo_points_table ON wp_user.ID = woo_points_table.user_id ";
 		$limit_offset = "";
 		if ( isset( $job_data->limit ) && ( $job_data->limit > 0 ) ) {
-			$limit_offset .= $wpdb->prepare( " LIMIT %d OFFSET %d ", array( (int) $job_data->limit, 0 ) );
+			$limit_offset .= $wpdb->prepare( " LIMIT %d OFFSET %d ", (int) $job_data->limit, 0 );
 		}
-		$select   = " SELECT woo_points_table.user_id,woo_points_table.points,woo_points_table.points_balance,wp_user.user_email FROM " . $wpdb->prefix . "wc_points_rewards_user_points as woo_points_table ";
-		$query    = $select . $join . $where . $limit_offset;
-		$wp_users = $wpdb->get_results( stripslashes( $query ) );
+		$select   = "SELECT wp_user.ID AS user_id,
+        COALESCE(woo_points_table.points, 0) AS points,
+        COALESCE(woo_points_table.points_balance, 0) AS points_balance,wp_user.user_email 
+    FROM " . $wpdb->users . " AS wp_user " . $join .
+		            $where . " ORDER BY wp_user.ID ASC " . $limit_offset;
+		$wp_users = $wpdb->get_results( stripslashes( $select ) );
 		$this->migrateUsers( $wp_users, $job_id, $job_data, $admin_mail, $action_type );
 	}
 

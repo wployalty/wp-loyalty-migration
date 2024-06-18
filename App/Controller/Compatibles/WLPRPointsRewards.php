@@ -40,16 +40,14 @@ class WLPRPointsRewards implements Base {
 		$action_type       = (string) isset( $job_data->action_type ) && ! empty( $job_data->action_type ) ? $job_data->action_type : "migration_to_wployalty";
 		$last_processed_id = (int) isset( $job_data->last_processed_id ) && ! empty( $job_data->last_processed_id ) ? $job_data->last_processed_id : 0;
 		global $wpdb;
-		$where = $wpdb->prepare( " WHERE id > %d ", array( (int) $last_processed_id ) );
+		$where        = $wpdb->prepare( " WHERE id > %d ", array( (int) $last_processed_id ) );
+		$limit_offset = "";
 		if ( isset( $job_data->limit ) && ( $job_data->limit > 0 ) ) {
-			$where .= $wpdb->prepare( " LIMIT %d OFFSET %d ", array( (int) $job_data->limit, 0 ) );
+			$limit_offset .= $wpdb->prepare( " LIMIT %d OFFSET %d ", array( (int) $job_data->limit, 0 ) );
 		}
 		$select = " SELECT * FROM " . $wpdb->prefix . "wlpr_points ";
-		$query  = $select . $where;
-		$log    = wc_get_logger();
-		$log->add( 'mig', "action => " . json_encode( stripslashes( $query ) ) );
-		$users = $wpdb->get_results( stripslashes( $query ) );
-		$log->add( 'mig', "users => " . json_encode( $users ) );
+		$query  = $select . $where . " ORDER BY id ASC " . $limit_offset;
+		$users  = $wpdb->get_results( stripslashes( $query ) );
 		$this->migrateUsers( $users, $job_id, $job_data, $admin_mail, $action_type );
 	}
 
