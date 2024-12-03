@@ -1,300 +1,372 @@
-# Copyright (C) 2022 Wployalty
-# This file is distributed under the GNU General Public License v3.0.
-#, fuzzy
+# Copyright (C) 2024 WPLoyalty
+# This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: WPLoyalty - Migration\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-28 13:27+0530\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: WPLoyalty\n"
-"Language-Team: WPLoyalty\n"
+"Project-Id-Version: WPLoyalty - Migration 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-loyalty-migration\n"
+"Last-Translator: wployalty <support@wployalty.net>\n"
+"Language-Team: wployalty <support@wployalty.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-"X-Generator: Poedit 2.3\n"
+"POT-Creation-Date: 2024-12-03T05:13:42+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-loyalty-migration\n"
-"X-Poedit-KeywordsList: __;_e;_n;_x;esc_attr__;esc_attr_e;esc_attr_x;"
-"esc_html__;esc_html_e;esc_html_x\n"
-"X-Poedit-Basepath: ../..\n"
-"X-Poedit-SearchPath-0: App\n"
-"X-Poedit-SearchPath-1: wp-loyalty-migration.php\n"
-"X-Poedit-SearchPathExcluded-0: vendor\n"
-"X-Poedit-SearchPathExcluded-1: Assets\n"
-"X-Poedit-SearchPathExcluded-2: composer.lock\n"
-"X-Poedit-SearchPathExcluded-3: composer.json\n"
 
-#: App/Controller/Admin/Admin.php:25 App/Controller/Admin/Admin.php:39
+#. Plugin Name of the plugin
+#: wp-loyalty-migration.php
+msgid "WPLoyalty - Migration"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wp-loyalty-migration.php
+msgid "https://www.wployalty.net"
+msgstr ""
+
+#. Description of the plugin
+#: wp-loyalty-migration.php
+msgid "WPLoyalty - Migration for Users to WPLoyalty"
+msgstr ""
+
+#. Author of the plugin
+#: wp-loyalty-migration.php
+msgid "WPLoyalty"
+msgstr ""
+
+#. Author URI of the plugin
+#: wp-loyalty-migration.php
+msgid "https://wployalty.net/"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:31
+#: App/Controller/Admin/Admin.php:45
 msgid "Plugin required table creation failed."
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:46
+#: App/Controller/Admin/Admin.php:51
 msgid "WPLoyalty: Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:120
+#: App/Controller/Admin/Admin.php:137
 msgid "WP Swings Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:226
-msgid "WPSwings points and rewards"
+#: App/Controller/Admin/Admin.php:140
+msgid "Woocommerce Loyalty Points and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:227
-#: App/Controller/Admin/Admin.php:235
-#: App/Controller/Admin/Admin.php:243
-msgid "Migrate users with points"
+#: App/Controller/Admin/Admin.php:143
+msgid "Woocommerce Point and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:234
-msgid "YITH points and rewards"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:242
-msgid "Woocommerce points and rewards"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:337
-#: App/Controller/Admin/Admin.php:400
-#: App/Controller/Admin/Admin.php:433
-msgid "Security check failed"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:348
-#: App/Controller/Admin/Admin.php:444
-msgid "Records not saved"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:356
-msgid "Migration job already created"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:390
-msgid "Migration job created successfully."
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:424
-msgid "Update points to customers"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:454
-msgid "Settings saved successfully."
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:518
-msgid "User migrated via WPLoyalty Migration"
-msgstr ""
-
-#: App/Controller/Compatibles/WPSwings.php:60
-msgid "No available records for processing."
-msgstr ""
-
-#: App/Controller/Compatibles/WPSwings.php:101
-#, php-format
-msgid "Added %d %s by site administrator(%s) via loyalty migration"
-msgstr ""
-
-#: App/Controller/Compatibles/WPSwings.php:102
-#, php-format
-msgid ""
-"%s customer migrated with %d %s by administrator(%s) via loyalty "
-"migration"
-msgstr ""
-
-#: App/Helper/CompatibleCheck.php:12
-msgid ""
-" plugin can not be activated because it requires minimum PHP "
-"version of "
-msgstr ""
-
-#: App/Helper/CompatibleCheck.php:18
-msgid ""
-" plugin can not be activated because it requires minimum Wordpress "
-"version of "
-msgstr ""
-
-#: App/Helper/CompatibleCheck.php:24
-msgid ""
-" plugin can not be activated because it requires minimum "
-"Woocommerce version of "
-msgstr ""
-
-#: App/Helper/CompatibleCheck.php:56
-msgid " is inactive. Because, it requires minimum PHP version of "
-msgstr ""
-
-#: App/Helper/CompatibleCheck.php:58
-msgid ""
-" is inactive. Because, it requires minimum Wordpress version of "
-msgstr ""
-
-#: App/Helper/CompatibleCheck.php:60
-msgid "Woocommerce must installed and activated in-order to use "
-msgstr ""
-
-#: App/Helper/CompatibleCheck.php:62
-msgid ""
-" is inactive. Because, it requires minimum Woocommerce version of "
-msgstr ""
-
-#: App/Helper/Validation.php:20 App/Helper/Validation.php:39
-msgid "This field"
-msgstr ""
-
-#: App/Helper/Validation.php:22 App/Helper/Validation.php:41
-#, php-format
-msgid "%s"
-msgstr ""
-
-#: App/Helper/Validation.php:26 App/Helper/Validation.php:45
-msgid "{field} is required"
-msgstr ""
-
-#: App/Views/Admin/actions.php:10
-msgid "MIGRATION ACTION"
-msgstr ""
-
-#: App/Views/Admin/actions.php:16 App/Views/Admin/settings.php:17
-msgid "Cancel"
-msgstr ""
-
-#: App/Views/Admin/actions.php:17 App/Views/Admin/settings.php:18
-msgid "Back to WPLoyalty"
-msgstr ""
-
-#: App/Views/Admin/actions.php:38 App/Views/Admin/popup.php:23
-msgid "Migrate"
-msgstr ""
-
-#: App/Views/Admin/actions.php:42 App/Views/Admin/actions.php:44
-#: App/Views/Admin/activity.php:90
-msgid "View Details"
-msgstr ""
-
-#: App/Views/Admin/activity.php:15
-msgid "ACTIVITIES"
-msgstr ""
-
-#: App/Views/Admin/activity.php:39
-msgid "Filter"
-msgstr ""
-
-#: App/Views/Admin/activity.php:42
-#: App/Views/Admin/activity_details.php:96
-msgid "No activities yet"
-msgstr ""
-
-#: App/Views/Admin/activity.php:45
-msgid "Get started by migrate customers from wordpress"
-msgstr ""
-
-#: App/Views/Admin/activity.php:52
-msgid "JOB ID"
-msgstr ""
-
-#: App/Views/Admin/activity.php:54
-msgid "ACTIVITY"
-msgstr ""
-
-#: App/Views/Admin/activity.php:56
-msgid "CATEGORY"
-msgstr ""
-
-#: App/Views/Admin/activity.php:58
-msgid "PROCESSED"
-msgstr ""
-
-#: App/Views/Admin/activity.php:60
-msgid "STATUS"
-msgstr ""
-
-#: App/Views/Admin/activity.php:62
-msgid "ACTION"
-msgstr ""
-
-#: App/Views/Admin/activity.php:70
-msgid "Order point"
-msgstr ""
-
-#: App/Views/Admin/activity.php:76
-#, php-format
-msgid "%s %s updated"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:13
-msgid "Back"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:14
-msgid "ACTIVITY DETAILS"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:21
-#, php-format
-msgid "Activity - %s ( %s )"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:25
-msgid "Date created"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:31
-msgid "Processed"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:45
-msgid "Action details"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:61
-msgid "User email"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:62
-msgid "Referral code"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:100
-msgid "You are in pending status"
-msgstr ""
-
-#: App/Views/Admin/main.php:16
-msgid "Actions"
-msgstr ""
-
-#: App/Views/Admin/main.php:19
-msgid "Settings"
-msgstr ""
-
-#: App/Views/Admin/popup.php:7
-msgid "Update points"
-msgstr ""
-
-#: App/Views/Admin/popup.php:12
-msgid "Add/skip points to existing customers while migrate"
-msgstr ""
-
-#: App/Views/Admin/popup.php:17
-msgid "Skip customer"
-msgstr ""
-
-#: App/Views/Admin/popup.php:18
+#: App/Controller/Admin/Admin.php:151
+#: App/Views/Admin/popup.php:25
 msgid "Add points to customer"
 msgstr ""
 
-#: App/Views/Admin/settings.php:11
+#: App/Controller/Admin/Admin.php:152
+#: App/Views/Admin/popup.php:24
+msgid "Skip customer"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:201
+msgid "WPSwings points and rewards"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:202
+#: App/Controller/Admin/Admin.php:210
+#: App/Controller/Admin/Admin.php:218
+msgid "Migrate users with points"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:209
+msgid "WooCommerce Loyalty Points and Rewards"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:217
+msgid "Woocommerce points and rewards"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:307
+#: App/Controller/Admin/Admin.php:384
+#: App/Controller/Admin/Admin.php:421
+msgid "Security check failed"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:320
+#: App/Controller/Admin/Admin.php:434
+msgid "Records not saved"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:332
+msgid "Migration job already created"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:371
+msgid "Migration job can't be created."
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:375
+msgid "Migration job created successfully."
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:413
+msgid "Update points to customers"
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:444
+msgid "Settings saved successfully."
+msgstr ""
+
+#: App/Controller/Admin/Admin.php:516
+msgid "User migrated via WPLoyalty Migration"
+msgstr ""
+
+#: App/Controller/Compatibles/WLPRPointsRewards.php:62
+#: App/Controller/Compatibles/WooPointsRewards.php:67
+#: App/Controller/Compatibles/WPSwings.php:79
+msgid "No available records for processing."
+msgstr ""
+
+#: App/Controller/Compatibles/WLPRPointsRewards.php:119
+#: App/Controller/Compatibles/WooPointsRewards.php:124
+#: App/Controller/Compatibles/WPSwings.php:137
+msgid "Added %d %s by site administrator(%s) via WPLoyalty migration"
+msgstr ""
+
+#: App/Controller/Compatibles/WLPRPointsRewards.php:120
+msgid "%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
+msgstr ""
+
+#: App/Controller/Compatibles/WooPointsRewards.php:125
+msgid "%s customer migrated from Woo points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
+msgstr ""
+
+#: App/Controller/Compatibles/WPSwings.php:138
+msgid "%s customer migrated from WPSwings with %d %s by administrator(%s) via WPLoyalty migration"
+msgstr ""
+
+#: App/Helper/CompatibleCheck.php:16
+msgid " plugin can not be activated because it requires minimum PHP version of "
+msgstr ""
+
+#: App/Helper/CompatibleCheck.php:22
+msgid " plugin can not be activated because it requires minimum Wordpress version of "
+msgstr ""
+
+#: App/Helper/CompatibleCheck.php:28
+msgid " plugin can not be activated because it requires minimum Woocommerce version of "
+msgstr ""
+
+#: App/Helper/CompatibleCheck.php:61
+msgid " is inactive. Because, it requires minimum PHP version of "
+msgstr ""
+
+#: App/Helper/CompatibleCheck.php:63
+msgid " is inactive. Because, it requires minimum Wordpress version of "
+msgstr ""
+
+#: App/Helper/CompatibleCheck.php:65
+msgid "Woocommerce must installed and activated in-order to use "
+msgstr ""
+
+#: App/Helper/CompatibleCheck.php:67
+msgid " is inactive. Because, it requires minimum Woocommerce version of "
+msgstr ""
+
+#: App/Helper/Validation.php:26
+#: App/Helper/Validation.php:50
+msgid "This field"
+msgstr ""
+
+#: App/Helper/Validation.php:28
+#: App/Helper/Validation.php:52
+msgid "%s"
+msgstr ""
+
+#: App/Helper/Validation.php:35
+#: App/Helper/Validation.php:56
+msgid "{field} is required"
+msgstr ""
+
+#: App/Views/Admin/actions.php:15
+msgid "MIGRATION ACTION"
+msgstr ""
+
+#: App/Views/Admin/actions.php:21
+#: App/Views/Admin/settings.php:22
+msgid "Cancel"
+msgstr ""
+
+#: App/Views/Admin/actions.php:22
+#: App/Views/Admin/settings.php:23
+msgid "Back to WPLoyalty"
+msgstr ""
+
+#: App/Views/Admin/actions.php:44
+#: App/Views/Admin/popup.php:42
+msgid "Migrate"
+msgstr ""
+
+#: App/Views/Admin/actions.php:48
+#: App/Views/Admin/actions.php:55
+#: App/Views/Admin/activity.php:100
+msgid "View Details"
+msgstr ""
+
+#: App/Views/Admin/activity.php:21
+msgid "ACTIVITIES"
+msgstr ""
+
+#: App/Views/Admin/activity.php:49
+msgid "Filter"
+msgstr ""
+
+#: App/Views/Admin/activity.php:52
+#: App/Views/Admin/activity_details.php:148
+msgid "No activities yet"
+msgstr ""
+
+#: App/Views/Admin/activity.php:55
+msgid "Get started by migrate customers from wordpress"
+msgstr ""
+
+#: App/Views/Admin/activity.php:62
+msgid "JOB ID"
+msgstr ""
+
+#: App/Views/Admin/activity.php:64
+msgid "ACTIVITY"
+msgstr ""
+
+#: App/Views/Admin/activity.php:66
+msgid "CATEGORY"
+msgstr ""
+
+#: App/Views/Admin/activity.php:68
+msgid "PROCESSED"
+msgstr ""
+
+#: App/Views/Admin/activity.php:70
+msgid "STATUS"
+msgstr ""
+
+#: App/Views/Admin/activity.php:72
+msgid "ACTION"
+msgstr ""
+
+#: App/Views/Admin/activity.php:80
+msgid "Order point"
+msgstr ""
+
+#: App/Views/Admin/activity.php:86
+msgid "%s %s updated"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:23
+msgid "Back"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:24
+msgid "ACTIVITY DETAILS"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:31
+msgid "Activity - %s "
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:35
+msgid "Date created"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:41
+#: App/Views/Admin/export_logs.php:40
+msgid "Processed items"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:47
+msgid "Status"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:54
+#: App/Views/Admin/popup.php:12
+msgid "Update points"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:62
+msgid "Update banned user"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:77
+msgid "Action details"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:100
+msgid "Show Exported File"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:103
+#: App/Views/Admin/export_logs.php:51
+msgid "Export"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:110
+msgid "User email"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:111
+msgid "Referral code"
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:152
+msgid "You are in pending status"
+msgstr ""
+
+#: App/Views/Admin/export_logs.php:13
+msgid "EXPORT"
+msgstr ""
+
+#: App/Views/Admin/export_logs.php:36
+msgid "Total items"
+msgstr ""
+
+#: App/Views/Admin/main.php:27
+msgid "Actions"
+msgstr ""
+
+#: App/Views/Admin/main.php:33
+msgid "Settings"
+msgstr ""
+
+#: App/Views/Admin/popup.php:19
+msgid "Add/skip points to existing customers while migrate?"
+msgstr ""
+
+#: App/Views/Admin/popup.php:31
+msgid "Add/skip points to banned customers while migrate?"
+msgstr ""
+
+#: App/Views/Admin/popup.php:35
+msgid "Skip banned customer"
+msgstr ""
+
+#: App/Views/Admin/popup.php:36
+msgid "Add points to banned customer"
+msgstr ""
+
+#: App/Views/Admin/settings.php:16
 msgid "SETTINGS"
 msgstr ""
 
-#: App/Views/Admin/settings.php:20
+#: App/Views/Admin/settings.php:26
 msgid "Save"
 msgstr ""
 
-#: App/Views/Admin/settings.php:29
+#: App/Views/Admin/settings.php:35
 msgid "Batch limit"
 msgstr ""
 
-#: App/Views/Admin/settings.php:49
+#: App/Views/Admin/settings.php:55
 msgid "Pagination limit"
 msgstr ""
