@@ -14,6 +14,14 @@ use Wlrm\App\Models\ScheduledJobs;
 
 class WooPointsRewards implements Base {
 
+	/**
+	 * Check if the WooCommerce Points and Rewards plugin is active.
+	 *
+	 * This method retrieves the list of active plugins and checks if the WooCommerce Points and Rewards
+	 * plugin is present in the list.
+	 *
+	 * @return bool Returns true if the WooCommerce Points and Rewards plugin is active, false otherwise.
+	 */
 	static function checkPluginIsActive() {
 		$active_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins', array() ) );
 		if ( is_multisite() ) {
@@ -23,6 +31,14 @@ class WooPointsRewards implements Base {
 		return in_array( 'woocommerce-points-and-rewards/woocommerce-points-and-rewards.php', $active_plugins, false );
 	}
 
+	/**
+	 * Get the migration job related to WooCommerce.
+	 *
+	 * This method retrieves the migration job entry from the ScheduledJobs table that is categorized as 'woocommerce_migration'.
+	 * If a valid job is found, it is returned; otherwise, a new stdClass instance is returned.
+	 *
+	 * @return object Returns the migration job entry as an object if found, otherwise returns a new stdClass instance.
+	 */
 	static function getMigrationJob() {
 		$job_table = new ScheduledJobs();
 		$job       = $job_table->getWhere( "category = 'woocommerce_migration'" );
@@ -30,6 +46,15 @@ class WooPointsRewards implements Base {
 		return ( ! empty( $job ) && is_object( $job ) && isset( $job->uid ) ) ? $job : new \stdClass();
 	}
 
+	/**
+	 * Migrate user data to Loyalty system.
+	 *
+	 * This method processes the job data to migrate user data to a Loyalty system.
+	 *
+	 * @param object $job_data The job data containing information needed for the migration.
+	 *
+	 * @return void
+	 */
 	function migrateToLoyalty( $job_data ) {
 		if ( empty( $job_data ) || ! is_object( $job_data ) ) {
 			return;
@@ -55,6 +80,20 @@ class WooPointsRewards implements Base {
 		$this->migrateUsers( $wp_users, $job_id, $job_data, $admin_mail, $action_type );
 	}
 
+	/**
+	 * Migrate users from WooCommerce to WPLoyalty system.
+	 *
+	 * This method migrates users' data including points balance, referrals, and actions from WooCommerce
+	 * to the WPLoyalty system, updating points balance, referral codes, and logging migration details.
+	 *
+	 * @param array $wp_users Array of user data from WooCommerce to migrate.
+	 * @param int $job_id The ID of the migration job.
+	 * @param object $data Additional data related to the migration.
+	 * @param string $admin_mail Admin email address initiating the migration.
+	 * @param string $action_type Type of action to perform during migration.
+	 *
+	 * @return void
+	 */
 	public function migrateUsers( $wp_users, $job_id, $data, $admin_mail, $action_type ) {
 		$migration_job_model = new ScheduledJobs();
 		$migration_log_model = new MigrationLog();

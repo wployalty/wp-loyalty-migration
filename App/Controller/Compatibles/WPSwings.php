@@ -15,6 +15,14 @@ use Wlrm\App\Models\ScheduledJobs;
 defined( 'ABSPATH' ) or die();
 
 class WPSwings implements Base {
+	/**
+	 * Checks if the 'points-and-rewards-for-woocommerce' plugin is active.
+	 *
+	 * This method retrieves the list of active plugins and checks if the 'points-and-rewards-for-woocommerce'
+	 * plugin is in the list. It also considers multisite installations where additional sitewide plugins are included.
+	 *
+	 * @return bool Returns true if the 'points-and-rewards-for-woocommerce' plugin is active, false otherwise.
+	 */
 	static function checkPluginIsActive() {
 		$active_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins', array() ) );
 		if ( is_multisite() ) {
@@ -24,6 +32,15 @@ class WPSwings implements Base {
 		return in_array( 'points-and-rewards-for-woocommerce/points-rewards-for-woocommerce.php', $active_plugins, false );
 	}
 
+	/**
+	 * Retrieves the migration job from the ScheduledJobs table.
+	 *
+	 * This method retrieves a migration job from the ScheduledJobs table based on the category 'wp_swings_migration'.
+	 * It creates a new instance of ScheduledJobs, fetches the job matching the provided category, and returns it if it meets certain conditions.
+	 * If the job exists, is an object, and has a 'uid' property set, it is returned; otherwise, a new stdClass object is returned.
+	 *
+	 * @return object Returns the migration job object if found and conditions are met, otherwise returns a new stdClass object.
+	 */
 	static function getMigrationJob() {
 		$job_table = new ScheduledJobs();
 		$job       = $job_table->getWhere( "category = 'wp_swings_migration'" );
@@ -31,6 +48,22 @@ class WPSwings implements Base {
 		return ( ! empty( $job ) && is_object( $job ) && isset( $job->uid ) ) ? $job : new \stdClass();
 	}
 
+	/**
+	 * Migrates user data to loyalty system.
+	 *
+	 * This method migrates user data to the loyalty system based on the provided job data.
+	 * It retrieves user information from the WordPress database based on the job settings.
+	 * The user migration includes data like user ID, email, and loyalty points.
+	 *
+	 * @param object $job_data The job data containing information required for user migration.
+	 *                        - uid: int The unique identifier for the job.
+	 *                        - admin_mail: string The email address of the administrator.
+	 *                        - action_type: string The type of action for the migration (default: "migration_to_wployalty").
+	 *                        - last_processed_id: int The ID of the last processed user.
+	 *                        - limit: int Optional limit for number of users to migrate (default: 0 for no limit).
+	 *
+	 * @return void
+	 */
 	function migrateToLoyalty( $job_data ) {
 		if ( empty( $job_data ) || ! is_object( $job_data ) ) {
 			return;
@@ -65,6 +98,20 @@ class WPSwings implements Base {
 		$this->migrateUsers( $wp_users, $job_id, $job_data, $admin_mail, $action_type );
 	}
 
+	/**
+	 * Migrates users based on the provided data.
+	 *
+	 * This method migrates users from the given WordPress user data array ($wp_users) to the Loyalty system.
+	 * It processes each user one by one, updating their points and sending appropriate notifications.
+	 *
+	 * @param array $wp_users An array of WordPress user objects to be migrated.
+	 * @param int $job_id The ID of the migration job.
+	 * @param object $data Additional data for migration.
+	 * @param string $admin_mail The email of the administrator initiating the migration.
+	 * @param string $action_type The type of action being performed during migration.
+	 *
+	 * @return void
+	 */
 	public function migrateUsers( $wp_users, $job_id, $data, $admin_mail, $action_type ) {
 		$migration_job_model = new ScheduledJobs();
 		$migration_log_model = new MigrationLog();

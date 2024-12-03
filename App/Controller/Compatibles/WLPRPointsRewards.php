@@ -14,15 +14,30 @@ use Wlrm\App\Models\ScheduledJobs;
 
 class WLPRPointsRewards implements Base {
 
+	/**
+	 * Checks if the 'loyalty-points-rewards/wp-loyalty-points-rewards.php' plugin is active.
+	 *
+	 * This method fetches the list of active plugins and checks if the specified plugin is present in the list.
+	 *
+	 * @return bool Returns true if the 'loyalty-points-rewards/wp-loyalty-points-rewards.php' plugin is active, false otherwise.
+	 */
 	static function checkPluginIsActive() {
-		$active_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins', array() ) );
+		$active_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins', [] ) );
 		if ( is_multisite() ) {
-			$active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', array() ) );
+			$active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', [] ) );
 		}
 
-		return in_array( 'loyalty-points-rewards/wp-loyalty-points-rewards.php', $active_plugins, false );
+		return in_array( 'loyalty-points-rewards/wp-loyalty-points-rewards.php', $active_plugins );
 	}
 
+	/**
+	 * Retrieves the migration job from the ScheduledJobs database table.
+	 *
+	 * This method fetches a migration job from the ScheduledJobs table based on the category 'wlpr_migration'.
+	 * If a job with the specified category is found, it is returned. Otherwise, a new stdClass object is returned.
+	 *
+	 * @return object Returns the migration job object if found, or a new stdClass object if no job is found.
+	 */
 	static function getMigrationJob() {
 		$job_table = new ScheduledJobs();
 		$job       = $job_table->getWhere( "category = 'wlpr_migration'" );
@@ -30,6 +45,19 @@ class WLPRPointsRewards implements Base {
 		return ( ! empty( $job ) && is_object( $job ) && isset( $job->uid ) ) ? $job : new \stdClass();
 	}
 
+	/**
+	 * Migrates user data to the loyalty system based on the provided job data.
+	 *
+	 * This method processes the job data object to extract necessary information for migrating users to the loyalty system.
+	 *
+	 * @param object $job_data The data object containing information for the migration job.
+	 *                        - $job_data->uid (int) The ID of the job.
+	 *                        - $job_data->admin_mail (string) The email of the administrator.
+	 *                        - $job_data->action_type (string) The type of action for migration.
+	 *                        - $job_data->last_processed_id (int) The ID of the last processed user.
+	 *
+	 * @return void
+	 */
 	function migrateToLoyalty( $job_data ) {
 		if ( empty( $job_data ) || ! is_object( $job_data ) ) {
 			return;
@@ -50,6 +78,19 @@ class WLPRPointsRewards implements Base {
 		$this->migrateUsers( $users, $job_id, $job_data, $admin_mail, $action_type );
 	}
 
+	/**
+	 * Migrates users with loyalty points and rewards.
+	 *
+	 * This method migrates user data including loyalty points and rewards based on the provided parameters.
+	 *
+	 * @param array $users Array of user data to migrate.
+	 * @param int $job_id The ID of the migration job.
+	 * @param object $data Object containing additional migration data.
+	 * @param string $admin_mail Email of the administrator initiating the migration.
+	 * @param string $action_type Type of action for migration.
+	 *
+	 * @return void
+	 */
 	function migrateUsers( $users, $job_id, $data, $admin_mail, $action_type ) {
 		$migration_job_model = new ScheduledJobs();
 		$migration_log_model = new MigrationLog();
