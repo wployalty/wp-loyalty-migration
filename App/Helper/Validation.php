@@ -16,48 +16,49 @@ class Validation {
 		return preg_replace( "/[^A-Za-z0-9_\-]/", "", $input );
 	}
 
-	function validateMigrationData( $post ) {
+	static function validateMigrationData( $post ) {
 		$rule_validator = new Validator( $post );
-		$labels         = array();
-		$labels_fields  = array(
+		$labels         = [];
+		$labels_fields  = [
 			'migration_action',
 			'update_point'
-		);
-		$this_field     = __( "This field", "wp-loyalty-migration" );
+		];
+		$this_field     = __( 'This field', 'wp-loyalty-migration' );
 		foreach ( $labels_fields as $label ) {
-			$labels[ $label ] = sprintf( __( "%s", "wp-loyalty-migration" ), $this_field );
+			$labels[ $label ] = $this_field;
 		}
 		$rule_validator->labels( $labels );
 		$rule_validator->stopOnFirstFail( false );
-		$rule_validator->rule( "required", array(
+		$rule_validator->rule( 'required', array(
 			'migration_action',
 			'update_point'
-		) )->message( __( "{field} is required", "wp-loyalty-migration" ) );
+		) )->message( __( '{field} is required', "wp-loyalty-migration" ) );
 		if ( $rule_validator->validate() ) {
 			return true;
-		} else {
-			return $rule_validator->errors();
 		}
+
+		return $rule_validator->errors();
 	}
 
-	function validateSettingsData( $post ) {
+	static function validateSettingsData( $post ) {
 		$rule_validator = new Validator( $post );
-		$labels         = array();
-		$labels_fields  = array(
+		$labels         = [];
+		$labels_fields  = [
 			'batch_limit',
 			'pagination_limit'
-		);
-		$this_field     = __( "This field", "wp-loyalty-migration" );
+		];
+		$this_field     = __( 'This field', "wp-loyalty-migration" );
 		foreach ( $labels_fields as $label ) {
-			$labels[ $label ] = sprintf( __( "%s", "wp-loyalty-migration" ), $this_field );
+			$labels[ $label ] = $this_field;
 		}
+
 		$rule_validator->labels( $labels );
 		$rule_validator->stopOnFirstFail( false );
-		$rule_validator->rule( "required", array( 'batch_limit' ) )->message( __( "{field} is required", "wp-loyalty-migration" ) );
+		$rule_validator->rule( 'required', [ 'batch_limit' ] )->message( __( '{field} is required', 'wp-loyalty-migration' ) );
 		if ( $rule_validator->validate() ) {
 			return true;
-		} else {
-			return $rule_validator->errors();
 		}
+
+		return $rule_validator->errors();
 	}
 }

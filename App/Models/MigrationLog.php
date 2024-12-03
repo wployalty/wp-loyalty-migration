@@ -144,4 +144,19 @@ class MigrationLog extends Base {
 
 		return $download_list;
 	}
+
+	public static function getLogCount( $action, $job_id ) {
+		if ( empty( $job_id ) || empty( $action ) || $job_id <= 0 || ! is_string( $action ) ) {
+			return 0;
+		}
+
+		$log_table = new MigrationLog();
+		$query     = self::$db->prepare( " id > 0 AND action != %s AND job_id = %d AND user_email !='' ", [
+			$action . "_completed",
+			(int) $job_id
+		] );
+		$log_count = $log_table->getWhere( $query, "count(*) as total_count", true );
+
+		return ! empty( $log_count ) ? $log_count->total_count : 0;
+	}
 }

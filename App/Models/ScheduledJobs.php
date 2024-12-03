@@ -8,6 +8,8 @@
 namespace Wlrm\App\Models;
 
 use Wlr\App\Models\Base;
+use Wlrm\App\Helper\Settings;
+use Wlrm\App\Helper\WC;
 
 defined( "ABSPATH" ) or die();
 
@@ -83,5 +85,78 @@ class ScheduledJobs extends Base {
 		$where = self::$db->prepare( " source_app = %s AND uid = %d ", array( "wlr_bulk_action", $job_id ) );
 
 		return $this->getWhere( $where, '*', true );
+	}
+
+	public static function getJobByAction( $action = '' ) {
+		if ( empty( $action ) || ! is_string( $action ) ) {
+			return [];
+		}
+		global $wpdb;
+		/* check job exist or not */
+		$where          = self::$db->prepare( 'id > %d AND source_app = %s AND category =%s', [
+			0,
+			'wlr_migration',
+			$action
+		] );
+		$scheduled_jobs = new ScheduledJobs();
+
+		return $scheduled_jobs->getWhere( $where );
+	}
+
+	public static function getMaxUid() {
+		$cron_job_modal = new ScheduledJobs();
+		$where          = self::$db->prepare( ' id > %d', [ 0 ] );
+
+		$data_job = $cron_job_modal->getWhere( $where, 'MAX(uid) as max_uid' );
+		$max_uid  = 1;
+		if ( ! empty( $data_job ) && is_object( $data_job ) && isset( $data_job->max_uid ) ) {
+			$max_uid = $data_job->max_uid + 1;
+		}
+
+		return $max_uid;
+	}
+
+	public static function insertData( $post ) {
+		if ( empty( $post ) || ! is_array( $post ) ) {
+			return 0;
+		}
+		if ( ! empty( $post['job_id'] ) ) {
+			$max_uid = $post['job_id'];
+		} else {
+			$max_uid = ScheduledJobs::getMaxUid();
+		}
+
+		$admin_mail      = WC::getLoginUserEmail();
+		$conditions      = [
+			'update_point'       => ! empty( $post['update_point'] ) ? $post['update_point'] : 'skip',
+			'update_banned_user' => ! empty( $post['update_banned_user'] ) ? $post['update_banned_user'] : 'skip',
+		];
+		$job_data        = [
+			'uid'               => $max_uid,
+			'source_app'        => 'wlr_migration',
+			'admin_mail'        => $admin_mail,
+			'category'          => ! empty( $post['migration_action'] ) ? $post['migration_action'] : "",
+			'action_type'       => 'migration_to_wployalty',
+			'conditions'        => json_encode( $conditions ),
+			'status'            => 'pending',
+			'limit'             => (int) Settings::get( 'batch_limit', 10 ),
+			'offset'            => 0,
+			'last_processed_id' => 0,
+			'created_at'        => strtotime( date( 'Y-m-d h:i:s' ) ),
+		];
+		$job_table_model = new ScheduledJobs();
+
+		return $job_table_model->insertRow( $job_data );
+	}
+
+	public static function getAvailableJob() {
+		$job_table = new ScheduledJobs();
+		$where     = self::$db->prepare( "  source_app = %s AND id > 0 AND status IN (%s,%s) ORDER BY id ASC", [
+			"wlr_migration",
+			"pending",
+			"processing"
+		] );
+
+		return $job_table->getWhere( $where );
 	}
 }

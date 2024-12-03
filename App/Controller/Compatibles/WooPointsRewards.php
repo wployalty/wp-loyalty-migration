@@ -9,7 +9,6 @@ namespace Wlrm\App\Controller\Compatibles;
 
 use Wlr\App\Helpers\EarnCampaign;
 use Wlr\App\Models\Users;
-use Wlrm\App\Models\MigrationJob;
 use Wlrm\App\Models\MigrationLog;
 use Wlrm\App\Models\ScheduledJobs;
 
