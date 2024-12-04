@@ -60,7 +60,6 @@ class Migration {
 		$post          = [
 			'migration_action'   => Input::get( 'migration_action' ),
 			'update_point'       => Input::get( 'update_point' ),
-			'job_id'             => Input::get( 'update_point' ),
 			'update_banned_user' => Input::get( 'update_banned_user' ),
 		];
 		$validate_data = Validation::validateMigrationData( $_POST );

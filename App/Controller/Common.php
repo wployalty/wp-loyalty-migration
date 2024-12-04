@@ -364,7 +364,7 @@ class Common {
 		wp_enqueue_style( WLRMG_PLUGIN_SLUG . '-main-style', WLRMG_PLUGIN_URL . 'Assets/Admin/Css/wlrmg-main.css', [ 'woocommerce_admin_styles' ], WLRMG_PLUGIN_VERSION . '&t=' . time() );
 
 		wp_enqueue_script( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', [], WLR_PLUGIN_VERSION . '&t=' . time() );
-		wp_enqueue_script( WLRMG_PLUGIN_SLUG . '-main-script', WLRMG_PLUGIN_URL . 'Assets/Admin/Js/wlrmg-main' . $suffix . ".js", [
+		wp_enqueue_script( WLRMG_PLUGIN_SLUG . '-main-script', WLRMG_PLUGIN_URL . 'Assets/Admin/Js/wlrmg-main.js', [
 			'jquery',
 			'select2'
 		], WLRMG_PLUGIN_VERSION . '&t=' . time() );
@@ -430,9 +430,34 @@ class Common {
 		$hook      = 'wlrmg_migration_jobs';
 		$timestamp = wp_next_scheduled( $hook );
 		if ( false === $timestamp ) {
-			$scheduled_time = strtotime( '+1 hour', current_time( 'timestamp' ) );
-			wp_schedule_event( $scheduled_time, 'hourly', $hook );
+			$scheduled_time = strtotime( '+5 minutes' );
+			wp_schedule_event( $scheduled_time, 'minutes', $hook );
 		}
+	}
+
+	/**
+	 * Adds minutes to the input data array.
+	 *
+	 * This method takes an input data array and checks if it is an array.
+	 * If the input is not an array, it returns the input data as is.
+	 * If the input is an array, it adds a 'minutes' array to the data with keys 'interval' and 'display'.
+	 * The 'interval' key is assigned the value of MINUTE_IN_SECONDS constant.
+	 * The 'display' key is assigned the localized translation of 'Minutes'.
+	 *
+	 * @param array $data The input data array to add minutes to.
+	 *
+	 * @return array The modified input data array with minutes added if it was an array.
+	 */
+	public static function addMinutes( $data ) {
+		if ( ! is_array( $data ) ) {
+			return $data;
+		}
+		$data['minutes'] = [
+			'interval' => MINUTE_IN_SECONDS,
+			'display'  => __( 'Minutes' ),
+		];
+
+		return $data;
 	}
 
 	public static function triggerMigrations() {

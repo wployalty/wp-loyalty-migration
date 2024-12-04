@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-03T05:13:42+00:00\n"
+"POT-Creation-Date: 2024-12-04T09:06:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -39,140 +39,135 @@ msgstr ""
 msgid "https://wployalty.net/"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:31
-#: App/Controller/Admin/Admin.php:45
-msgid "Plugin required table creation failed."
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:51
+#: App/Controller/Common.php:31
 msgid "WPLoyalty: Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:137
+#: App/Controller/Common.php:96
+msgid "WPSwings points and rewards"
+msgstr ""
+
+#: App/Controller/Common.php:97
+#: App/Controller/Common.php:105
+#: App/Controller/Common.php:113
+msgid "Migrate users with points"
+msgstr ""
+
+#: App/Controller/Common.php:104
+msgid "WooCommerce Loyalty Points and Rewards"
+msgstr ""
+
+#: App/Controller/Common.php:112
+msgid "Woocommerce points and rewards"
+msgstr ""
+
+#: App/Controller/Common.php:260
 msgid "WP Swings Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:140
+#: App/Controller/Common.php:263
 msgid "Woocommerce Loyalty Points and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:143
+#: App/Controller/Common.php:266
 msgid "Woocommerce Point and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:151
+#: App/Controller/Common.php:274
 #: App/Views/Admin/popup.php:25
 msgid "Add points to customer"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:152
+#: App/Controller/Common.php:275
 #: App/Views/Admin/popup.php:24
 msgid "Skip customer"
 msgstr ""
 
-#: App/Controller/Admin/Admin.php:201
-msgid "WPSwings points and rewards"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:202
-#: App/Controller/Admin/Admin.php:210
-#: App/Controller/Admin/Admin.php:218
-msgid "Migrate users with points"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:209
-msgid "WooCommerce Loyalty Points and Rewards"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:217
-msgid "Woocommerce points and rewards"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:307
-#: App/Controller/Admin/Admin.php:384
-#: App/Controller/Admin/Admin.php:421
-msgid "Security check failed"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:320
-#: App/Controller/Admin/Admin.php:434
-msgid "Records not saved"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:332
-msgid "Migration job already created"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:371
-msgid "Migration job can't be created."
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:375
-msgid "Migration job created successfully."
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:413
-msgid "Update points to customers"
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:444
-msgid "Settings saved successfully."
-msgstr ""
-
-#: App/Controller/Admin/Admin.php:516
+#: App/Controller/Common.php:395
 msgid "User migrated via WPLoyalty Migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:62
-#: App/Controller/Compatibles/WooPointsRewards.php:67
-#: App/Controller/Compatibles/WPSwings.php:79
+#: App/Controller/Compatibles/WLPRPointsRewards.php:102
+#: App/Controller/Compatibles/WooPointsRewards.php:105
+#: App/Controller/Compatibles/WPSwings.php:123
 msgid "No available records for processing."
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:119
-#: App/Controller/Compatibles/WooPointsRewards.php:124
-#: App/Controller/Compatibles/WPSwings.php:137
+#: App/Controller/Compatibles/WLPRPointsRewards.php:159
+#: App/Controller/Compatibles/WooPointsRewards.php:162
+#: App/Controller/Compatibles/WPSwings.php:181
 msgid "Added %d %s by site administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:120
+#: App/Controller/Compatibles/WLPRPointsRewards.php:160
 msgid "%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WooPointsRewards.php:125
+#: App/Controller/Compatibles/WooPointsRewards.php:163
 msgid "%s customer migrated from Woo points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WPSwings.php:138
+#: App/Controller/Compatibles/WPSwings.php:182
 msgid "%s customer migrated from WPSwings with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Helper/CompatibleCheck.php:16
-msgid " plugin can not be activated because it requires minimum PHP version of "
+#: App/Controller/Migration.php:29
+#: App/Controller/Migration.php:58
+#: App/Controller/Migration.php:107
+#: App/Controller/Migration.php:146
+#: App/Controller/Migration.php:207
+#: App/Controller/Migration.php:295
+msgid "Basic check failed"
 msgstr ""
 
-#: App/Helper/CompatibleCheck.php:22
-msgid " plugin can not be activated because it requires minimum Wordpress version of "
+#: App/Controller/Migration.php:41
+msgid "Update points to customers"
 msgstr ""
 
-#: App/Helper/CompatibleCheck.php:28
-msgid " plugin can not be activated because it requires minimum Woocommerce version of "
+#: App/Controller/Migration.php:73
+#: App/Controller/Migration.php:121
+msgid "Invalid fields"
 msgstr ""
 
-#: App/Helper/CompatibleCheck.php:61
-msgid " is inactive. Because, it requires minimum PHP version of "
+#: App/Controller/Migration.php:80
+msgid "Migration job already created"
 msgstr ""
 
-#: App/Helper/CompatibleCheck.php:63
-msgid " is inactive. Because, it requires minimum Wordpress version of "
+#: App/Controller/Migration.php:85
+msgid "Unable to create job"
 msgstr ""
 
-#: App/Helper/CompatibleCheck.php:65
-msgid "Woocommerce must installed and activated in-order to use "
+#: App/Controller/Migration.php:88
+msgid "Migration job created"
 msgstr ""
 
-#: App/Helper/CompatibleCheck.php:67
-msgid " is inactive. Because, it requires minimum Woocommerce version of "
+#: App/Controller/Migration.php:127
+msgid "Settings saved"
+msgstr ""
+
+#: App/Controller/Migration.php:299
+msgid "Invalid job id"
+msgstr ""
+
+#. translators: First %s will replace plugin name, Second %s replace minimum PHP version
+#: App/Helper/Plugin.php:20
+msgid "%1$s requires minimum PHP version %2$s"
+msgstr ""
+
+#. translators: First %s will replace plugin name, Second %s replace a minimum WordPress version
+#: App/Helper/Plugin.php:28
+msgid "%1$s requires minimum WordPress version %2$s"
+msgstr ""
+
+#. translators: 1. %s will replace plugin name
+#: App/Helper/Plugin.php:36
+msgid "%1$s requires WooCommerce to be installed and activated in order to be used."
+msgstr ""
+
+#. translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
+#: App/Helper/Plugin.php:44
+#: App/Helper/Plugin.php:51
+msgid "%1$s requires minimum Woocommerce version %2$s"
 msgstr ""
 
 #: App/Helper/Validation.php:26
@@ -180,14 +175,13 @@ msgstr ""
 msgid "This field"
 msgstr ""
 
-#: App/Helper/Validation.php:28
-#: App/Helper/Validation.php:52
-msgid "%s"
+#: App/Helper/Validation.php:35
+#: App/Helper/Validation.php:57
+msgid "{field} is required"
 msgstr ""
 
-#: App/Helper/Validation.php:35
-#: App/Helper/Validation.php:56
-msgid "{field} is required"
+#: App/Setup.php:58
+msgid "Support"
 msgstr ""
 
 #: App/Views/Admin/actions.php:15

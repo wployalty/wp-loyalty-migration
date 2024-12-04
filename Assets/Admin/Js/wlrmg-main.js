@@ -68,7 +68,7 @@ wlrmg_jquery(document).ready(function () {
             cache: false,
             async: false,
             success: function (json) {
-                if (json['status'] === true) {
+                if (json['success'] === true) {
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section").addClass('active');
                     wlrmg_jquery("#wlrmg-main-page #wlrmg-overlay-section .wlrmg-overlay").html(json['data']['html']);
                     wlrmg_jquery('#wlrmg-main-page #wlrmg-overlay-section .wlrmg-multi-select').select2();

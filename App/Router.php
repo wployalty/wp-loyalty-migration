@@ -37,6 +37,7 @@ class Router {
 		add_filter( 'wlr_extra_point_ledger_action_list', [ Common::class, 'addExtraPointLedgerAction' ], 10, 1 );
 		//schedule
 		add_action( 'woocommerce_init', [ Common::class, 'initSchedule' ], 10 );
+		add_filter( 'cron_schedules', [ Common::class, 'addMinutes' ] );
 		add_action( 'wlrmg_migration_jobs', [ Common::class, 'triggerMigrations' ] );
 	}
 }
