@@ -20,6 +20,10 @@
  */
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use Wlrm\App\Helper\Plugin;
+use Wlrm\App\Router;
+use Wlrm\App\Setup;
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 defined('ABSPATH') or die();
 
@@ -78,7 +82,7 @@ if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
 }
 require_once __DIR__ . '/vendor/autoload.php';
 
-$myUpdateChecker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+$myUpdateChecker = PucFactory::buildUpdateChecker(
     'https://github.com/wployalty/wployalty_migration',
     __FILE__,
     'wp-loyalty-migration'
@@ -91,8 +95,8 @@ add_filter('plugins_loaded', function () {
     if (!class_exists('\Wlrm\App\Router')) {
         return;
     }
-    \Wlrm\App\Setup::init(); // init setup
-    if (\Wlrm\App\Helper\Plugin::checkDependencies()) {
-        \Wlrm\App\Router::init();
+    Setup::init(); // init setup
+    if (Plugin::checkDependencies()) {
+        Router::init();
     }
 });

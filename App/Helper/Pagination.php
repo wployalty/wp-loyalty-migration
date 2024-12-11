@@ -106,8 +106,6 @@ class Pagination
         $query_string_sep = '';
         $input = new Input();
 
-        // Add `job_id` and `type=woocommerce_migration` to the URL
-        $get_job_id = $input->post_get('job_id', '');
         $get_type = 'woocommerce_migration';  // Always set to 'woocommerce_migration' as per your requirement
 
         // Construct the query string with the additional parameters

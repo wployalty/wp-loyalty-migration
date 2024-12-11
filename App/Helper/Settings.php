@@ -2,23 +2,27 @@
 
 namespace Wlrm\App\Helper;
 
-defined( 'ABSPATH' ) || exit();
+defined('ABSPATH') || exit();
 
-class Settings {
-	public static function getDefaultSettings() {
-		return [
-			'batch_limit'      => 10,
-			'pagination_limit' => 10
-		];
-	}
+class Settings
+{
+    public static function get($key, $value)
+    {
+        $settings = self::gets();
 
-	public static function gets() {
-		return get_option( 'wlrmg_settings', self::getDefaultSettings() );
-	}
+        return $settings[$key] ?? $value;
+    }
 
-	public static function get( $key, $value ) {
-		$settings = self::gets();
+    public static function gets()
+    {
+        return get_option('wlrmg_settings', self::getDefaultSettings());
+    }
 
-		return $settings[ $key ] ?? $value;
-	}
+    public static function getDefaultSettings()
+    {
+        return [
+            'batch_limit' => 10,
+            'pagination_limit' => 10
+        ];
+    }
 }
