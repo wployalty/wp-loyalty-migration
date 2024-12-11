@@ -8,11 +8,11 @@
 use Wlr\App\Helpers\EarnCampaign;
 
 defined("ABSPATH") or die();
-$current_page = (isset($current_page) && !empty($current_page)) ? $current_page : $current_page = "activity_details";
-$activity = (isset($activity) && !empty($activity)) ? $activity : array();
+$current_page = isset($current_page) && !empty($current_page) ? $current_page : "activity_details";
+$activity = isset($activity) && !empty($activity) ? $activity : array();
 $job_data = isset($activity['job_data']) && !empty($activity['job_data']) ? $activity['job_data'] : array();
 
-$action = (isset($action) && !empty($action)) ? $action : '';
+$action = isset($action) && !empty($action) ? $action : '';  // Action filter
 $earn_campaign_helper = EarnCampaign::getInstance();
 ?>
 <div id="wlrmg-activity-details"
@@ -29,8 +29,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
     <?php if (!empty($activity)): ?>
         <div class="wlrmg-activity-details-content">
             <div class="wlrmg-job-details">
-                <div
-                        class="wlrmg-header">
+                <div class="wlrmg-header">
                     <h4><?php echo esc_html(sprintf(__("Activity - %s ", "wp-loyalty-migration"), $job_data['action_label'])); ?></h4>
                 </div>
                 <div class="wlrmg-description">
@@ -75,14 +74,17 @@ $earn_campaign_helper = EarnCampaign::getInstance();
             // Check if a search parameter exists in the URL
             $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : "";
 
-            // Filter the activity list based on the search email
-            if (!empty($search)) {
-                $filtered_activities = array_filter($activity['activity']['activity_list'], function ($bulk_activity) use ($search) {
-                    return strpos($bulk_activity->user_email, $search) !== false;
-                });
-            } else {
-                $filtered_activities = $activity['activity']['activity_list'];
-            }
+            // Handle pagination
+            $current_page_number = isset($_GET['migration_page']) ? (int)$_GET['migration_page'] : 1;
+            $limit = 10;  // You can adjust this to a dynamic value or from settings.
+            $offset = ($current_page_number - 1) * $limit;
+
+            // Filter the activity list based on the search email and action type
+            $filtered_activities = array_filter($activity['activity']['activity_list'], function ($bulk_activity) use ($search, $action) {
+                // Check if the activity matches the search email and the action type
+                return (empty($search) || strpos($bulk_activity->user_email, $search) !== false) &&
+                    (empty($action) || $bulk_activity->action == $action);
+            });
 
             // Check if there are activities to display
             if (isset($activity['activity']) && !empty($activity['activity']) && is_array($activity['activity']) && ($activity['job_id'] > 0)):
@@ -147,7 +149,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="wlrmg-no-results">
-                                    <p><?php esc_html_e('No activities found for the entered email.', 'wp-loyalty-migration'); ?></p>
+                                    <p><?php esc_html_e('No activities found for the entered email or action type.', 'wp-loyalty-migration'); ?></p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -164,8 +166,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                     </div>
                 </div>
             <?php endif; ?>
-
-
+             
         </div>
     <?php else: ?>
         <div class="no-activity-block">
