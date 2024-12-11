@@ -70,6 +70,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                     <?php endif; ?>
                 </div>
             </div>
+
             <?php
             // Check if a search parameter exists in the URL
             $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : "";
@@ -108,20 +109,19 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                                               const newUrl = searchEmail ? baseUrl + '&search=' + encodeURIComponent(searchEmail) : baseUrl;
                                               window.location.href = newUrl;
                                               ">
-        <i class="wlrf-search"></i>
-    </span>
+                        <i class="wlrf-search"></i>
+                    </span>
                             </div>
 
-                            <?php if (!empty($filtered_activities)): ?>
-                                <div class="wlrmg-activity-button-section">
-                                    <?php if (!empty($activity['activity']['show_export_file_download'])): ?>
-                                        <button class="wlrmg-button-action" type="button"
-                                                onclick="wlrmg.showExported(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Show Exported File', 'wp-loyalty-migration'); ?></button>
-                                    <?php endif; ?>
-                                    <button class="wlrmg-button-action wlrmg-export-button" type="button"
-                                            onclick="wlrmg.exportPopUp(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Export', 'wp-loyalty-migration'); ?></button>
-                                </div>
-                            <?php endif; ?>
+                            <!-- Always show the export button -->
+                            <div class="wlrmg-activity-button-section">
+                                <?php if (!empty($activity['activity']['show_export_file_download'])): ?>
+                                    <button class="wlrmg-button-action" type="button"
+                                            onclick="wlrmg.showExported(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Show Exported File', 'wp-loyalty-migration'); ?></button>
+                                <?php endif; ?>
+                                <button class="wlrmg-button-action wlrmg-export-button" type="button"
+                                        onclick="wlrmg.exportPopUp(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Export', 'wp-loyalty-migration'); ?></button>
+                            </div>
                         </div>
                     </div>
                     <div id="wlrmg-activity-list-table" class="wlrmg-table">
@@ -164,6 +164,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                     </div>
                 </div>
             <?php endif; ?>
+
 
         </div>
     <?php else: ?>
