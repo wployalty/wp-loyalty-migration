@@ -13,7 +13,6 @@ use Wlrm\App\Helper\Pagination;
 use Wlrm\App\Helper\WC;
 use Wlrm\App\Models\MigrationLog;
 use Wlrm\App\Models\ScheduledJobs;
-use function Crontrol\Schedule\get;
 
 class Common {
 	/**
