@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-04T09:06:59+00:00\n"
+"POT-Creation-Date: 2024-12-04T11:50:29+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -113,10 +113,10 @@ msgstr ""
 
 #: App/Controller/Migration.php:29
 #: App/Controller/Migration.php:58
-#: App/Controller/Migration.php:107
-#: App/Controller/Migration.php:146
-#: App/Controller/Migration.php:207
-#: App/Controller/Migration.php:295
+#: App/Controller/Migration.php:106
+#: App/Controller/Migration.php:145
+#: App/Controller/Migration.php:206
+#: App/Controller/Migration.php:294
 msgid "Basic check failed"
 msgstr ""
 
@@ -124,28 +124,28 @@ msgstr ""
 msgid "Update points to customers"
 msgstr ""
 
-#: App/Controller/Migration.php:73
-#: App/Controller/Migration.php:121
+#: App/Controller/Migration.php:72
+#: App/Controller/Migration.php:120
 msgid "Invalid fields"
 msgstr ""
 
-#: App/Controller/Migration.php:80
+#: App/Controller/Migration.php:79
 msgid "Migration job already created"
 msgstr ""
 
-#: App/Controller/Migration.php:85
+#: App/Controller/Migration.php:84
 msgid "Unable to create job"
 msgstr ""
 
-#: App/Controller/Migration.php:88
+#: App/Controller/Migration.php:87
 msgid "Migration job created"
 msgstr ""
 
-#: App/Controller/Migration.php:127
+#: App/Controller/Migration.php:126
 msgid "Settings saved"
 msgstr ""
 
-#: App/Controller/Migration.php:299
+#: App/Controller/Migration.php:298
 msgid "Invalid job id"
 msgstr ""
 

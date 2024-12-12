@@ -453,7 +453,7 @@ class Common {
 			return $data;
 		}
 		$data['minutes'] = [
-			'interval' => MINUTE_IN_SECONDS,
+			'interval' => 5 * MINUTE_IN_SECONDS,
 			'display'  => __( 'Minutes' ),
 		];
 
