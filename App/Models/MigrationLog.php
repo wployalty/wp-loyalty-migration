@@ -79,24 +79,41 @@ class MigrationLog extends Base
 
     function saveLogs($data, $action)
     {
-        if (empty($data) || !is_array($data) || !is_string($action) ||
-            !$this->checkActionType($action)) {
+        if (empty($data) || !is_array($data) || !is_string($action) || !$this->checkActionType($action)) {
             return false;
         }
+
+        // Prepare log data
         $log_data = array(
-            "job_id" => (int)isset($data['job_id']) && $data['job_id'] > 0 ? $data['job_id'] : 0,
-            "action" => (string)isset($data['action']) && $data['action'] ? $data['action'] : '',
-            "user_email" => (string)isset($data['user_email']) && !empty($data['user_email']) ? $data['user_email'] : '',
-            "referral_code" => (string)isset($data['referral_code']) && !empty($data['referral_code']) ? $data['referral_code'] : '',
-            "points" => (int)isset($data['points']) && $data['points'] > 0 ? $data['points'] : 0,
-            "used_total_points" => (int)isset($data['used_total_points']) && $data['used_total_points'] > 0 ? $data['used_total_points'] : 0,
-            "earn_total_points" => (int)isset($data['earn_total_points']) && $data['earn_total_points'] > 0 ? $data['earn_total_points'] : 0,
-            "birth_date" => (int)isset($data['birth_date']) && $data['birth_date'] > 0 ? $data['birth_date'] : 0,
-            "created_at" => strtotime(date("Y-m-d h:i:s")),
+            "job_id" => (int)(isset($data['job_id']) && $data['job_id'] > 0 ? $data['job_id'] : 0),
+            "action" => (string)(isset($data['action']) && $data['action'] ? $data['action'] : ''),
+            "user_email" => (string)(isset($data['user_email']) && !empty($data['user_email']) ? $data['user_email'] : ''),
+            "referral_code" => (string)(isset($data['referral_code']) && !empty($data['referral_code']) ? $data['referral_code'] : ''),
+            "points" => (int)(isset($data['points']) && $data['points'] > 0 ? $data['points'] : 0),
+            "used_total_points" => (int)(isset($data['used_total_points']) && $data['used_total_points'] > 0 ? $data['used_total_points'] : 0),
+            "earn_total_points" => (int)(isset($data['earn_total_points']) && $data['earn_total_points'] > 0 ? $data['earn_total_points'] : 0),
+            "birth_date" => (int)(isset($data['birth_date']) && $data['birth_date'] > 0 ? $data['birth_date'] : 0),
+            "updated_at" => strtotime(date("Y-m-d h:i:s")),
         );
 
-        return $this->insertRow($log_data);
+        // Check if user and action exist
+        $existing_log = $this->getWhere(
+            self::$db->prepare("user_email = %s AND action = %s", array($log_data['user_email'], $log_data['action'])),
+            "*",
+            true
+        );
+
+        if ($existing_log) {
+            // Update existing row
+            $update_where = self::$db->prepare("id = %d", array($existing_log->id));
+            return $this->updateRow($log_data, $update_where);
+        } else {
+            // Insert new row
+            $log_data["created_at"] = strtotime(date("Y-m-d h:i:s"));
+            return $this->insertRow($log_data);
+        }
     }
+
 
     function checkActionType($action_type)
     {
