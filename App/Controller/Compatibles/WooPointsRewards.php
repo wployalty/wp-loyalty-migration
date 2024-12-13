@@ -47,12 +47,9 @@ class WooPointsRewards implements Base
 
     /**
      * Migrates user data to the loyalty system.
-     *
      * @param object $job_data The job data containing migration details.
-     *
      * @return void
      */
-
     function migrateToLoyalty($job_data)
     {
         if (empty($job_data) || !is_object($job_data)) {
@@ -88,6 +85,11 @@ class WooPointsRewards implements Base
         $this->processUserMigration($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
+    /**
+     * Update the wp_wlr_migration_log DB to completed status when the cron action and migration action is completed
+     * @param $job_id
+     * @return void
+     */
     private function logMigrationCompletion($job_id)
     {
         $migration_job_model = new ScheduledJobs();
@@ -98,6 +100,16 @@ class WooPointsRewards implements Base
         $migration_job_model->updateRow($update_data, ['uid' => $job_id]);
     }
 
+    /**
+     * This function is responsible for getting and setting the processed item count
+     *
+     * @param $wp_users
+     * @param $job_id
+     * @param $data
+     * @param $admin_mail
+     * @param $action_type
+     * @return void
+     */
     private function processUserMigration($wp_users, $job_id, $data, $admin_mail, $action_type)
     {
         $migration_job_model = new ScheduledJobs();
@@ -185,6 +197,14 @@ class WooPointsRewards implements Base
         }
     }
 
+    /**
+     * This function is used to update the Job progress (Pending, Processing, Completed) based on cron and migration action
+     * @param $job_id
+     * @param $data
+     * @param $user_id
+     * @param $processed_count
+     * @return void
+     */
     private function updateJobProgress($job_id, $data, $user_id, $processed_count)
     {
         $update_data = [
@@ -198,12 +218,22 @@ class WooPointsRewards implements Base
         $migration_job_model->updateRow($update_data, ['uid' => $job_id]);
     }
 
+    /**
+     * Implementation of referral code generation logic
+     * @param $email
+     * @return string
+     */
     private function generateReferCode($email)
     {
-        // Implementation of referral code generation logic
         return substr(md5($email . time()), 0, 8);
     }
 
+    /**
+     * Updating the job preference in processUserMigration Method
+     * @param $job_id
+     * @param $status
+     * @return void
+     */
     private function updateJobStatus($job_id, $status)
     {
         $migration_job_model = new ScheduledJobs();
