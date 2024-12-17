@@ -98,6 +98,7 @@ class WLPRPointsRewards implements Base
      */
     function migrateUsers($users, $job_id, $data, $admin_mail, $action_type)
     {
+        global $wpdb;
         $migration_job_model = new ScheduledJobs();
         $migration_log_model = new MigrationLog();
         $data_logs = array(
@@ -151,9 +152,17 @@ class WLPRPointsRewards implements Base
                 ));
                 continue;
             }
-            if (is_object($user_points) && isset($user_points->refer_code)) {
-                $refer_code = $user_points->refer_code;
+            $refer_code_query = $wpdb->prepare(
+                "SELECT refer_code FROM {$wpdb->prefix}wlpr_points WHERE user_email = %s LIMIT 1",
+                $user_email
+            );
+            $refer_code_result = $wpdb->get_var($refer_code_query);
+
+
+            if (!empty($refer_code_result)) {
+                $refer_code = $refer_code_result; // Use the referral code from the core plugin
             } else {
+                // Fallback: Generate a unique referral code if not found in the database
                 $refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
             }
             $action_data = array(
