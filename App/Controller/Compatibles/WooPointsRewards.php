@@ -113,6 +113,7 @@ class WooPointsRewards implements Base
     private function processUserMigration($wp_users, $job_id, $data, $admin_mail, $action_type)
     {
         $migration_job_model = new ScheduledJobs();
+	    $helper_base = new \Wlr\App\Helpers\Base();
         $migration_log_model = new MigrationLog();
         $loyalty_user_model = new Users();
         $campaign = EarnCampaign::getInstance();
@@ -152,9 +153,11 @@ class WooPointsRewards implements Base
                 continue;
             }
 
-            // Generate or retrieve referral code
-            $refer_code = $user_points->refer_code ?? $this->generateReferCode($user_email);
-
+	        if (is_object($user_points) && isset($user_points->refer_code)) {
+		        $refer_code = $user_points->refer_code;
+	        } else {
+		        $refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
+	        }
             $action_data = [
                 "user_email" => $user_email,
                 "customer_command" => $data->comment,
