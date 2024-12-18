@@ -38,6 +38,22 @@ class Common
     }
 
     /**
+     * @return void
+     */
+    public static function notice()
+    {
+        ?>
+        <div class="notice notice-warning">
+            <p>
+                <strong><?php echo esc_html__('Note:', 'wp-loyalty-migration'); ?></strong>
+                <?php echo esc_html__('During the migration, only customers\' loyalty points will be transferred. Customer history or any other data will not be included.', 'wp-loyalty-migration'); ?>
+            </p>
+        </div>
+
+        <?php
+    }
+
+    /**
      * Adds a migration page based on the current view.
      *
      * This method checks for admin privilege before proceeding to create the migration page.
@@ -359,6 +375,7 @@ class Common
      *
      * @return void
      */
+
     public static function addAssets()
     {
         if (Input::get('page') != WLRMG_PLUGIN_SLUG) {
@@ -370,6 +387,10 @@ class Common
             $suffix = SCRIPT_DEBUG ? "" : ".min";
         }
         remove_all_actions("admin_notices");
+
+
+// Hook into 'admin_notices' to display the notice
+        add_action('admin_notices', [common::class, 'notice']);
         wp_enqueue_style(WLR_PLUGIN_SLUG . '-wlr-font', WLR_PLUGIN_URL . 'Assets/Site/Css/wlr-fonts' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time());
         wp_enqueue_style(WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time());
         wp_enqueue_style(WLRMG_PLUGIN_SLUG . '-main-style', WLRMG_PLUGIN_URL . 'Assets/Admin/Css/wlrmg-main.css', ['woocommerce_admin_styles'], WLRMG_PLUGIN_VERSION . '&t=' . time());
