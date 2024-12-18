@@ -207,89 +207,93 @@ class Migration
      *
      * @return void This method does not return a value but sends JSON responses.
      */
-    public static function handleExport()
-    {
-        if (!WC::isSecurityValid('wlrmg_export_nonce')) {
-            wp_send_json_error(['message' => __('Basic check failed', 'wp-loyalty-migration')]);
-        }
-        $limit = (int)Input::get('limit', 5);
-        $limit_start = (int)Input::get('limit_start', 0);
-        $total_count = (int)Input::get('total_count', 0);
+	public static function handleExport()
+	{
+		if (!WC::isSecurityValid('wlrmg_export_nonce')) {
+			wp_send_json_error(['message' => __('Basic check failed', 'wp-loyalty-migration')]);
+		}
 
-        $post = [
-            'job_id' => Input::get('job_id'),
-            'category' => Input::get('category')
-        ];
+		$limit = 25; // Base size for each file
+		$limit_start = (int)Input::get('limit_start', 0); // Offset
+		$total_count = (int)Input::get('total_count', 0); // Total number of records
 
-        if ($total_count > $limit_start) {
-            $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
-            if (!is_dir($path)) {
-                mkdir($path, 0777, true);
-                @chmod($path, 0777);
-            }
-            $file_name = $post['category'] . '_' . $post['job_id'] . '_export_';
-            $file_count = 0;
-            if ($limit_start >= 499) {
-                $file_count = round(($limit_start / 499));
-            }
-            $file_path = trim($path . '/' . $file_name . $file_count . '.csv');
+		$post = [
+			'job_id' => Input::get('job_id'),
+			'category' => Input::get('category')
+		];
 
-            $log_table = new MigrationLog();
-            global $wpdb;
-            $table = $log_table->getTableName();
-            $where = " id > 0 ";
-            $where .= $wpdb->prepare("  AND action = %s AND job_id = %d AND user_email !='' ", [
-                $post['category'],
-                (int)$post['job_id']
-            ]);
-            $where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d;', [
-                $limit,
-                $limit_start
-            ]);
-            $csv_helper = new Csv();
-            $select = "user_email,referral_code,points";
-            $csv_helper->titles = ['email', 'referral_code', 'points'];
+		if ($total_count > $limit_start) {
+			$path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
+			if (!is_dir($path)) {
+				mkdir($path, 0777, true);
+				@chmod($path, 0777);
+			}
 
-            $query = "SELECT {$select} FROM {$table} WHERE {$where}";
-            $file_data = $wpdb->get_results($query, ARRAY_A);
-            if (!empty($file_data)) {
-                foreach ($file_data as &$single_file_data) {
-                    if (isset($single_file_data['user_email'])) {
-                        $single_file_data['email'] = $single_file_data['user_email'];
-                    }
-                }
-                $csv_helper->loadFile($file_path);
-                $count = $csv_helper->getTotalDataRowCount();
-                if ($count <= 0) {
-                    $header = [];
-                    $header[] = $csv_helper->titles;
-                    $csv_helper->save($file_path, $header, true);
-                }
-                $csv_helper->save($file_path, $file_data, true);
-            }
+			$file_name = $post['category'] . '_' . $post['job_id'] . '_export_';
+			$file_count = (int)floor($limit_start / 500); // File number based on offset
+			$file_path = trim($path . '/' . $file_name . $file_count . '.csv');
 
-            $limit_start = $limit_start + $limit;
-            if ($limit_start >= $total_count) {
-                $limit_start = $total_count;
-            }
+			$log_table = new MigrationLog();
+			global $wpdb;
+			$table = $log_table->getTableName();
 
-            wp_send_json_success([
-                'success' => 'incomplete',
-                'limit_start' => $limit_start,
-                'notification' => sprintf(__('Exported %s customer', 'wp-loyalty-bulk-action'), $limit_start)
-            ]);
-        }
+			$where = "id > 0";
+			$where .= $wpdb->prepare(" AND action = %s AND job_id = %d AND user_email !=''", [
+				$post['category'],
+				(int)$post['job_id']
+			]);
+			$where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d;', [
+				$limit,
+				$limit_start
+			]);
 
-        wp_send_json_success([
-            'success' => 'completed',
-            'notification' => __('Completed', 'wp-loyalty-bulk-action'),
-            'redirect' => admin_url('admin.php?' . http_build_query([
-                    'page' => WLRMG_PLUGIN_SLUG,
-                    'view' => 'activity_details',
-                    'job_id' => $post['job_id']
-                ]))
-        ]);
-    }
+			$csv_helper = new Csv();
+			$select = "user_email, referral_code, points";
+			$csv_helper->titles = ['email', 'referral_code', 'points'];
+
+			$query = "SELECT {$select} FROM {$table} WHERE {$where}";
+			$file_data = $wpdb->get_results($query, ARRAY_A);
+
+			if (!empty($file_data)) {
+				foreach ($file_data as &$single_file_data) {
+					if (isset($single_file_data['user_email'])) {
+						$single_file_data['email'] = $single_file_data['user_email'];
+					}
+				}
+
+				// Write header if file doesn't exist
+				if (!file_exists($file_path)) {
+					$csv_helper->save($file_path, [$csv_helper->titles], true);
+				}
+
+				// Append the data
+				$csv_helper->save($file_path, $file_data, true);
+			}
+
+			$limit_start += $limit;
+
+			// Check if completed
+			if ($limit_start >= $total_count) {
+				wp_send_json_success([
+					'success' => 'completed',
+					'notification' => __('Export completed successfully.', 'wp-loyalty-bulk-action'),
+					'redirect' => admin_url('admin.php?' . http_build_query([
+							'page' => WLRMG_PLUGIN_SLUG,
+							'view' => 'activity_details',
+							'job_id' => $post['job_id']
+						]))
+				]);
+			} else {
+				wp_send_json_success([
+					'success' => 'incomplete',
+					'limit_start' => $limit_start,
+					'notification' => sprintf(__('Exported %s customer(s)', 'wp-loyalty-bulk-action'), $limit_start)
+				]);
+			}
+		} else {
+			wp_send_json_error(['message' => __('No data to export', 'wp-loyalty-migration')]);
+		}
+	}
 
     /**
      * Retrieves export files based on specified parameters.
