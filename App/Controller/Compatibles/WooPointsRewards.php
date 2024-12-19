@@ -55,7 +55,14 @@ class WooPointsRewards implements Base
         $action_type = (string)($job_data->action_type ?? "migration_to_wployalty");
 
         global $wpdb;
-        $where = $wpdb->prepare(" WHERE wp_user.ID > %d ", (int)$job_data->last_processed_id);
+        $where = $wpdb->prepare(" WHERE wp_user.ID > %d AND wp_user.ID > %d",[
+			0,
+	        (int) $job_data->last_processed_id
+        ]);
+	    $limit_offset = "";
+	    if (isset($job_data->limit) && ($job_data->limit > 0)) {
+		    $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
+	    }
 
         $select = " SELECT wp_user.ID AS user_id, wp_user.user_email, 
                     IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
@@ -64,11 +71,17 @@ class WooPointsRewards implements Base
                     ON wp_user.ID = woo_points_table.user_id 
                     $where 
                     GROUP BY wp_user.ID, wp_user.user_email 
-                    ORDER BY wp_user.ID ASC";
+                    ORDER BY wp_user.ID ASC".$limit_offset;
 
         $wp_users = $wpdb->get_results(stripslashes($select));
 
         if (empty($wp_users)) {
+	        $migration_log_model = new MigrationLog();
+	        $data_logs=[
+		        'action' => 'woo_points_and_rewards_migration_completed',
+		        'note'=>__('No available records for processing','wp-loyalty-migration')
+	        ];
+	        $migration_log_model->saveLogs($data_logs, "woocommerce_migration");
             $this->logMigrationCompletion($job_id);
             return;
         }
@@ -89,7 +102,7 @@ class WooPointsRewards implements Base
             "status" => "completed",
             "updated_at" => strtotime(date("Y-m-d h:i:s")),
         ];
-        $migration_job_model->updateRow($update_data, ['uid' => $job_id]);
+        $migration_job_model->updateRow($update_data, ['uid' => $job_id, 'source_app' => 'wlr_migration']);
     }
 
     /**
@@ -110,38 +123,43 @@ class WooPointsRewards implements Base
         $loyalty_user_model = new Users();
         $campaign = EarnCampaign::getInstance();
 
-        $processed_count = 0;
-        $total_users = count($wp_users);
-
+	    $conditions = isset($data->conditions) && !empty($data->conditions) ? json_decode($data->conditions, true) : [];
         foreach ($wp_users as $wp_user) {
-            $user_email = sanitize_email($wp_user->user_email ?? "");
+            $user_email = !empty($wp_user) && is_object($wp_user) && isset($wp_user->user_email) && !empty($wp_user->user_email) ? sanitize_email($wp_user->user_email) : "";
             if (empty($user_email)) {
                 continue;
             }
 
             $user_id = (int)($wp_user->user_id ?? 0);
-            $total_points = (int)($wp_user->total_points_balance ?? 0);
+            $total_points = (int) (!empty($wp_user->total_points_balance)) ? $wp_user->total_points_balance : 0;
 
             $user_points = $loyalty_user_model->getQueryData(
                 ['user_email' => ['operator' => '=', 'value' => $user_email]],
                 '*', [], false, true
             );
 
-            $conditions = isset($data->conditions) && !empty($data->conditions)
-                ? json_decode($data->conditions, true)
-                : [];
 
             if (is_object($user_points) && (
                     (isset($user_points->user_email) && isset($conditions['update_point']) && $conditions['update_point'] == 'skip') ||
                     (isset($user_points->is_banned_user) && $user_points->is_banned_user == 1 && isset($conditions['update_banned_user']) && $conditions['update_banned_user'] == 'skip')
                 )) {
-                $this->updateJobProgress($job_id, $data, $user_id, $processed_count);
+				$data->last_processed_id = $user_id;
+				$update_status = [
+					'status' => 'processing',
+					'last_processed_id' => $data->last_processed_id,
+					'updated_at' => strtotime(date("Y-m-d h:i:s")),
+				];
+				$migration_job_model->updateRow($update_status,[
+					'uid' => $job_id,
+					'source_app' => 'wlr_migration'
+				]);
                 continue;
             }
-
-            $refer_code = is_object($user_points) && isset($user_points->refer_code)
-                ? $user_points->refer_code
-                : $helper_base->get_unique_refer_code('', false, $user_email);
+			if(is_object($user_points) && isset($user_points->refer_code)){
+				$refer_code = $user_points->refer_code;
+			} else {
+				$refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
+			}
 
             $action_data = [
                 "user_email" => $user_email,
@@ -166,63 +184,35 @@ class WooPointsRewards implements Base
 
             $trans_type = 'credit';
             $migration_status = $campaign->addExtraPointAction($action_type, $total_points, $action_data, $trans_type);
-
             $data_logs = [
                 'job_id' => $job_id,
-                'action' => $migration_status ? 'woocommerce_migration' : 'woocommerce_migration_failed',
+                'action' => 'woocommerce_migration',
                 'user_email' => $user_email,
                 'referral_code' => $refer_code,
                 'points' => $total_points,
                 'earn_total_points' => $total_points,
                 'created_at' => strtotime(date("Y-m-d h:i:s")),
             ];
-            $migration_log_model->saveLogs($data_logs, "woocommerce_migration");
+	        if (!$migration_status) {
+		        $data_logs['action'] = 'woocommerce_migration_failed';
+	        }
+            if($migration_log_model->saveLogs($data_logs, "woocommerce_migration") > 0){
+				$data->offset = $data->offset + 1;
+				$data->last_processed_id = $user_id;
+				$update_status = [
+					'status' => 'processing',
+					'offset' => $data->offset,
+					'last_processed_id' => $data->last_processed_id,
+					'updated_at' => strtotime(date("Y-m-d h:i:s")),
+				];
+				$migration_job_model->updateRow($update_status,[
+					'uid' => $job_id,
+					'source_app' => 'wlr_migration'
+				]);
+            }
 
-            $this->updateJobProgress($job_id, $data, $user_id, ++$processed_count);
         }
 
-        if ($processed_count == $total_users) {
-            $this->logMigrationCompletion($job_id);
-        } else {
-            $this->updateJobStatus($job_id, 'processing');
-        }
     }
 
-    /**
-     * Updates job progress
-     *
-     * @param int $job_id
-     * @param object $data
-     * @param int $user_id
-     * @param int $processed_count
-     * @return void
-     */
-    private function updateJobProgress($job_id, $data, $user_id, $processed_count)
-    {
-        $update_data = [
-            "status" => "processing",
-            "last_processed_id" => $user_id,
-            "offset" => $processed_count,
-            "updated_at" => strtotime(date("Y-m-d h:i:s")),
-        ];
-        $migration_job_model = new ScheduledJobs();
-        $migration_job_model->updateRow($update_data, ['uid' => $job_id]);
-    }
-
-    /**
-     * Updates job status
-     *
-     * @param int $job_id
-     * @param string $status
-     * @return void
-     */
-    private function updateJobStatus($job_id, $status)
-    {
-        $migration_job_model = new ScheduledJobs();
-        $update_data = [
-            "status" => $status,
-            "updated_at" => strtotime(date("Y-m-d h:i:s")),
-        ];
-        $migration_job_model->updateRow($update_data, ['uid' => $job_id]);
-    }
 }
