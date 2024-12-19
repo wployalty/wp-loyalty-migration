@@ -14,6 +14,12 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
             <h1><?php echo WLRMG_PLUGIN_NAME; ?> </h1>
             <div><b><?php echo "v" . WLRMG_PLUGIN_VERSION; ?></b></div>
         </div>
+        <div class="wlrmg-notice-header">
+
+            <b>Note</b>: During the migration, <b>only customer's loyalty points will be transferred.</b> Customer
+            history
+            or any other data will not be included.
+        </div>
         <div class="wlrmg-admin-main">
             <div class="wlrmg-admin-nav">
                 <a class="<?php echo (in_array($current_page, array(

@@ -25,6 +25,15 @@ $border-color: #E7E7EF;
     }
   }
 
+  .wlrmg-notice-header {
+    background: rgb(255, 226, 146);
+    border: 2px solid #ffba00;
+    border-radius: 5px;
+    padding: 1rem;
+    margin: 1rem 0;
+    font-size: 14px;
+  }
+
   .wlrmg-main-header {
     display: flex;
     width: 100%;
