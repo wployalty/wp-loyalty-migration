@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-19T11:35:02+00:00\n"
+"POT-Creation-Date: 2024-12-20T15:56:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -92,17 +92,21 @@ msgstr ""
 msgid "No available records for processing."
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:174
-#: App/Controller/Compatibles/WooPointsRewards.php:168
+#: App/Controller/Compatibles/WLPRPointsRewards.php:175
+#: App/Controller/Compatibles/WooPointsRewards.php:171
 #: App/Controller/Compatibles/WPSwings.php:187
 msgid "Added %d %s by site administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:175
+#: App/Controller/Compatibles/WLPRPointsRewards.php:176
 msgid "%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WooPointsRewards.php:172
+#: App/Controller/Compatibles/WooPointsRewards.php:82
+msgid "No available records for processing"
+msgstr ""
+
+#: App/Controller/Compatibles/WooPointsRewards.php:177
 msgid "%s customer migrated from WooCommerce points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
@@ -110,45 +114,45 @@ msgstr ""
 msgid "%s customer migrated from WPSwings with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Migration.php:32
-#: App/Controller/Migration.php:62
-#: App/Controller/Migration.php:111
-#: App/Controller/Migration.php:151
-#: App/Controller/Migration.php:213
-#: App/Controller/Migration.php:306
+#: App/Controller/Migration.php:31
+#: App/Controller/Migration.php:61
+#: App/Controller/Migration.php:110
+#: App/Controller/Migration.php:150
+#: App/Controller/Migration.php:212
+#: App/Controller/Migration.php:305
 msgid "Basic check failed"
 msgstr ""
 
-#: App/Controller/Migration.php:44
+#: App/Controller/Migration.php:43
 msgid "Update points to customers"
 msgstr ""
 
-#: App/Controller/Migration.php:76
-#: App/Controller/Migration.php:125
+#: App/Controller/Migration.php:75
+#: App/Controller/Migration.php:124
 msgid "Invalid fields"
 msgstr ""
 
-#: App/Controller/Migration.php:83
+#: App/Controller/Migration.php:82
 msgid "Migration job already created"
 msgstr ""
 
-#: App/Controller/Migration.php:88
+#: App/Controller/Migration.php:87
 msgid "Unable to create job"
 msgstr ""
 
-#: App/Controller/Migration.php:91
+#: App/Controller/Migration.php:90
 msgid "Migration job created"
 msgstr ""
 
-#: App/Controller/Migration.php:131
+#: App/Controller/Migration.php:130
 msgid "Settings saved"
 msgstr ""
 
-#: App/Controller/Migration.php:294
+#: App/Controller/Migration.php:293
 msgid "No data to export"
 msgstr ""
 
-#: App/Controller/Migration.php:310
+#: App/Controller/Migration.php:309
 msgid "Invalid job id"
 msgstr ""
 

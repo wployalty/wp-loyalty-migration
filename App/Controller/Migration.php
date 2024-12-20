@@ -340,7 +340,7 @@ class Migration
             return [];
         }
         $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
-        $file_name = 'customer_migration_export_*.csv';
+        $file_name = $post['category'] . '_' . $post['job_id'] . '_export_*.*';
         $delete_file_path = trim($path . '/' . $file_name);
         $download_list = [];
         foreach (glob($delete_file_path) as $file_path) {
