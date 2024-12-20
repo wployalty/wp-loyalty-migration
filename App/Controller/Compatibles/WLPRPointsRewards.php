@@ -159,10 +159,11 @@ class WLPRPointsRewards implements Base
             $refer_code_result = $wpdb->get_var($refer_code_query);
 
 
-            if (!empty($refer_code_result)) {
+            if (is_object($user_points) && isset($user_points->refer_code)) {
+                $refer_code = $user_points->refer_code;
+            } else if (!empty($refer_code_result)) {
                 $refer_code = $refer_code_result; // Use the referral code from the core plugin
             } else {
-                // Fallback: Generate a unique referral code if not found in the database
                 $refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
             }
             $action_data = array(
