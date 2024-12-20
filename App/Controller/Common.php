@@ -482,7 +482,7 @@ class Common
         if (get_transient($process_identifier)) {
             return;
         }
-        set_transient($process_identifier, true, 60);
+        set_transient($process_identifier, true);
         if (is_object($data) && !empty($data)) {
             //process
             $category = !empty($data->category) ? $data->category : "";
