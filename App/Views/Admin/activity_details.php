@@ -92,6 +92,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                         <div>
                             <h4><?php echo esc_html__("Action details", "wp-loyalty-migration"); ?></h4>
                         </div>
+	                    <?php if ($job_data['offset'] > 0): ?>
                         <div class="wlrmg-table-search-export">
                             <div class="search-box">
                                 <input type="text" name="search" id="search_email"
@@ -109,8 +110,8 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                                               const newUrl = searchEmail ? baseUrl + '&search=' + encodeURIComponent(searchEmail) : baseUrl;
                                               window.location.href = newUrl;
                                               ">
-                        <i class="wlrf-search"></i>
-                    </span>
+                                     <i class="wlrf-search"></i>
+                                </span>
                             </div>
 
                             <!-- Always show the export button -->
@@ -123,6 +124,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                                         onclick="wlrmg.exportPopUp(<?php echo $activity['job_id']; ?>,'<?php echo $action; ?>')"><?php echo __('Export', 'wp-loyalty-migration'); ?></button>
                             </div>
                         </div>
+                        <?php endif; ?>
                     </div>
                     <div id="wlrmg-activity-list-table" class="wlrmg-table">
                         <div id="wlrmg-activity-list-table-header" class="wlrmg-table-header">

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-20T15:56:13+00:00\n"
+"POT-Creation-Date: 2024-12-23T11:56:28+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -118,8 +118,8 @@ msgstr ""
 #: App/Controller/Migration.php:61
 #: App/Controller/Migration.php:110
 #: App/Controller/Migration.php:150
-#: App/Controller/Migration.php:212
-#: App/Controller/Migration.php:305
+#: App/Controller/Migration.php:226
+#: App/Controller/Migration.php:332
 msgid "Basic check failed"
 msgstr ""
 
@@ -148,11 +148,11 @@ msgstr ""
 msgid "Settings saved"
 msgstr ""
 
-#: App/Controller/Migration.php:293
+#: App/Controller/Migration.php:320
 msgid "No data to export"
 msgstr ""
 
-#: App/Controller/Migration.php:309
+#: App/Controller/Migration.php:336
 msgid "Invalid job id"
 msgstr ""
 
