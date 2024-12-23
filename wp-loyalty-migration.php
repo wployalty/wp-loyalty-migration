@@ -84,7 +84,7 @@ if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
 require_once __DIR__ . '/vendor/autoload.php';
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
-    'https://github.com/wployalty/wp-loaylty-migration',
+    'https://github.com/wployalty/wp-loyalty-migration',
     __FILE__,
     'wp-loyalty-migration'
 );
