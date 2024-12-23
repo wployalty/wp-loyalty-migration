@@ -173,20 +173,20 @@ class MigrationLog extends Base
     {
         $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
 
-        switch ($post['category']) {
-            case 'woocommerce_migration' :
-                $file_name = 'wc_customer_migration_export_*.*';
-                break;// woocommerce export
-            case 'wlpr_migration':
-                $file_name = 'wlr_customer_migration_export_*.*'; //loyalty export
-                break;
-            case 'wp_swings_migration':
-                $file_name = 'wpswing_customer_migration_export_*.*';
-                break;
-            default:
-                $file_name = 'customer_migration_export_*.*';
-                break;
-        }
+	    switch ($post['category']) {
+		    case 'woocommerce_migration' :
+			    $file_name = 'wc_customer_migration_export_*.*';
+			    break;// woocommerce export
+		    case 'wlpr_migration':
+			    $file_name = 'wlr_customer_migration_export_*.*'; //loyalty export
+			    break;
+		    case 'wp_swings_migration':
+			    $file_name = 'wpswing_customer_migration_export_*.*';
+			    break;
+		    default:
+			    $file_name = 'customer_migration_export_*.*';
+			    break;
+	    }
 
         $delete_file_path = trim($path . '/' . $file_name);
         $download_list = array();
