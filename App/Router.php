@@ -26,14 +26,7 @@ class Router
             add_action('admin_footer', [Common::class, 'hideMenu']);
             add_action('admin_enqueue_scripts', [Common::class, 'addAssets']);
 
-// Enqueue WPLoyalty Alertify CSS
-	        add_action( 'wp_enqueue_scripts', function () {
-		        wp_enqueue_style( 'wp-loyalty-alertify', plugin_dir_url( __FILE__ ) . 'path-to-wployalty-alertify-style.css' );
-		        wp_enqueue_script( 'alertify', 'https://cdn.jsdelivr.net/npm/alertifyjs/build/alertify.min.js', [], null, true );
-	        } );
-
-
-	        if (wp_doing_ajax()) {
+            if (wp_doing_ajax()) {
                 add_action('wp_ajax_wlrmg_confirm_update_points', [Migration::class, 'getConfirmContent']);
                 add_action('wp_ajax_wlrmg_migrate_users', [Migration::class, 'migrateUsersWithPointsJob']);
                 add_action('wp_ajax_wlrmg_save_settings', [Migration::class, 'saveSettings']);
