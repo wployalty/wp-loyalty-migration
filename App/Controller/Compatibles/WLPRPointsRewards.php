@@ -141,11 +141,13 @@ class WLPRPointsRewards implements Base
                 )
             ) {
                 $data->last_processed_id = $user_id;
-                $update_status = array(
+	            $data->offset = $data->offset + 1;
+                $update_status = [
+	                'offset' => $data->offset,
                     "status" => "processing",
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => $created_at,
-                );
+                ];
                 $migration_job_model->updateRow($update_status, array(
                     'uid' => $job_id,
                     'source_app' => 'wlr_migration'

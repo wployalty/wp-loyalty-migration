@@ -144,7 +144,9 @@ class WooPointsRewards implements Base
                     (isset($user_points->is_banned_user) && $user_points->is_banned_user == 1 && isset($conditions['update_banned_user']) && $conditions['update_banned_user'] == 'skip')
                 )) {
 				$data->last_processed_id = $user_id;
+	            $data->offset = $data->offset + 1;
 				$update_status = [
+					'offset' => $data->offset,
 					'status' => 'processing',
 					'last_processed_id' => $data->last_processed_id,
 					'updated_at' => strtotime(date("Y-m-d h:i:s")),
