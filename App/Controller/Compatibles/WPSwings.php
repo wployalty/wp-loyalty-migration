@@ -161,9 +161,7 @@ class WPSwings implements Base
                 )
             ) {
                 $data->last_processed_id = $user_id;
-	            $data->offset = $data->offset + 1;
                 $update_status = [
-	                'offset' => $data->offset,
                     "status" => "processing",
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => $created_at,
