@@ -71,7 +71,29 @@ $earn_campaign_helper = EarnCampaign::getInstance();
             </div>
 			<?php
 			// Check if a search parameter exists in the URL
-			$search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : "";
+			$search = isset( $_GET['search'] ) ? $_GET['search'] : '';
+
+			if (!empty($search)) {
+				$v = new Valitron\Validator(['search' => $search]);
+				$v->rule('regex', 'search', '/^[^<>]*$/')->message('Basic Validation Failed');
+
+				if (!$v->validate()) {
+					// Trigger Alertify styled for WPLoyalty
+					echo '<script>
+
+            document.addEventListener("DOMContentLoaded", function() {
+                alertify.error("' . htmlspecialchars($v->errors('search')[0], ENT_QUOTES, 'UTF-8') . '");
+                alertify.set("notifier","position", "top-right"); 
+                
+            });
+        </script>';
+
+					$search = ''; // Reset invalid input
+				} else {
+					$search = sanitize_text_field($search); // Sanitize valid input
+				}
+			}
+
 			// Filter the activity list based on the search email
 			if (!empty($search)) {
 				$filtered_activities = array_filter($activity['activity']['activity_list'], function ($bulk_activity) use ($search) {
