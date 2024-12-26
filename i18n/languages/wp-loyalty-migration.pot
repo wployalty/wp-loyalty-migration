@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-26T05:25:47+00:00\n"
+"POT-Creation-Date: 2024-12-26T07:45:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -92,13 +92,13 @@ msgstr ""
 msgid "No available records for processing."
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:177
-#: App/Controller/Compatibles/WooPointsRewards.php:173
-#: App/Controller/Compatibles/WPSwings.php:189
+#: App/Controller/Compatibles/WLPRPointsRewards.php:175
+#: App/Controller/Compatibles/WooPointsRewards.php:171
+#: App/Controller/Compatibles/WPSwings.php:187
 msgid "Added %d %s by site administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:178
+#: App/Controller/Compatibles/WLPRPointsRewards.php:176
 msgid "%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
@@ -106,11 +106,11 @@ msgstr ""
 msgid "No available records for processing"
 msgstr ""
 
-#: App/Controller/Compatibles/WooPointsRewards.php:179
+#: App/Controller/Compatibles/WooPointsRewards.php:177
 msgid "%s customer migrated from WooCommerce points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WPSwings.php:190
+#: App/Controller/Compatibles/WPSwings.php:188
 msgid "%s customer migrated from WPSwings with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
