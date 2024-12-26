@@ -22,6 +22,16 @@
     box-shadow: none;
 }
 
+.alertify-notifier .ajs-message.ajs-error {
+    background-color: rgba(223, 87, 87, 0.95);
+    color: #fff;
+    border-radius: 4px;
+    box-shadow: rgba(244, 67, 54, 0.7) 0px 0px 15px 1px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    font-family: Helvetica, sans-serif, Arial, sans-serif;
+}
+
 #wlrmg-main-page .wlrmg-notice-header {
     background: rgb(255, 226, 146);
     border: 2px solid #ffba00;
