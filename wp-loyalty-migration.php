@@ -97,8 +97,8 @@ add_filter('plugins_loaded', function () {
     if (!class_exists('\Wlrm\App\Router')) {
         return;
     }
-    Setup::init(); // init setup
     if (Plugin::checkDependencies()) {
         Router::init();
     }
 });
+Setup::init(); // init setup

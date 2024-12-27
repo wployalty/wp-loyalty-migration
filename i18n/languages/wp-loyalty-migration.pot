@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-26T07:45:50+00:00\n"
+"POT-Creation-Date: 2024-12-27T06:03:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -225,7 +225,7 @@ msgid "Filter"
 msgstr ""
 
 #: App/Views/Admin/activity.php:52
-#: App/Views/Admin/activity_details.php:173
+#: App/Views/Admin/activity_details.php:195
 msgid "No activities yet"
 msgstr ""
 
@@ -299,32 +299,32 @@ msgstr ""
 msgid "Update banned user"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:90
+#: App/Views/Admin/activity_details.php:112
 msgid "Action details"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:117
+#: App/Views/Admin/activity_details.php:139
 msgid "Show Exported File"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:120
+#: App/Views/Admin/activity_details.php:142
 #: App/Views/Admin/export_logs.php:51
 msgid "Export"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:127
+#: App/Views/Admin/activity_details.php:149
 msgid "User email"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:128
+#: App/Views/Admin/activity_details.php:150
 msgid "Referral code"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:148
+#: App/Views/Admin/activity_details.php:170
 msgid "No activities found for the entered email."
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:177
+#: App/Views/Admin/activity_details.php:199
 msgid "You are in pending status"
 msgstr ""
 
