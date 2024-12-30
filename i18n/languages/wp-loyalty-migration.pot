@@ -9,9 +9,9 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-30T07:31:31+00:00\n"
+"POT-Creation-Date: 2024-12-30T07:45:35+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0\n"
+"X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-loyalty-migration\n"
 
 #. Plugin Name of the plugin
@@ -39,52 +39,56 @@ msgstr ""
 msgid "https://wployalty.net/"
 msgstr ""
 
-#: App/Controller/Common.php:33
+#: App/Controller/Common.php:30
 msgid "WPLoyalty: Migration"
 msgstr ""
 
-#: App/Controller/Common.php:100
+#: App/Controller/Common.php:95
 msgid "WPSwings points and rewards"
 msgstr ""
 
-#: App/Controller/Common.php:101
-#: App/Controller/Common.php:109
-#: App/Controller/Common.php:117
+#: App/Controller/Common.php:96
+#: App/Controller/Common.php:104
+#: App/Controller/Common.php:112
 msgid "Migrate users with points"
 msgstr ""
 
-#: App/Controller/Common.php:108
+#: App/Controller/Common.php:103
 msgid "WooCommerce Loyalty Points and Rewards"
 msgstr ""
 
-#: App/Controller/Common.php:116
+#: App/Controller/Common.php:111
 msgid "Woocommerce points and rewards"
 msgstr ""
 
-#: App/Controller/Common.php:268
+#: App/Controller/Common.php:259
 msgid "WP Swings Migration"
 msgstr ""
 
-#: App/Controller/Common.php:271
+#: App/Controller/Common.php:262
 msgid "Woocommerce Loyalty Points and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:274
+#: App/Controller/Common.php:265
 msgid "Woocommerce Point and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:282
+#: App/Controller/Common.php:273
 #: App/Views/Admin/popup.php:25
 msgid "Add points to customer"
 msgstr ""
 
-#: App/Controller/Common.php:283
+#: App/Controller/Common.php:274
 #: App/Views/Admin/popup.php:24
 msgid "Skip customer"
 msgstr ""
 
-#: App/Controller/Common.php:407
+#: App/Controller/Common.php:394
 msgid "User migrated via WPLoyalty Migration"
+msgstr ""
+
+#: App/Controller/Common.php:456
+msgid "Minutes"
 msgstr ""
 
 #: App/Controller/Compatibles/WLPRPointsRewards.php:109
