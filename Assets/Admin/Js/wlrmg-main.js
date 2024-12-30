@@ -19,13 +19,31 @@ wlrmg_jquery(document).ready(function () {
 });
 (function () {
     alertify.set('notifier', 'position', 'top-right');
-    wlrmg.searchActivityByEmail = function (url) {
+    wlrmg.searchActivityByEmail = function () {
         let email = wlrmg_jquery("#wlrmg-main-page #wlrmg-activity-details #search_email").val();
         if (email !== "") {
-            url = url + "&search=" + email;
+            let currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set("search", email);
+            window.history.replaceState({}, '', currentUrl.toString());
+            // Perform AJAX to validate the search value and fetch results
+            wlrmg_jquery.ajax({
+                url: currentUrl.toString(), // Pass the updated URL with the search query
+                method: "GET",
+                success: function (response) {
+                    if (response.match_found) {
+                        wlrmg_jquery("#wlrmg-activity-list-table-body").html(response.html);
+                    } else {
+                        wlrmg_jquery("#wlrmg-activity-list-table-body").html('<p class="no-results">No activities found for the entered email.</p>');
+                    }
+                    wlrmg_jquery("#wlrmg-activity-log-list").show();
+                },
+                error: function () {
+                    alertify.error("An error occurred while processing the search.");
+                    wlrmg_jquery("#wlrmg-activity-log-list").show();
+                }
+            });
         }
-        window.location.href = url + "#wlrmg-activity-list-table";
-    }
+    };
     wlrmg.saveSettings = function () {
         var button = wlrmg_jquery("#wlrmg-main-page #wlrmg-settings #wlrmg-save-settings");
         if (button.attr('disabled') === 'disabled') {

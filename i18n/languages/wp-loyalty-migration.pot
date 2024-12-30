@@ -9,9 +9,9 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-04T11:50:29+00:00\n"
+"POT-Creation-Date: 2024-12-30T07:31:31+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.10.0\n"
+"X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wp-loyalty-migration\n"
 
 #. Plugin Name of the plugin
@@ -26,7 +26,7 @@ msgstr ""
 
 #. Description of the plugin
 #: wp-loyalty-migration.php
-msgid "WPLoyalty - Migration for Users to WPLoyalty"
+msgid "The WPLoyalty Migration Add-On allows you to transfer your customers and their earned points from other loyalty plugins like Loyalty Points Legacy, WPswings, or WooCommerce Points and Rewards into WPLoyalty."
 msgstr ""
 
 #. Author of the plugin
@@ -39,172 +39,188 @@ msgstr ""
 msgid "https://wployalty.net/"
 msgstr ""
 
-#: App/Controller/Common.php:31
+#: App/Controller/Common.php:33
 msgid "WPLoyalty: Migration"
 msgstr ""
 
-#: App/Controller/Common.php:96
+#: App/Controller/Common.php:100
 msgid "WPSwings points and rewards"
 msgstr ""
 
-#: App/Controller/Common.php:97
-#: App/Controller/Common.php:105
-#: App/Controller/Common.php:113
+#: App/Controller/Common.php:101
+#: App/Controller/Common.php:109
+#: App/Controller/Common.php:117
 msgid "Migrate users with points"
 msgstr ""
 
-#: App/Controller/Common.php:104
+#: App/Controller/Common.php:108
 msgid "WooCommerce Loyalty Points and Rewards"
 msgstr ""
 
-#: App/Controller/Common.php:112
+#: App/Controller/Common.php:116
 msgid "Woocommerce points and rewards"
 msgstr ""
 
-#: App/Controller/Common.php:260
+#: App/Controller/Common.php:268
 msgid "WP Swings Migration"
 msgstr ""
 
-#: App/Controller/Common.php:263
+#: App/Controller/Common.php:271
 msgid "Woocommerce Loyalty Points and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:266
+#: App/Controller/Common.php:274
 msgid "Woocommerce Point and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:274
+#: App/Controller/Common.php:282
 #: App/Views/Admin/popup.php:25
 msgid "Add points to customer"
 msgstr ""
 
-#: App/Controller/Common.php:275
+#: App/Controller/Common.php:283
 #: App/Views/Admin/popup.php:24
 msgid "Skip customer"
 msgstr ""
 
-#: App/Controller/Common.php:395
+#: App/Controller/Common.php:407
 msgid "User migrated via WPLoyalty Migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:102
-#: App/Controller/Compatibles/WooPointsRewards.php:105
-#: App/Controller/Compatibles/WPSwings.php:123
+#: App/Controller/Compatibles/WLPRPointsRewards.php:109
+#: App/Controller/Compatibles/WPSwings.php:129
 msgid "No available records for processing."
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:159
-#: App/Controller/Compatibles/WooPointsRewards.php:162
-#: App/Controller/Compatibles/WPSwings.php:181
+#: App/Controller/Compatibles/WLPRPointsRewards.php:175
+#: App/Controller/Compatibles/WooPointsRewards.php:171
+#: App/Controller/Compatibles/WPSwings.php:187
 msgid "Added %d %s by site administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:160
+#: App/Controller/Compatibles/WLPRPointsRewards.php:176
 msgid "%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WooPointsRewards.php:163
-msgid "%s customer migrated from Woo points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
+#: App/Controller/Compatibles/WooPointsRewards.php:82
+msgid "No available records for processing"
 msgstr ""
 
-#: App/Controller/Compatibles/WPSwings.php:182
+#: App/Controller/Compatibles/WooPointsRewards.php:177
+msgid "%s customer migrated from WooCommerce points and rewards with %d %s by administrator(%s) via WPLoyalty migration"
+msgstr ""
+
+#: App/Controller/Compatibles/WPSwings.php:188
 msgid "%s customer migrated from WPSwings with %d %s by administrator(%s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Migration.php:29
-#: App/Controller/Migration.php:58
-#: App/Controller/Migration.php:106
-#: App/Controller/Migration.php:145
-#: App/Controller/Migration.php:206
-#: App/Controller/Migration.php:294
+#: App/Controller/Migration.php:31
+#: App/Controller/Migration.php:61
+#: App/Controller/Migration.php:110
+#: App/Controller/Migration.php:150
+#: App/Controller/Migration.php:226
+#: App/Controller/Migration.php:332
 msgid "Basic check failed"
 msgstr ""
 
-#: App/Controller/Migration.php:41
+#: App/Controller/Migration.php:43
 msgid "Update points to customers"
 msgstr ""
 
-#: App/Controller/Migration.php:72
-#: App/Controller/Migration.php:120
+#: App/Controller/Migration.php:75
+#: App/Controller/Migration.php:124
 msgid "Invalid fields"
 msgstr ""
 
-#: App/Controller/Migration.php:79
+#: App/Controller/Migration.php:82
 msgid "Migration job already created"
 msgstr ""
 
-#: App/Controller/Migration.php:84
+#: App/Controller/Migration.php:87
 msgid "Unable to create job"
 msgstr ""
 
-#: App/Controller/Migration.php:87
+#: App/Controller/Migration.php:90
 msgid "Migration job created"
 msgstr ""
 
-#: App/Controller/Migration.php:126
+#: App/Controller/Migration.php:130
 msgid "Settings saved"
 msgstr ""
 
-#: App/Controller/Migration.php:298
+#: App/Controller/Migration.php:320
+msgid "No data to export"
+msgstr ""
+
+#: App/Controller/Migration.php:336
 msgid "Invalid job id"
 msgstr ""
 
 #. translators: First %s will replace plugin name, Second %s replace minimum PHP version
-#: App/Helper/Plugin.php:20
+#: App/Helper/Plugin.php:21
 msgid "%1$s requires minimum PHP version %2$s"
 msgstr ""
 
 #. translators: First %s will replace plugin name, Second %s replace a minimum WordPress version
-#: App/Helper/Plugin.php:28
+#: App/Helper/Plugin.php:29
 msgid "%1$s requires minimum WordPress version %2$s"
 msgstr ""
 
 #. translators: 1. %s will replace plugin name
-#: App/Helper/Plugin.php:36
+#: App/Helper/Plugin.php:37
 msgid "%1$s requires WooCommerce to be installed and activated in order to be used."
 msgstr ""
 
 #. translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
-#: App/Helper/Plugin.php:44
-#: App/Helper/Plugin.php:51
+#: App/Helper/Plugin.php:45
 msgid "%1$s requires minimum Woocommerce version %2$s"
 msgstr ""
 
-#: App/Helper/Validation.php:26
-#: App/Helper/Validation.php:50
+#. translators: 1. %s will replace plugin name
+#: App/Helper/Plugin.php:52
+msgid "%1$s requires WPLoyalty to be installed and activated in order to be used."
+msgstr ""
+
+#. translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
+#: App/Helper/Plugin.php:60
+msgid "%1$s requires minimum WPLoyalty version %2$s"
+msgstr ""
+
+#: App/Helper/Validation.php:29
+#: App/Helper/Validation.php:54
 msgid "This field"
 msgstr ""
 
-#: App/Helper/Validation.php:35
-#: App/Helper/Validation.php:57
+#: App/Helper/Validation.php:38
+#: App/Helper/Validation.php:61
 msgid "{field} is required"
 msgstr ""
 
-#: App/Setup.php:58
+#: App/Setup.php:92
 msgid "Support"
 msgstr ""
 
-#: App/Views/Admin/actions.php:15
+#: App/Views/Admin/actions.php:16
 msgid "MIGRATION ACTION"
 msgstr ""
 
-#: App/Views/Admin/actions.php:21
+#: App/Views/Admin/actions.php:22
 #: App/Views/Admin/settings.php:22
 msgid "Cancel"
 msgstr ""
 
-#: App/Views/Admin/actions.php:22
+#: App/Views/Admin/actions.php:23
 #: App/Views/Admin/settings.php:23
 msgid "Back to WPLoyalty"
 msgstr ""
 
-#: App/Views/Admin/actions.php:44
+#: App/Views/Admin/actions.php:45
 #: App/Views/Admin/popup.php:42
 msgid "Migrate"
 msgstr ""
 
-#: App/Views/Admin/actions.php:48
-#: App/Views/Admin/actions.php:55
+#: App/Views/Admin/actions.php:49
+#: App/Views/Admin/actions.php:56
 #: App/Views/Admin/activity.php:100
 msgid "View Details"
 msgstr ""
@@ -218,7 +234,7 @@ msgid "Filter"
 msgstr ""
 
 #: App/Views/Admin/activity.php:52
-#: App/Views/Admin/activity_details.php:148
+#: App/Views/Admin/activity_details.php:195
 msgid "No activities yet"
 msgstr ""
 
@@ -258,62 +274,66 @@ msgstr ""
 msgid "%s %s updated"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:23
+#: App/Views/Admin/activity_details.php:25
 msgid "Back"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:24
+#: App/Views/Admin/activity_details.php:26
 msgid "ACTIVITY DETAILS"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:31
+#: App/Views/Admin/activity_details.php:33
 msgid "Activity - %s "
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:35
+#: App/Views/Admin/activity_details.php:37
 msgid "Date created"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:41
+#: App/Views/Admin/activity_details.php:43
 #: App/Views/Admin/export_logs.php:40
 msgid "Processed items"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:47
+#: App/Views/Admin/activity_details.php:49
 msgid "Status"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:54
+#: App/Views/Admin/activity_details.php:56
 #: App/Views/Admin/popup.php:12
 msgid "Update points"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:62
+#: App/Views/Admin/activity_details.php:64
 msgid "Update banned user"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:77
+#: App/Views/Admin/activity_details.php:112
 msgid "Action details"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:100
+#: App/Views/Admin/activity_details.php:139
 msgid "Show Exported File"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:103
+#: App/Views/Admin/activity_details.php:142
 #: App/Views/Admin/export_logs.php:51
 msgid "Export"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:110
+#: App/Views/Admin/activity_details.php:149
 msgid "User email"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:111
+#: App/Views/Admin/activity_details.php:150
 msgid "Referral code"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:152
+#: App/Views/Admin/activity_details.php:170
+msgid "No activities found for the entered email."
+msgstr ""
+
+#: App/Views/Admin/activity_details.php:199
 msgid "You are in pending status"
 msgstr ""
 
@@ -325,11 +345,11 @@ msgstr ""
 msgid "Total items"
 msgstr ""
 
-#: App/Views/Admin/main.php:27
+#: App/Views/Admin/main.php:33
 msgid "Actions"
 msgstr ""
 
-#: App/Views/Admin/main.php:33
+#: App/Views/Admin/main.php:39
 msgid "Settings"
 msgstr ""
 
