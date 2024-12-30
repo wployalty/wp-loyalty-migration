@@ -47,7 +47,7 @@ class Plugin
 
             return false;
         }
-	    if ( ! self::isActive( 'wp-loyalty-rules/wp-loyalty-rules.php' ) ) {
+	    if ((  !self::isActive( 'wp-loyalty-rules/wp-loyalty-rules-lite.php' ) ) && (  !self::isActive( 'wp-loyalty-rules/wp-loyalty-rules.php' ) )) {
 		    // translators: 1. %s will replace plugin name
 		    $message = sprintf( esc_html__( '%1$s requires WPLoyalty to be installed and activated in order to be used.',
 			    'wp-loyalty-migration' ), WLRMG_PLUGIN_NAME );
