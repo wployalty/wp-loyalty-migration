@@ -47,6 +47,14 @@ class Plugin
 
             return false;
         }
+	    if ((  !self::isActive( 'wp-loyalty-rules/wp-loyalty-rules-lite.php' ) ) && (  !self::isActive( 'wp-loyalty-rules/wp-loyalty-rules.php' ) )) {
+		    // translators: 1. %s will replace plugin name
+		    $message = sprintf( esc_html__( '%1$s requires WPLoyalty to be installed and activated in order to be used.',
+			    'wp-loyalty-migration' ), WLRMG_PLUGIN_NAME );
+		    $allow_exit ? exit( esc_html( $message ) ) : self::adminNotice( esc_html( $message ), 'error' );
+
+		    return false;
+	    }
         if (!self::isLoyaltyCompatible()) {
             // translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
             $message = sprintf(esc_html__('%1$s requires minimum WPLoyalty version %2$s', 'wp-loyalty-migration'), WLRMG_PLUGIN_NAME, WLRMG_MINIMUM_WLR_VERSION);
