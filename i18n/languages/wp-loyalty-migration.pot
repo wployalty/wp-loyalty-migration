@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-27T06:03:30+00:00\n"
+"POT-Creation-Date: 2024-12-30T07:31:31+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -173,8 +173,17 @@ msgstr ""
 
 #. translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
 #: App/Helper/Plugin.php:45
-#: App/Helper/Plugin.php:52
 msgid "%1$s requires minimum Woocommerce version %2$s"
+msgstr ""
+
+#. translators: 1. %s will replace plugin name
+#: App/Helper/Plugin.php:52
+msgid "%1$s requires WPLoyalty to be installed and activated in order to be used."
+msgstr ""
+
+#. translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
+#: App/Helper/Plugin.php:60
+msgid "%1$s requires minimum WPLoyalty version %2$s"
 msgstr ""
 
 #: App/Helper/Validation.php:29

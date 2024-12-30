@@ -168,7 +168,7 @@ class WLPRPointsRewards implements Base
             }
             $action_data = array(
                 "user_email" => $user_email,
-                "customer_command" => $data->comment,
+                "customer_command" => "",
                 "points" => $new_points,
                 "referral_code" => $refer_code,
                 "action_process_type" => "earn_point",

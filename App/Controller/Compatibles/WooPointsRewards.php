@@ -163,7 +163,7 @@ class WooPointsRewards implements Base
 
             $action_data = [
                 "user_email" => $user_email,
-                "customer_command" => $data->comment,
+                "customer_command" => "",
                 "points" => $total_points,
                 "referral_code" => $refer_code,
                 "action_process_type" => "earn_point",

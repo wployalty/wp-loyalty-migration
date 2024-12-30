@@ -47,9 +47,17 @@ class Plugin
 
             return false;
         }
+	    if ( ! self::isActive( 'wp-loyalty-rules/wp-loyalty-rules.php' ) ) {
+		    // translators: 1. %s will replace plugin name
+		    $message = sprintf( esc_html__( '%1$s requires WPLoyalty to be installed and activated in order to be used.',
+			    'wp-loyalty-migration' ), WLRMG_PLUGIN_NAME );
+		    $allow_exit ? exit( esc_html( $message ) ) : self::adminNotice( esc_html( $message ), 'error' );
+
+		    return false;
+	    }
         if (!self::isLoyaltyCompatible()) {
             // translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
-            $message = sprintf(esc_html__('%1$s requires minimum Woocommerce version %2$s', 'wp-loyalty-migration'), WLRMG_PLUGIN_NAME, WLRMG_MINIMUM_WLR_VERSION);
+            $message = sprintf(esc_html__('%1$s requires minimum WPLoyalty version %2$s', 'wp-loyalty-migration'), WLRMG_PLUGIN_NAME, WLRMG_MINIMUM_WLR_VERSION);
             $allow_exit ? exit(esc_html($message)) : self::adminNotice(esc_html($message), 'error');
 
             return false;
@@ -123,14 +131,31 @@ class Plugin
 
         return $plugin_folder['woocommerce.php']['Version'] ?? '1.0.0';
     }
+	/**
+	 * Get WPLoyalty version.
+	 *
+	 * @return string
+	 */
+	protected static function getWLRVersion() {
+		if ( defined( 'WLR_PLUGIN_VERSION' ) ) {
+			return WLR_PLUGIN_VERSION;
+		}
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		}
+		$plugin_folder = get_plugins( '/wp-loyalty-rules' );
 
+		return isset( $plugin_folder['wp-loyalty-rules.php']['Version'] ) ? $plugin_folder['wp-loyalty-rules.php']['Version'] : '1.0.0';
+	}
     /**
      * Check WordPress required version.
      * @return bool
      */
     protected static function isLoyaltyCompatible(): bool
     {
-        return (int)version_compare(get_bloginfo('version'), WLRMG_MINIMUM_WLR_VERSION, '>=') > 0;
+	    $wlr_version = self::getWLRVersion();
+
+	    return (int) version_compare( $wlr_version, WLRMG_MINIMUM_WLR_VERSION, '>=' ) > 0;
     }
 
     /**
