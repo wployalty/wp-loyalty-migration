@@ -74,7 +74,7 @@ defined( 'WLRMG_PLUGIN_AUTHOR' ) or define( 'WLRMG_PLUGIN_AUTHOR', 'WPLoyalty' )
 defined( 'WLRMG_VIEW_PATH' ) or define( 'WLRMG_VIEW_PATH', str_replace( "\\", '/', __DIR__ ) . '/App/Views' );
 defined( 'WLRMG_MINIMUM_PHP_VERSION' ) or define( 'WLRMG_MINIMUM_PHP_VERSION', '7.0.0' );
 defined( 'WLRMG_MINIMUM_WP_VERSION' ) or define( 'WLRMG_MINIMUM_WP_VERSION', '4.9' );
-defined( 'WLRMG_MINIMUM_WC_VERSION' ) or define( 'WLRMG_MINIMUM_WC_VERSION', '6.0' );
+defined( 'WLRMG_MINIMUM_WC_VERSION' ) or define( 'WLRMG_MINIMUM_WC_VERSION', '6.5' );
 defined( 'WLRMG_MINIMUM_WLR_VERSION' ) or define( 'WLRMG_MINIMUM_WLR_VERSION', '1.2.10' );
 
 if ( ! file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
