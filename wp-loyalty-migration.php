@@ -99,4 +99,6 @@ add_filter( 'plugins_loaded', function () {
 		Router::init();
 	}
 } );
-Setup::init(); // init setup
+if ( class_exists( \Wlrm\App\Helper\Plugin::class ) ) {
+	Setup::init();
+} // init setup
