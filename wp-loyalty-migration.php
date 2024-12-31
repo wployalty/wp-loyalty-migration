@@ -9,7 +9,7 @@
  * Text Domain: wp-loyalty-migration
  * Domain Path: /i18n/languages/
  * Requires at least: 4.9.0
- * WC requires at least: 6.0
+ * WC requires at least: 6.5
  * WC tested up to: 9.4
  * Contributors: WPLoyalty
  * Author URI: https://wployalty.net/
