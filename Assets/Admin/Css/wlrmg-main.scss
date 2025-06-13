@@ -589,7 +589,7 @@ $border-color: #E7E7EF;
       .wlrmg-description {
         display: flex;
         justify-content: flex-start;
-        gap: 3rem;
+        gap: 10%;
       }
     }
 
@@ -951,5 +951,37 @@ $border-color: #E7E7EF;
     display: flex;
     flex-direction: column;
   }
+}
+.alertify {
+  .ajs-header {
+    background-color: #ffc107; // amber background
+    color: #000;               // black text
+    font-weight: bold;
+  }
 
+  .ajs-body {
+    color: #333;
+    background: #fff8e1;
+  }
+
+  .ajs-footer {
+    .ajs-ok {
+      background-color: #28a745 !important; // green
+      color: white !important;
+      border: none;
+    }
+
+    .ajs-cancel {
+      background-color: #dc3545 !important; // red
+      color: white !important;
+      border: none;
+    }
+
+    .ajs-buttons {
+      .ajs-button {
+        border-radius: 4px;
+        padding: 6px 14px;
+      }
+    }
+  }
 }

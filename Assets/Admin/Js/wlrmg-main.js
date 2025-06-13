@@ -100,30 +100,40 @@ wlrmg_jquery(document).ready(function () {
         let type = wlrmg_jquery("#wlrmg-popup #migration_type").val();
         let update_point = wlrmg_jquery("#wlrmg-popup #update_point").val();
         let update_banned_user = wlrmg_jquery("#wlrmg-popup #update_banned_user").val();
-        wlrmg_jquery.ajax({
-            url: wlrmg_localize_data.ajax_url,
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                action: 'wlrmg_migrate_users',
-                wlrmg_nonce: wlrmg_localize_data.migrate_users,
-                migration_action: type,
-                update_point: update_point,
-                update_banned_user: update_banned_user,
+        alertify.confirm(
+            'Migration Warning',
+            wlrmg_localize_data.migration_notice,
+            function() {
+                wlrmg_jquery.ajax({
+                    url: wlrmg_localize_data.ajax_url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        action: 'wlrmg_migrate_users',
+                        wlrmg_nonce: wlrmg_localize_data.migrate_users,
+                        migration_action: type,
+                        update_point: update_point,
+                        update_banned_user: update_banned_user,
+                    },
+                    cache: false,
+                    async: false,
+                    success: function (res) {
+                        if (res.success) {
+                            alertify.success(res.data.message)
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            alertify.error(res.data.message);
+                        }
+                    }
+                });
             },
-            cache: false,
-            async: false,
-            success: function (res) {
-                if (res.success) {
-                    alertify.success(res.data.message)
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    alertify.error(res.data.message);
-                }
+            function() {
+                console.log('Migration cancelled');
             }
-        });
+        ).set('labels', {ok:'Yes, Proceed', cancel:'No, Cancel'});
+
     }
     wlrmg.redirectToUrl = function (url) {
         window.location.href = url;

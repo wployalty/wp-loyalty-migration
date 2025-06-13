@@ -80,7 +80,9 @@ class WLPRPointsRewards implements Base
         $select = " SELECT * FROM " . $wpdb->prefix . "wlpr_points ";
         $query = $select . $where . " ORDER BY id ASC " . $limit_offset;
         $users = $wpdb->get_results(stripslashes($query));
-        $this->migrateUsers($users, $job_id, $job_data, $admin_mail, $action_type);
+	    wc_get_logger()->add('loyalty',json_encode($users));
+
+	    $this->migrateUsers($users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
     /**
@@ -176,7 +178,9 @@ class WLPRPointsRewards implements Base
                 "note" => sprintf(__("%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
             );
             $trans_type = 'credit';
-            $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
+	        wc_get_logger()->add('loyalty',json_encode($action_data));
+
+	        $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
             $data_logs = array(
                 'job_id' => $job_id,
                 'action' => 'wlpr_migration',

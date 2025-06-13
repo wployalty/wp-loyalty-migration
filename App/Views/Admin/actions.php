@@ -7,6 +7,7 @@
 defined('ABSPATH') or die();
 $current_page = (isset($current_page) && !empty($current_page)) ? $current_page : $current_page = "actions";
 ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div id="wlrmg-actions"
      class="wlrmg-body-active-content <?php echo ($current_page == "actions") ? "active-content" : ""; ?>">
