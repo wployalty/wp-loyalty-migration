@@ -16,7 +16,7 @@ $category = isset($category) && !empty($category) ? $category : '';
     <div class="wlrmg-popup-body">
         <div>
             <div>
-                <label for="update_point"><?php _e('Add/skip points to existing customers while migrate?', 'wp-loyalty-migration'); ?></label>
+                <label for="update_point"><strong><?php _e('Add/skip points to existing customers while migrate?', 'wp-loyalty-migration'); ?></strong></label>
             </div>
             <div>
                 <input type="hidden" name="migration_type" id="migration_type" value="<?php echo $category; ?>">
@@ -28,7 +28,7 @@ $category = isset($category) && !empty($category) ? $category : '';
         </div>
         <div>
             <div>
-                <label for="update_banned_user"><?php _e('Add/skip points to banned customers while migrate?', 'wp-loyalty-migration'); ?></label>
+                <label for="update_banned_user"><strong><?php _e('Add/skip points to banned customers while migrate?', 'wp-loyalty-migration'); ?></strong></label>
             </div>
             <div>
                 <select name="update_banned_user" id="update_banned_user" class="wlrmg-multi-select">

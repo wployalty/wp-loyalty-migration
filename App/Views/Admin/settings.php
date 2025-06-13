@@ -8,6 +8,7 @@ defined("ABSPATH") or die();
 $current_page = (isset($current_page) && !empty($current_page)) ? $current_page : $current_page = "settings";
 $option_settings = isset($option_settings) && !empty($option_settings) && is_array($option_settings) ? $option_settings : array();
 ?>
+
 <div id="wlrmg-settings"
      class="wlrmg-body-active-content <?php echo ($current_page == "settings") ? "active-content" : ""; ?>">
     <div class="wlrmg-heading-data">
