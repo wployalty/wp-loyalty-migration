@@ -161,7 +161,7 @@ wlrmg_jquery(document).ready(function () {
     wlrmg.startExport = function () {
         var values = wlrmg_jquery('#wlrmg-export-preview').serializeArray();
         wlrmg_jquery('#wlrmg-process-export-button').attr('disabled', true);
-        wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'none');
+      //  wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'none');
         var request = wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'post',
