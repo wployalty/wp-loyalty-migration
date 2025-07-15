@@ -10,7 +10,7 @@ defined("ABSPATH") or die(); ?>
     <div class="wlrmg-section">
         <div class="wlrmg-exported-content">
             <div class="wlrmg-popup-header">
-                <h4><?php _e("Download Exports", "wp-loyalty-bulk-action"); ?></h4>
+                <h4><?php echo esc_html__("Download Exports", "wp-loyalty-migration"); ?></h4>
                 <i class="wlr wlrf-close-circle wlrmg-cursor" onclick="wlrmg.closePopUp();"></i>
             </div>
             <div class="wlrmg-popup-download-files">
@@ -22,7 +22,7 @@ defined("ABSPATH") or die(); ?>
                                 <p><?php echo (isset($file->file_name) && !empty($file->file_name)) ? $file->file_name : ""; ?></p>
                             </div>
                             <a href="<?php echo isset($file->file_url) && !empty($file->file_url) ? $file->file_url : "#"; ?>"
-                               download="<?php echo isset($file->file_name) && !empty($file->file_name) ? $file->file_name : ""; ?>"><?php _e("Download", "wp-loyalty-bulk-action"); ?></a>
+                               download="<?php echo isset($file->file_name) && !empty($file->file_name) ? $file->file_name : ""; ?>"><?php echo  esc_html__("Download", "wp-loyalty-migration"); ?></a>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>

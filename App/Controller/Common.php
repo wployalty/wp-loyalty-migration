@@ -372,6 +372,9 @@ class Common {
 			'migrate_users' => WC::createNonce( 'wlrmg_migrate_users_nonce' ),
 			'save_settings' => WC::createNonce( 'wlrmg_save_settings_nonce' ),
 			'popup_nonce'   => WC::createNonce( 'wlrmg_popup_nonce' ),
+            'yes'           => __( 'Yes, Proceed', 'wp-loyalty-migration' ),
+			'cancel'        => __( 'No, Cancel', 'wp-loyalty-migration' ),
+            'migration_warning' => __( 'Migration Warning', 'wp-loyalty-migration' ),
 			'migration_notice' => wp_kses_post( '
                     <h3>' . __( 'Please read before starting migration:' ,'wp-loyalty-migration') . '</h3>
                     <ul>
