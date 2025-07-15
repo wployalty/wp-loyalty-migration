@@ -101,7 +101,7 @@ wlrmg_jquery(document).ready(function () {
         let update_point = wlrmg_jquery("#wlrmg-popup #update_point").val();
         let update_banned_user = wlrmg_jquery("#wlrmg-popup #update_banned_user").val();
         alertify.confirm(
-            'Migration Warning',
+            wlrmg_localize_data.migration_warning,
             wlrmg_localize_data.migration_notice,
             function() {
                 wlrmg_jquery.ajax({
@@ -132,7 +132,7 @@ wlrmg_jquery(document).ready(function () {
             function() {
                 console.log('Migration cancelled');
             }
-        ).set('labels', {ok:'Yes, Proceed', cancel:'No, Cancel'});
+        ).set('labels', {ok:wlrmg_localize_data.yes, cancel:wlrmg_localize_data.cancel});
 
     }
     wlrmg.redirectToUrl = function (url) {

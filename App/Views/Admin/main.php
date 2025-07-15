@@ -15,10 +15,7 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
             <div><b><?php echo "v" . WLRMG_PLUGIN_VERSION; ?></b></div>
         </div>
         <div class="wlrmg-notice-header">
-
-            <b>Note</b>: During the migration, <b>only customer's loyalty points will be transferred.</b> Customer
-            history
-            or any other data will not be included.
+            <b><?php echo wp_kses_post( __("Note : During the migration, only customer's loyalty points will be transferred. Customer history    or any other data will not be included.",'wp-loyalty-migration')) ?></b>
         </div>
         <div class="wlrmg-admin-main">
             <div class="wlrmg-admin-nav">

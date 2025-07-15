@@ -48,14 +48,14 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                     <div>
                         <p class=".wlrmg-desc-label"><?php echo esc_html__('Status', 'wp-loyalty-migration'); ?></p>
                         <p class="wlrmg-desc-value wlrmg-activity-status">
-                            <span class="<?php echo !empty($job_data['status']) ? "wlrmg-" . $job_data['status'] : ""; ?>"><?php echo ucfirst($job_data['status']); ?></span>
+                            <span class="<?php echo !empty($job_data['status']) ? "wlrmg-" . $job_data['status'] : ""; ?>"><?php echo esc_html__(ucfirst($job_data['status'])); ?></span>
                         </p>
                     </div>
 					<?php if (!empty($job_data['conditions']['update_point'])): ?>
                         <div>
                             <p class=".wlrmg-desc-label"><?php echo esc_html__('Update points', 'wp-loyalty-migration'); ?></p>
                             <p class="wlrmg-desc-value ">
-                                <span><?php echo ucfirst($job_data['conditions']['update_point']); ?></span>
+                                <span><?php echo esc_html__(ucfirst($job_data['conditions']['update_point'])); ?></span>
                             </p>
                         </div>
 					<?php endif; ?>
