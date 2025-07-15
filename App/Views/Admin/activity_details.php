@@ -63,7 +63,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                         <div>
                             <p class=".wlrmg-desc-label"><?php echo esc_html__('Update banned user', 'wp-loyalty-migration'); ?></p>
                             <p class="wlrmg-desc-value ">
-                                <span><?php echo (!empty($job_data['conditions']['update_banned_user']) && $job_data['conditions']['update_banned_user'] == 'add') ?  esc_html__('Add point to banned customer', 'wp-loyalty-migration'): esc_html__('Skip banned user customer', 'wp-loyalty-migration'); ?></span>
+                                <span><?php echo (!empty($job_data['conditions']['update_banned_user']) && $job_data['conditions']['update_banned_user'] == 'add') ?  esc_html__('Add point to banned customer', 'wp-loyalty-migration'): esc_html__('Skip banned customer', 'wp-loyalty-migration'); ?></span>
                             </p>
                         </div>
 					<?php endif; ?>
