@@ -96,7 +96,7 @@ class Pagination
         $numPages = ceil($this->totalRows / $this->perPage);
         if ($numPages == 1) {
             if ($this->showCount) {
-                $info =  __( 'Showing : ' . $this->totalRows  ,'wp-loyalty-migration');
+	            $info = sprintf( __( 'Showing: %d', 'wp-loyalty-migration' ), $this->totalRows );
                 return ' <div class="dataTables_info">' .$info. '</div>';
             }
             return '';
