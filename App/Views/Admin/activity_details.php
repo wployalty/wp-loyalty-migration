@@ -148,7 +148,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                         <div id="wlrmg-activity-list-table-header" class="wlrmg-table-header">
                             <p><?php esc_html_e('User email', 'wp-loyalty-migration'); ?></p>
                             <p><?php esc_html_e('Referral code', 'wp-loyalty-migration'); ?></p>
-                            <p class="set-center"><?php echo esc_html__($earn_campaign_helper->getPointLabel(3),'wp-loyalty-migration'); ?></p>
+                            <p class="set-center"><?php echo esc_html($earn_campaign_helper->getPointLabel(3)); ?></p>
                         </div>
                         <div id="wlrmg-activity-list-table-body" class="wlrmg-table-body">
 							<?php if (!empty($filtered_activities)): ?>
