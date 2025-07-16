@@ -99,7 +99,7 @@ class WPSwings implements Base
             $where .
             " ORDER BY wp_user.ID ASC " .
             $limit_offset;
-        $wp_users = $wpdb->get_results(stripslashes($select));
+        $wp_users = $wpdb->get_results(stripslashes($select)); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $this->migrateUsers($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
@@ -153,7 +153,7 @@ class WPSwings implements Base
                     'value' => sanitize_email($user_email)
                 )
             ), '*', array(), false, true);
-            $created_at = strtotime(date("Y-m-d h:i:s"));
+            $created_at = strtotime(gmdate("Y-m-d h:i:s"));
             if (is_object($user_points) &&
                 (
                     (isset($user_points->user_email) && isset($conditions['update_point']) && $conditions['update_point'] == 'skip') ||
@@ -184,8 +184,14 @@ class WPSwings implements Base
                 "points" => $new_points,
                 "referral_code" => $refer_code,
                 "action_process_type" => "earn_point",
-                "customer_note" => sprintf(__("Added %d %s by site administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
-                "note" => sprintf(__("%s customer migrated from WPSwings with %d %s by administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
+                "customer_note" => sprintf(
+                /* translators: 1: number of points, 2: point label, 3: admin email */
+	                __( 'Added %1$d %2$s by site administrator (%3$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $new_points, $campaign->getPointLabel( $new_points ), $admin_mail
+                ),
+                "note" => sprintf(
+                /* translators: 1: user email, 2: number of points, 3: point label, 4: admin email */
+	                __( '%1$s customer migrated from WPSwings with %2$d %3$s by administrator (%4$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $user_email, $new_points, $campaign->getPointLabel( $new_points ), $admin_mail
+                ),
             );
             $trans_type = 'credit';
             $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
@@ -196,7 +202,7 @@ class WPSwings implements Base
                 'referral_code' => $refer_code,
                 'points' => $new_points,
                 'earn_total_points' => $new_points,
-                'created_at' => strtotime(date("Y-m-d h:i:s")),
+                'created_at' => strtotime(gmdate("Y-m-d h:i:s")),
             );
             if (!$wployalty_migration_status) {
                 $data_logs['action'] = 'wp_swings_migration_failed';
@@ -208,7 +214,7 @@ class WPSwings implements Base
                     "status" => "processing",
                     "offset" => $data->offset,
                     "last_processed_id" => $data->last_processed_id,
-                    "updated_at" => strtotime(date("Y-m-d h:i:s")),
+                    "updated_at" => strtotime(gmdate("Y-m-d h:i:s")),
                 );
                 $migration_job_model->updateRow($update_status, array(
                     'uid' => $job_id,

@@ -78,8 +78,8 @@ class WLPRPointsRewards implements Base
             $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
         }
         $select = " SELECT * FROM " . $wpdb->prefix . "wlpr_points ";
-        $query = $select . $where . " ORDER BY id ASC " . $limit_offset;
-        $users = $wpdb->get_results(stripslashes($query));
+        $query = $select . $where . " ORDER BY id ASC " . $limit_offset; //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        $users = $wpdb->get_results(stripslashes($query)); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	    $this->migrateUsers($users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
@@ -133,7 +133,7 @@ class WLPRPointsRewards implements Base
                     'value' => sanitize_email($user_email)
                 )
             ), '*', array(), false, true);
-            $created_at = strtotime(date("Y-m-d h:i:s"));
+            $created_at = strtotime(gmdate("Y-m-d h:i:s"));
             if (is_object($user_points) &&
                 (
                     (isset($user_points->user_email) && isset($conditions['update_point']) && $conditions['update_point'] == 'skip') ||
@@ -152,12 +152,9 @@ class WLPRPointsRewards implements Base
                 ));
                 continue;
             }
-            $refer_code_query = $wpdb->prepare(
-                "SELECT refer_code FROM {$wpdb->prefix}wlpr_points WHERE user_email = %s LIMIT 1",
-                $user_email
-            );
-            $refer_code_result = $wpdb->get_var($refer_code_query);
-
+			//phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $refer_code_query = $wpdb->prepare( "SELECT refer_code FROM {$wpdb->prefix}wlpr_points WHERE user_email = %s LIMIT 1", $user_email );
+            $refer_code_result = $wpdb->get_var($refer_code_query); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
             if (is_object($user_points) && isset($user_points->refer_code)) {
                 $refer_code = $user_points->refer_code;
@@ -172,8 +169,10 @@ class WLPRPointsRewards implements Base
                 "points" => $new_points,
                 "referral_code" => $refer_code,
                 "action_process_type" => "earn_point",
-                "customer_note" => sprintf(__("Added %d %s by site administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
-                "note" => sprintf(__("%s customer migrated from Woocommerce Loyalty points and rewards with %d %s by administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
+                "customer_note" => sprintf(	    /* translators: 1: number of points, 2: point label (e.g. points), 3: admin email */
+	                __( 'Added %1$d %2$s by site administrator (%3$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
+                "note" => sprintf(    /* translators: 1: customer email, 2: number of points, 3: point label, 4: admin email */
+	                __( '%1$s customer migrated from WooCommerce Loyalty Points and Rewards with %2$d %3$s by administrator (%4$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
             );
             $trans_type = 'credit';
 	        $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
@@ -184,7 +183,7 @@ class WLPRPointsRewards implements Base
                 'referral_code' => $refer_code,
                 'points' => $new_points,
                 'earn_total_points' => $new_points,
-                'created_at' => strtotime(date("Y-m-d h:i:s")),
+                'created_at' => strtotime(gmdate("Y-m-d h:i:s")),
             );
             if (!$wployalty_migration_status) {
                 $data_logs['action'] = 'wlpr_migration_failed';
@@ -196,7 +195,7 @@ class WLPRPointsRewards implements Base
                     "status" => "processing",
                     "offset" => $data->offset,
                     "last_processed_id" => $data->last_processed_id,
-                    "updated_at" => strtotime(date("Y-m-d h:i:s")),
+                    "updated_at" => strtotime(gmdate("Y-m-d h:i:s")),
                 );
                 $migration_job_model->updateRow($update_status, array(
                     'uid' => $job_id,
