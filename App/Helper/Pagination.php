@@ -96,7 +96,9 @@ class Pagination
         $numPages = ceil($this->totalRows / $this->perPage);
         if ($numPages == 1) {
             if ($this->showCount) {
-	            $info = sprintf( __( 'Showing: %d', 'wp-loyalty-migration' ), $this->totalRows );
+	            $info = sprintf(
+					/* translators: %s: total row */
+					__( 'Showing: %d', 'wp-loyalty-migration' ), $this->totalRows );
                 return ' <div class="dataTables_info">' .$info. '</div>';
             }
             return '';
@@ -108,7 +110,7 @@ class Pagination
             $this->currentPage = 1;
         }
 
-        $baseParams = $_GET; // Retrieve current query parameters
+        $baseParams = $_GET; //phpcs:ignore WordPress.Security.NonceVerification.Recommended
         unset($baseParams[$this->queryStringSegment]); // Remove page_number to dynamically append
 
         $queryString = http_build_query($baseParams); // Build the query string
