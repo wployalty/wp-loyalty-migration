@@ -93,7 +93,7 @@ class MigrationLog extends Base
             "used_total_points" => (int)(isset($data['used_total_points']) && $data['used_total_points'] > 0 ? $data['used_total_points'] : 0),
             "earn_total_points" => (int)(isset($data['earn_total_points']) && $data['earn_total_points'] > 0 ? $data['earn_total_points'] : 0),
             "birth_date" => (int)(isset($data['birth_date']) && $data['birth_date'] > 0 ? $data['birth_date'] : 0),
-            "updated_at" => strtotime(date("Y-m-d h:i:s")),
+            "updated_at" => strtotime(gmdate("Y-m-d h:i:s")),
         );
 
         // Check if user and action exist
@@ -109,7 +109,7 @@ class MigrationLog extends Base
             return $this->updateRow($log_data, $update_where);
         } else {
             // Insert new row
-            $log_data["created_at"] = strtotime(date("Y-m-d h:i:s"));
+            $log_data["created_at"] = strtotime(gmdate("Y-m-d h:i:s"));
             return $this->insertRow($log_data);
         }
     }
