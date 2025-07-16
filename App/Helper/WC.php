@@ -25,7 +25,7 @@ class WC
             $content = ob_get_clean();
         }
         if ($display) {
-            echo $content;
+            echo $content; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         } else {
             return $content;
         }
@@ -45,7 +45,7 @@ class WC
             return null;
         }
 
-        return self::convertUTCToWPTime(date('Y-m-d H:i:s', $date), $format);
+        return self::convertUTCToWPTime(gmdate('Y-m-d H:i:s', $date), $format);
     }
 
     /**
