@@ -58,13 +58,17 @@ class Input
         }
         switch ($type) {
             case 'params':
-                return isset($_REQUEST[$var]) ? self::sanitize($_REQUEST[$var], $sanitize) : $default; //phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	            //phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                return isset($_REQUEST[$var]) ? self::sanitize($_REQUEST[$var], $sanitize) : $default;
             case 'query':
-                return isset($_GET[$var]) ? self::sanitize($_GET[$var], $sanitize) : $default; //phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	            //phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                return isset($_GET[$var]) ? self::sanitize($_GET[$var], $sanitize) : $default;
             case 'post':
-                return isset($_POST[$var]) ? self::sanitize($_POST[$var], $sanitize) : $default; //phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	            //phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                return isset($_POST[$var]) ? self::sanitize($_POST[$var], $sanitize) : $default;
             case 'cookie':
-                return isset($_COOKIE[$var]) ? self::sanitize($_COOKIE[$var], $sanitize) : $default; //phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	            //phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                return isset($_COOKIE[$var]) ? self::sanitize($_COOKIE[$var], $sanitize) : $default;
             default:
                 return $default;
         }
