@@ -19,10 +19,10 @@ defined("ABSPATH") or die(); ?>
                         <div class="wlrmg-exported-file">
                             <div class="wlrmg-file-name">
                                 <div><i class="wlr wlrf-file"></i></div>
-                                <p><?php echo (isset($file->file_name) && !empty($file->file_name)) ? $file->file_name : ""; ?></p>
+                                <p><?php echo (isset($file->file_name) && !empty($file->file_name)) ? esc_html($file->file_name) : ""; ?></p>
                             </div>
-                            <a href="<?php echo isset($file->file_url) && !empty($file->file_url) ? $file->file_url : "#"; ?>"
-                               download="<?php echo isset($file->file_name) && !empty($file->file_name) ? $file->file_name : ""; ?>"><?php echo  esc_html__("Download", "wp-loyalty-migration"); ?></a>
+                            <a href="<?php echo isset($file->file_url) && !empty($file->file_url) ? esc_url($file->file_url) : "#"; ?>"
+                               download="<?php echo isset($file->file_name) && !empty($file->file_name) ? esc_html( $file->file_name) : ""; ?>"><?php echo  esc_html__("Download", "wp-loyalty-migration"); ?></a>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
