@@ -99,7 +99,8 @@ class WPSwings implements Base
             $where .
             " ORDER BY wp_user.ID ASC " .
             $limit_offset;
-        $wp_users = $wpdb->get_results(stripslashes($select)); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	//phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        $wp_users = $wpdb->get_results(stripslashes($select)); 
         $this->migrateUsers($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }
 
