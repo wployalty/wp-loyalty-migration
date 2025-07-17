@@ -109,8 +109,9 @@ class Pagination
         if (!is_numeric($this->currentPage) || $this->currentPage == 0) {
             $this->currentPage = 1;
         }
-
-        $baseParams = $_GET; //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	    
+	//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $baseParams = $_GET; 
         unset($baseParams[$this->queryStringSegment]); // Remove page_number to dynamically append
 
         $queryString = http_build_query($baseParams); // Build the query string
