@@ -65,6 +65,7 @@ class Migration
             'update_point' => Input::get('update_point'),
             'update_banned_user' => Input::get('update_banned_user'),
         ];
+	//phpcs:ignore WordPress.Security.NonceVerification.Missing    
         $validate_data = Validation::validateMigrationData($_POST);
         if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
             foreach ($validate_data as $key => $validate) {
@@ -149,13 +150,26 @@ class Migration
         if (!WC::isSecurityValid('wlrmg_popup_nonce')) {
             wp_send_json_error(['message' => __('Basic check failed', 'wp-loyalty-migration')]);
         }
+	    global $wp_filesystem;
+		// Initialize WP_Filesystem if not already done
+	    if ( ! function_exists( 'WP_Filesystem' ) ) {
+		    require_once ABSPATH . 'wp-admin/includes/file.php';
+	    }
+	    WP_Filesystem();
+	    // Set the directory path
+	    $directory = WLRMG_PLUGIN_DIR . '/App/File/';
+		// Check if directory is writable using WP_Filesystem
+	    if ( ! $wp_filesystem->is_writable( $directory ) ) {
+		    // Try to set permissions
+		    $permission_set = $wp_filesystem->chmod( $directory, 0777 );
+		    if ( ! $permission_set ) {
+			    wp_send_json_error([
+				    'message' => __( 'Permission denied to write a file', 'wp-loyalty-migration' )
+			    ]);
+		    }
+	    }
 
-        if (!is_writable(WLRMG_PLUGIN_DIR . '/App/File/') && function_exists('chmod')) {
-            $add_permission = @chmod(WLRMG_PLUGIN_DIR . '/App/File/', 0777);
-            if (!$add_permission) {
-                wp_send_json_error(['message' => __('Permission denied to write a file', 'wp-loyalty-bulk-action')]);
-            }
-        }
+
         $post = [
             'migration_action' => Input::get('migration_action'),
             'job_id' => Input::get('job_id'),
@@ -236,11 +250,27 @@ class Migration
         ];
 
         if ($total_count > $limit_start) {
+
+	        global $wp_filesystem;
+			// Initialize WP_Filesystem if needed
+	        if ( ! function_exists( 'WP_Filesystem' ) ) {
+		        require_once ABSPATH . 'wp-admin/includes/file.php';
+	        }
+	        WP_Filesystem();
             $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
-            if (!is_dir($path)) {
-                mkdir($path, 0777, true);
-                @chmod($path, 0777);
-            }
+	        // Check if directory exists
+	        if ( ! $wp_filesystem->is_dir( $path ) ) {
+		        // Create directory with 0777 permission
+		        $created = $wp_filesystem->mkdir( $path, FS_CHMOD_DIR );
+		        // Optionally, set permissions explicitly if needed
+		        if ( $created ) {
+			        $wp_filesystem->chmod( $path, 0777, true );
+		        } else {
+			        wp_send_json_error([
+				        'message' => __( 'Failed to create directory for job files.', 'wp-loyalty-migration' )
+			        ]);
+		        }
+	        }
             switch ($post['category']) {
                 case 'woocommerce_migration' :
                     $file_name = 'wc_customer_migration_export_';
@@ -278,7 +308,8 @@ class Migration
             $csv_helper->titles = ['email', 'referral_code', 'points'];
 
             $query = "SELECT {$select} FROM {$table} WHERE {$where}";
-            $file_data = $wpdb->get_results($query, ARRAY_A);
+	    //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $file_data = $wpdb->get_results($query, ARRAY_A); 
 
             if (!empty($file_data)) {
                 foreach ($file_data as &$single_file_data) {
@@ -302,7 +333,7 @@ class Migration
             if ($limit_start >= $total_count) {
                 wp_send_json_success([
                     'success' => 'completed',
-                    'notification' => __('Export completed successfully.', 'wp-loyalty-bulk-action'),
+                    'notification' => __('Export completed successfully.', 'wp-loyalty-migration'),
                     'redirect' => admin_url('admin.php?' . http_build_query([
                             'page' => WLRMG_PLUGIN_SLUG,
                             'view' => 'activity_details',
@@ -313,7 +344,7 @@ class Migration
                 wp_send_json_success([
                     'success' => 'incomplete',
                     'limit_start' => $limit_start,
-                    'notification' => sprintf(__('Exported %s customer(s)', 'wp-loyalty-bulk-action'), $limit_start)
+                    'notification' => sprintf( /* translators: %s: limit  */__('Exported %s customer(s)', 'wp-loyalty-migration'), $limit_start)
                 ]);
             }
         } else {
