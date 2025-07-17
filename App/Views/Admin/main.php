@@ -40,7 +40,10 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
             <div class="wlrmg-body-content">
                 <?php if (isset($main_page) && !empty($main_page) && is_array($main_page)): ?>
                     <?php foreach ($main_page as $page): ?>
-                        <?php echo $page;  //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped	?>
+                        <?php 
+                            //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                            echo $page; 
+                        ?>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
