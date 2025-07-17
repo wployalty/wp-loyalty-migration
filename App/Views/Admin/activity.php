@@ -28,14 +28,14 @@ $condition_status = isset($condition_status) && !empty($condition_status) ? $con
                                         "page" => WLRMG_PLUGIN_SLUG,
                                         "view" => "activity",
                                         "condition" => $key
-                                    )))); ?>" <?php echo $key === $condition ? 'class="active-filter"' : "" ?>><?php echo esc_attr__($status, "wp-loyalty-migration") //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	 ?></a>
+                                    )))); ?>" <?php echo $key === $condition ? 'class="active-filter"' : "" ?>><?php echo esc_html__($status, "wp-loyalty-migration") //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	 ?></a>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
                 <input type="hidden" name="condition"
-                       value="<?php echo isset($condition) ? esc_attr($condition) : "all"; ?>"/>
-                <input type="hidden" name="page" value="<?php echo esc_attr(WLRMG_PLUGIN_SLUG); ?>"/>
+                       value="<?php echo isset($condition) ? esc_html($condition) : "all"; ?>"/>
+                <input type="hidden" name="page" value="<?php echo esc_html(WLRMG_PLUGIN_SLUG); ?>"/>
                 <input type="hidden" name="view" value="activity"/>
             </div>
         </form>
