@@ -73,7 +73,7 @@ class WooPointsRewards implements Base
                     GROUP BY wp_user.ID, wp_user.user_email 
                     ORDER BY wp_user.ID ASC".$limit_offset;
 
-        $wp_users = $wpdb->get_results(stripslashes($select));
+        $wp_users = $wpdb->get_results(stripslashes($select)); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
         if (empty($wp_users)) {
 	        $migration_log_model = new MigrationLog();
@@ -100,7 +100,7 @@ class WooPointsRewards implements Base
         $migration_job_model = new ScheduledJobs();
         $update_data = [
             "status" => "completed",
-            "updated_at" => strtotime(date("Y-m-d h:i:s")),
+            "updated_at" => strtotime(gmdate("Y-m-d h:i:s")),
         ];
         $migration_job_model->updateRow($update_data, ['uid' => $job_id, 'source_app' => 'wlr_migration']);
     }
@@ -147,7 +147,7 @@ class WooPointsRewards implements Base
 				$update_status = [
 					'status' => 'processing',
 					'last_processed_id' => $data->last_processed_id,
-					'updated_at' => strtotime(date("Y-m-d h:i:s")),
+					'updated_at' => strtotime(gmdate("Y-m-d h:i:s")),
 				];
 				$migration_job_model->updateRow($update_status,[
 					'uid' => $job_id,
@@ -168,17 +168,19 @@ class WooPointsRewards implements Base
                 "referral_code" => $refer_code,
                 "action_process_type" => "earn_point",
                 "customer_note" => sprintf(
-                    __("Added %d %s by site administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"),
-                    $total_points,
-                    $campaign->getPointLabel($total_points),
-                    $admin_mail
+                /* translators: 1: number of points, 2: point label, 3: admin email */
+	                __( 'Added %1$d %2$s by site administrator (%3$s) via WPLoyalty migration', 'wp-loyalty-migration' ),
+	                $total_points,
+	                $campaign->getPointLabel( $total_points ),
+	                $admin_mail
                 ),
                 "note" => sprintf(
-                    __("%s customer migrated from WooCommerce points and rewards with %d %s by administrator(%s) via WPLoyalty migration", "wp-loyalty-migration"),
-                    $user_email,
-                    $total_points,
-                    $campaign->getPointLabel($total_points),
-                    $admin_mail
+                /* translators: 1: user email, 2: number of points, 3: point label, 4: admin email */
+	                __( '%1$s customer migrated from WooCommerce Points and Rewards with %2$d %3$s by administrator (%4$s) via WPLoyalty migration', 'wp-loyalty-migration' ),
+	                $user_email,
+	                $total_points,
+	                $campaign->getPointLabel( $total_points ),
+	                $admin_mail
                 ),
             ];
 
@@ -191,7 +193,7 @@ class WooPointsRewards implements Base
                 'referral_code' => $refer_code,
                 'points' => $total_points,
                 'earn_total_points' => $total_points,
-                'created_at' => strtotime(date("Y-m-d h:i:s")),
+                'created_at' => strtotime(gmdate("Y-m-d h:i:s")),
             ];
 	        if (!$migration_status) {
 		        $data_logs['action'] = 'woocommerce_migration_failed';
@@ -203,7 +205,7 @@ class WooPointsRewards implements Base
 					'status' => 'processing',
 					'offset' => $data->offset,
 					'last_processed_id' => $data->last_processed_id,
-					'updated_at' => strtotime(date("Y-m-d h:i:s")),
+					'updated_at' => strtotime(gmdate("Y-m-d h:i:s")),
 				];
 				$migration_job_model->updateRow($update_status,[
 					'uid' => $job_id,
