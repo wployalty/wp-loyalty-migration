@@ -84,7 +84,7 @@ class ScheduledJobs extends Base
             'limit' => (int)Settings::get('batch_limit', 10),
             'offset' => 0,
             'last_processed_id' => 0,
-            'created_at' => strtotime(date('Y-m-d h:i:s')),
+            'created_at' => strtotime(gmdate('Y-m-d h:i:s')),
         ];
         $job_table_model = new ScheduledJobs();
 
