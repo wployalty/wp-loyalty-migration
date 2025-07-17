@@ -65,7 +65,8 @@ class Migration
             'update_point' => Input::get('update_point'),
             'update_banned_user' => Input::get('update_banned_user'),
         ];
-        $validate_data = Validation::validateMigrationData($_POST); //phpcs:ignore WordPress.Security.NonceVerification.Missing
+	//phpcs:ignore WordPress.Security.NonceVerification.Missing    
+        $validate_data = Validation::validateMigrationData($_POST);
         if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
             foreach ($validate_data as $key => $validate) {
                 $validate_data[$key] = current($validate);
@@ -307,7 +308,8 @@ class Migration
             $csv_helper->titles = ['email', 'referral_code', 'points'];
 
             $query = "SELECT {$select} FROM {$table} WHERE {$where}";
-            $file_data = $wpdb->get_results($query, ARRAY_A); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	    //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $file_data = $wpdb->get_results($query, ARRAY_A); 
 
             if (!empty($file_data)) {
                 foreach ($file_data as &$single_file_data) {
