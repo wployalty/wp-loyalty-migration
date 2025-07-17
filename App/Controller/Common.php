@@ -362,7 +362,7 @@ class Common {
 		wp_enqueue_style( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time() );
 		wp_enqueue_style( WLRMG_PLUGIN_SLUG . '-main-style', WLRMG_PLUGIN_URL . 'Assets/Admin/Css/wlrmg-main.css', [ 'woocommerce_admin_styles' ], WLRMG_PLUGIN_VERSION . '&t=' . time() );
 
-		wp_enqueue_script( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', [], WLR_PLUGIN_VERSION . '&t=' . time() );
+		wp_enqueue_script( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', [], WLR_PLUGIN_VERSION . '&t=' . time() , true);
 		wp_enqueue_script( WLRMG_PLUGIN_SLUG . '-main-script', WLRMG_PLUGIN_URL . 'Assets/Admin/Js/wlrmg-main.js', [
 			'jquery',
 			'select2'
@@ -383,7 +383,7 @@ class Common {
                         <li>' . __( 'Once a migration job is initiated, it cannot be stopped or interrupted midway. Ensure all configurations are correct before proceeding.' ,'wp-loyalty-migration') . '</li>
                     </ul>
                 ' ),
-		] );
+		],true );
 		wp_localize_script( WLRMG_PLUGIN_SLUG . '-main-script', 'wlrmg_localize_data', $localize_data );
 	}
 
