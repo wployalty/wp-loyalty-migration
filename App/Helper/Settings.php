@@ -21,7 +21,7 @@ class Settings
     public static function getDefaultSettings()
     {
         return [
-            'batch_limit' => 10,
+            'batch_limit' => 50,
             'pagination_limit' => 10
         ];
     }

@@ -81,7 +81,7 @@ class ScheduledJobs extends Base
             'action_type' => 'migration_to_wployalty',
             'conditions' => json_encode($conditions),
             'status' => 'pending',
-            'limit' => (int)Settings::get('batch_limit', 10),
+            'limit' => (int)Settings::get('batch_limit', 50),
             'offset' => 0,
             'last_processed_id' => 0,
             'created_at' => strtotime(gmdate('Y-m-d h:i:s')),
