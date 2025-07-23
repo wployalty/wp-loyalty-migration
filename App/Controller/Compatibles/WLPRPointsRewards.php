@@ -78,9 +78,9 @@ class WLPRPointsRewards implements Base
             $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
         }
         $select = " SELECT * FROM " . $wpdb->prefix . "wlpr_points ";
-	//phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	    //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $query = $select . $where . " ORDER BY id ASC " . $limit_offset; 
-	//phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		//phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $users = $wpdb->get_results(stripslashes($query)); 
 	    $this->migrateUsers($users, $job_id, $job_data, $admin_mail, $action_type);
     }
@@ -156,7 +156,7 @@ class WLPRPointsRewards implements Base
             }
 	    //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
             $refer_code_query = $wpdb->prepare( "SELECT refer_code FROM {$wpdb->prefix}wlpr_points WHERE user_email = %s LIMIT 1", $user_email );
-	    //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	    //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	    $refer_code_result = $wpdb->get_var($refer_code_query); 
             if (is_object($user_points) && isset($user_points->refer_code)) {
                 $refer_code = $user_points->refer_code;

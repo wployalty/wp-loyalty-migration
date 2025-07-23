@@ -80,11 +80,13 @@ $condition_status = isset($condition_status) && !empty($condition_status) ? $con
                                     alt="<?php echo esc_attr__("Order point", "wp-loyalty-migration") ?>">
                         </div>
                         <div class="wlrmg-activity-row-data ">
-                            <?php echo esc_html__($activity["job_id"]); ?>
+                            <?php
+                                 //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+                                 echo esc_html__($activity["job_id"], 'wp-loyalty-migration');
+                            ?>
                         </div>
                         <div class="wlrmg-activity-row-data wlba-grid-span-2">
-                            <?php echo sprintf( /* translators: 1: number of points, 2: point label */
-	                            __( '%1$s %2$s updated', 'wp-loyalty-migration' ), $activity["points"], $activity["points"]) ?>
+                            <?php echo wp_kses_post(sprintf( /* translators: 1: number of points, 2: point label */ __( '%1$s %2$s updated', 'wp-loyalty-migration' ), $activity["points"], $activity["points"])) ?>
                         </div>
                         <div class="wlrmg-activity-row-data wlba-grid-span-2">
                             <?php echo esc_html__($activity["action"], "wp-loyalty-migration"); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	 ?>
