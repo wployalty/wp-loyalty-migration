@@ -19,7 +19,7 @@ $category = isset($category) && !empty($category) ? $category : '';
                 <label for="update_point"><strong><?php esc_html_e('Add/skip points to existing customers while migrate?', 'wp-loyalty-migration'); ?></strong></label>
             </div>
             <div>
-                <input type="hidden" name="migration_type" id="migration_type" value="<?php echo $category; ?>">
+                <input type="hidden" name="migration_type" id="migration_type" value="<?php echo esc_html($category); ?>">
                 <select name="update_point" id="update_point" class="wlrmg-multi-select">
                     <option value="skip"><?php esc_html_e('Skip customer', 'wp-loyalty-migration'); ?></option>
                     <option value="add"><?php esc_html_e('Add points to customer', 'wp-loyalty-migration'); ?></option>

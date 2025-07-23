@@ -361,9 +361,10 @@ class Common {
 		wp_enqueue_style( WLR_PLUGIN_SLUG . '-wlr-font', WLR_PLUGIN_URL . 'Assets/Site/Css/wlr-fonts' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time() );
 		wp_enqueue_style( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time() );
 		wp_enqueue_style( WLRMG_PLUGIN_SLUG . '-main-style', WLRMG_PLUGIN_URL . 'Assets/Admin/Css/wlrmg-main.css', [ 'woocommerce_admin_styles' ], WLRMG_PLUGIN_VERSION . '&t=' . time() );
-
-		wp_enqueue_script( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', [], WLR_PLUGIN_VERSION . '&t=' . time() , true);
-		wp_enqueue_script( WLRMG_PLUGIN_SLUG . '-main-script', WLRMG_PLUGIN_URL . 'Assets/Admin/Js/wlrmg-main.js', [
+		//phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_enqueue_script( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', [], WLR_PLUGIN_VERSION . '&t=' . time() );
+		//phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+        wp_enqueue_script( WLRMG_PLUGIN_SLUG . '-main-script', WLRMG_PLUGIN_URL . 'Assets/Admin/Js/wlrmg-main.js', [
 			'jquery',
 			'select2'
 		], WLRMG_PLUGIN_VERSION . '&t=' . time() );
