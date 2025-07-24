@@ -441,8 +441,8 @@ class Common {
 		$hook      = 'wlrmg_migration_jobs';
 		$timestamp = wp_next_scheduled( $hook );
 		if ( false === $timestamp ) {
-			$scheduled_time = strtotime( '+5 minutes' );
-			wp_schedule_event( $scheduled_time, 'minutes', $hook );
+			$scheduled_time = strtotime( '+3 minutes' );
+			wp_schedule_event( $scheduled_time, 'every_3_minutes', $hook );
 		}
 	}
 

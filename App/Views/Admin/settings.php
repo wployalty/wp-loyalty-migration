@@ -36,7 +36,7 @@ $option_settings = isset($option_settings) && !empty($option_settings) && is_arr
                     <p><?php echo esc_html__('Batch limit', 'wp-loyalty-migration'); ?></p>
                 </div>
                 <?php if (isset($batch_limit) && !empty($batch_limit) && is_array($batch_limit)):
-                    $selected_batch = isset($option_settings['batch_limit']) && !empty($option_settings['batch_limit']) ? $option_settings['batch_limit'] : 0;
+                    $selected_batch = isset($option_settings['batch_limit']) && !empty($option_settings['batch_limit']) ? $option_settings['batch_limit'] : 50;
                     ?>
                     <div class="menu-lists">
                         <select name="batch_limit" id="batch-limit"

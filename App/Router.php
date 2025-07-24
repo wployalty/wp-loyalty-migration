@@ -37,7 +37,17 @@ class Router
         }
         add_filter('wlr_extra_action_list', [Common::class, 'addExtraAction'], 10, 1);
         add_filter('wlr_extra_point_ledger_action_list', [Common::class, 'addExtraPointLedgerAction'], 10, 1);
-        //schedule
+	    //schedule
+	    add_filter( 'cron_schedules', function( $schedules ) {
+		    if ( ! isset( $schedules['every_3_minutes'] ) ) {
+			    $schedules['every_3_minutes'] = array(
+				    'interval' => 180, // 3 minutes in seconds
+				    'display'  => __( 'Every 3 Minutes', 'your-textdomain' ),
+			    );
+		    }
+		    return $schedules;
+	    });
+
         add_action('woocommerce_init', [Common::class, 'initSchedule'], 10);
         add_filter('cron_schedules', [Common::class, 'addMinutes']);
         add_action('wlrmg_migration_jobs', [Common::class, 'triggerMigrations']);
