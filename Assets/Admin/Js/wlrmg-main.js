@@ -158,6 +158,37 @@ wlrmg_jquery(document).ready(function () {
         });
 
     }
+
+    // Track if export is in progress
+    wlrmg.exportInProgress = false;
+
+    // Close confirmation handler
+    wlrmg.confirmClosePopup = function () {
+        if (wlrmg.exportInProgress) {
+            alertify.confirm(
+                "Export is in progress. Do you really want to close?",
+                function () {
+                    // OK clicked
+                    wlrmg.closePopUp(true);
+                },
+                function () {
+                    // Cancel clicked – do nothing
+                }
+            ).set('labels', { ok: wlrmg_localize_data.yes, cancel: wlrmg_localize_data.cancel });
+        } else {
+            alertify.confirm(
+                "Do you want to close?",
+                function () {
+                    wlrmg.closePopUp(true);
+                },
+                function () {
+                    // Cancel clicked – do nothing
+                }
+            ).set('labels', { ok: wlrmg_localize_data.yes, cancel: wlrmg_localize_data.cancel });
+        }
+    }
+
+
     wlrmg.startExport = function () {
         var values = wlrmg_jquery('#wlrmg-export-preview').serializeArray();
         wlrmg_jquery('#wlrmg-process-export-button').attr('disabled', true);
@@ -185,12 +216,14 @@ wlrmg_jquery(document).ready(function () {
                 wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'block');
                 wlrmg_jquery('#wlrmg-notification').append("<div class='alert success'> " + json['data']['notification'] + "</div>");
                 setTimeout(function () {
-                    alertify.alert().close();
+                    alertify.success('Exported customer successfully')
                     location.reload();
                 }, 1500);
             }
         })
     }
+
+
     wlrmg.showExported = function (job_id, action_type) {
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
@@ -209,6 +242,7 @@ wlrmg_jquery(document).ready(function () {
                 }
             }
         });
+
     }
 
     wlrmg.closePopUp = function (is_reload) {

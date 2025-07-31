@@ -35,26 +35,26 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                 </div>
                 <div class="wlrmg-description">
                     <div class="wlrmg-activity-date">
-                        <p class="wlrmg-desc-label"><?php echo esc_html__("Date created", "wp-loyalty-migration") ?></p>
+                        <p class="wlrmg-desc-label"><strong><?php echo esc_html__("Date created", "wp-loyalty-migration") ?></strong></p>
 						<?php if (isset($job_data["created_at"]) && !empty($job_data["created_at"])): ?>
                             <p class="wlrmg-desc-value"><?php echo esc_html__($job_data["created_at"], "wp-loyalty-migration"); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText ?></p>
 						<?php endif; ?>
                     </div>
                     <div class="wlrmg-activity-date">
-                        <p class="wlrmg-desc-label"><?php echo esc_html__("Processed items", "wp-loyalty-migration") ?></p>
+                        <p class="wlrmg-desc-label"><strong><?php echo esc_html__("Processed items", "wp-loyalty-migration") ?></strong></p>
 						<?php if (isset($job_data["offset"])): ?>
                             <p class="wlrmg-desc-value"><?php echo esc_html__($job_data["offset"], "wp-loyalty-migration"); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	?></p>
 						<?php endif; ?>
                     </div>
                     <div>
-                        <p class=".wlrmg-desc-label"><?php echo esc_html__('Status', 'wp-loyalty-migration'); ?></p>
+                        <p class=".wlrmg-desc-label"><strong><?php echo esc_html__('Status', 'wp-loyalty-migration'); ?></strong></p>
                         <p class="wlrmg-desc-value wlrmg-activity-status">
                             <span class="<?php echo !empty($job_data['status']) ? "wlrmg-" . esc_attr($job_data['status']) : ""; ?>"><?php echo esc_html__(ucfirst($job_data['status']),'wp-loyalty-migration');  //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText ?></span>
                         </p>
                     </div>
 					<?php if (!empty($job_data['conditions']['update_point'])): ?>
                         <div>
-                            <p class=".wlrmg-desc-label"><?php echo esc_html__('Update points', 'wp-loyalty-migration'); ?></p>
+                            <p class=".wlrmg-desc-label"><strong><?php echo esc_html__('Update points', 'wp-loyalty-migration'); ?></strong></p>
                             <p class="wlrmg-desc-value ">
                                 <span><?php echo esc_html__(ucfirst($job_data['conditions']['update_point']),'wp-loyalty-migration'); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	?></span>
                             </p>
@@ -62,7 +62,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
 					<?php endif; ?>
 					<?php if (!empty($job_data['conditions']['update_banned_user'])): ?>
                         <div>
-                            <p class=".wlrmg-desc-label"><?php echo esc_html__('Update banned user', 'wp-loyalty-migration'); ?></p>
+                            <p class=".wlrmg-desc-label"><strong><?php echo esc_html__('Update banned user', 'wp-loyalty-migration'); ?></strong></p>
                             <p class="wlrmg-desc-value ">
                                 <span><?php echo (!empty($job_data['conditions']['update_banned_user']) && $job_data['conditions']['update_banned_user'] == 'add') ?  esc_html__('Add point to banned customer', 'wp-loyalty-migration'): esc_html__('Skip banned customer', 'wp-loyalty-migration'); ?></span>
                             </p>

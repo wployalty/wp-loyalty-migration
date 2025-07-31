@@ -11,7 +11,7 @@ defined("ABSPATH") or die(); ?>
         <div class="wlrmg-export-content">
             <div class="wlrmg-popup-header">
                 <h4><?php esc_html_e("EXPORT", "wp-loyalty-migration"); ?></h4>
-                <i class="wlr wlrf-close-circle wlba-cursor" onclick="wlrmg.closePopUp(true);"></i>
+                <i class="wlr wlrf-close-circle wlba-cursor" onclick="wlrmg.confirmClosePopup();"></i>
             </div>
             <div>
                 <form method="post" class="wlrmg-export-preview" id="wlrmg-export-preview" enctype="multipart/form-data"
