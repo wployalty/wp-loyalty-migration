@@ -166,7 +166,9 @@ wlrmg_jquery(document).ready(function () {
     wlrmg.confirmClosePopup = function () {
         if (wlrmg.exportInProgress) {
             alertify.confirm(
-                "Export is in progress. Do you really want to close?",
+                wlrmg_localize_data.export_warning,
+                wlrmg_localize_data.cancel_export_warning,
+                '',
                 function () {
                     // OK clicked
                     wlrmg.closePopUp(true);
@@ -177,7 +179,8 @@ wlrmg_jquery(document).ready(function () {
             ).set('labels', { ok: wlrmg_localize_data.yes, cancel: wlrmg_localize_data.cancel });
         } else {
             alertify.confirm(
-                "Do you want to close?",
+                wlrmg_localize_data.export_warning,
+                wlrmg_localize_data.cancel_warning,
                 function () {
                     wlrmg.closePopUp(true);
                 },
@@ -191,8 +194,11 @@ wlrmg_jquery(document).ready(function () {
 
     wlrmg.startExport = function () {
         var values = wlrmg_jquery('#wlrmg-export-preview').serializeArray();
-        wlrmg_jquery('#wlrmg-process-export-button').attr('disabled', true);
-      //  wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'none');
+        var btn = wlrmg_jquery('#wlrmg-process-export-button');
+        btn.attr('disabled', true);
+        btn.text('Processing...');       // Change button text
+
+        //  wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'none');
         var request = wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'post',
@@ -201,7 +207,10 @@ wlrmg_jquery(document).ready(function () {
             cache: false
         });
         request.done(function (json) {
+            // Change button text
             if (json['data']['success'] != 'completed') {
+                btn.attr('disabled', true);
+                btn.text('Export');
                 wlrmg_jquery('#wlrmg_limit_start').val(json['data']['limit_start']);
                 wlrmg_jquery('#wlrmg-notification').css("display", "flex");
                 wlrmg_jquery('#wlrmg-notification').html("<div class='alert success'>" + json['data']['notification'] + "</div>");
@@ -213,6 +222,8 @@ wlrmg_jquery(document).ready(function () {
                 }
                 wlrmg.startExport();
             } else if (json['data']['success'] == 'completed') {
+                btn.attr('disabled', true);
+                btn.text('Export');
                 wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'block');
                 wlrmg_jquery('#wlrmg-notification').append("<div class='alert success'> " + json['data']['notification'] + "</div>");
                 setTimeout(function () {

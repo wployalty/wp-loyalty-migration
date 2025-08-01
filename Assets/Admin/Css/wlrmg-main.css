@@ -802,3 +802,13 @@
 .wlrmg-popup-field{
     margin-bottom: 15px
 }
+#wlrmg-process-export-button:disabled{
+    background-color: #ccc;
+    color: #666;
+    border: 1px solid #aaa;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.alertify .ajs-content:empty {
+    display: none; /* or any style for empty divs */
+}

@@ -375,7 +375,10 @@ class Common {
 			'popup_nonce'   => WC::createNonce( 'wlrmg_popup_nonce' ),
             'yes'           => __( 'Yes, Proceed', 'wp-loyalty-migration' ),
 			'cancel'        => __( 'No, Cancel', 'wp-loyalty-migration' ),
-            'migration_warning' => __( 'Migration Warning', 'wp-loyalty-migration' ),
+			'export_warning' => __( 'Are you sure you want to leave?', 'wp-loyalty-migration' ),
+			'migration_warning' => __( 'Migration Warning', 'wp-loyalty-migration' ),
+			'cancel_export_warning' => __( 'Export is in progress. Do you really want to close?', 'wp-loyalty-migration' ),
+			'cancel_warning' => __( 'Make sure you want to close?', 'wp-loyalty-migration' ),
 			'migration_notice' => wp_kses_post( '
                     <h3>' . __( 'Important Note : Please read before starting migration,Do not deactivate or delete your old point system/program during migration.' ,'wp-loyalty-migration') . '</h3>
                     <ul>
