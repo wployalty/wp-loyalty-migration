@@ -158,10 +158,47 @@ wlrmg_jquery(document).ready(function () {
         });
 
     }
+
+    // Track if export is in progress
+    wlrmg.exportInProgress = false;
+
+    // Close confirmation handler
+    wlrmg.confirmClosePopup = function () {
+        if (wlrmg.exportInProgress) {
+            alertify.confirm(
+                wlrmg_localize_data.export_warning,
+                wlrmg_localize_data.cancel_export_warning,
+                '',
+                function () {
+                    // OK clicked
+                    wlrmg.closePopUp(true);
+                },
+                function () {
+                    // Cancel clicked – do nothing
+                }
+            ).set('labels', { ok: wlrmg_localize_data.yes, cancel: wlrmg_localize_data.cancel });
+        } else {
+            alertify.confirm(
+                wlrmg_localize_data.export_warning,
+                wlrmg_localize_data.cancel_warning,
+                function () {
+                    wlrmg.closePopUp(true);
+                },
+                function () {
+                    // Cancel clicked – do nothing
+                }
+            ).set('labels', { ok: wlrmg_localize_data.yes, cancel: wlrmg_localize_data.cancel });
+        }
+    }
+
+
     wlrmg.startExport = function () {
         var values = wlrmg_jquery('#wlrmg-export-preview').serializeArray();
-        wlrmg_jquery('#wlrmg-process-export-button').attr('disabled', true);
-      //  wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'none');
+        var btn = wlrmg_jquery('#wlrmg-process-export-button');
+        btn.attr('disabled', true);
+        btn.text('Processing...');       // Change button text
+
+        //  wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'none');
         var request = wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
             type: 'post',
@@ -170,7 +207,10 @@ wlrmg_jquery(document).ready(function () {
             cache: false
         });
         request.done(function (json) {
+            // Change button text
             if (json['data']['success'] != 'completed') {
+                btn.attr('disabled', true);
+                btn.text('Export');
                 wlrmg_jquery('#wlrmg_limit_start').val(json['data']['limit_start']);
                 wlrmg_jquery('#wlrmg-notification').css("display", "flex");
                 wlrmg_jquery('#wlrmg-notification').html("<div class='alert success'>" + json['data']['notification'] + "</div>");
@@ -182,15 +222,19 @@ wlrmg_jquery(document).ready(function () {
                 }
                 wlrmg.startExport();
             } else if (json['data']['success'] == 'completed') {
+                btn.attr('disabled', true);
+                btn.text('Export');
                 wlrmg_jquery('#wlrmg-overlay-section .wlrmg-export-popup .wlrf-close-circle').css('display', 'block');
                 wlrmg_jquery('#wlrmg-notification').append("<div class='alert success'> " + json['data']['notification'] + "</div>");
                 setTimeout(function () {
-                    alertify.alert().close();
+                    alertify.success('Exported customer successfully')
                     location.reload();
                 }, 1500);
             }
         })
     }
+
+
     wlrmg.showExported = function (job_id, action_type) {
         wlrmg_jquery.ajax({
             url: wlrmg_localize_data.ajax_url,
@@ -209,6 +253,7 @@ wlrmg_jquery(document).ready(function () {
                 }
             }
         });
+
     }
 
     wlrmg.closePopUp = function (is_reload) {

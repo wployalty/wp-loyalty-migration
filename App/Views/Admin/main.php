@@ -11,7 +11,7 @@ $current_page = (isset($current_page) && !empty($current_page)) ? $current_page 
 <div id="wlrmg-main-page">
     <div>
         <div class="wlrmg-main-header">
-            <h1><?php echo esc_html(WLRMG_PLUGIN_NAME); ?> </h1>
+            <h1><?php echo esc_html__( 'WPLoyalty - Migration','wp-loyalty-migration'); ?> </h1>
             <div><b><?php echo "v" . esc_html(WLRMG_PLUGIN_VERSION); ?></b></div>
         </div>
         <div class="wlrmg-notice-header">

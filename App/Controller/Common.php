@@ -375,13 +375,16 @@ class Common {
 			'popup_nonce'   => WC::createNonce( 'wlrmg_popup_nonce' ),
             'yes'           => __( 'Yes, Proceed', 'wp-loyalty-migration' ),
 			'cancel'        => __( 'No, Cancel', 'wp-loyalty-migration' ),
-            'migration_warning' => __( 'Migration Warning', 'wp-loyalty-migration' ),
+			'export_warning' => __( 'Are you sure you want to leave?', 'wp-loyalty-migration' ),
+			'migration_warning' => __( 'Migration Warning', 'wp-loyalty-migration' ),
+			'cancel_export_warning' => __( 'Export is in progress. Do you really want to close?', 'wp-loyalty-migration' ),
+			'cancel_warning' => __( 'Make sure you want to close?', 'wp-loyalty-migration' ),
 			'migration_notice' => wp_kses_post( '
-                    <h3>' . __( 'Please read before starting migration:' ,'wp-loyalty-migration') . '</h3>
+                    <h3>' . __( 'Important Note : Please read before starting migration,Do not deactivate or delete your old point system/program during migration.' ,'wp-loyalty-migration') . '</h3>
                     <ul>
-                        <li>' . __( 'Before starting the migration in WPLoyalty, stop earning/redeeming points in the old point system/program. This may lead to giving extra/low points during migration. NOTE: Do not deactivate or delete the old point system/program.' ,'wp-loyalty-migration') . '</li>
-                        <li>' . __( 'The default batch limit is 50. You can reduce the batch limit in settings. If the batch limit is 50, then 50 customers migrate every 5 minutes — resulting in 600 customers per hour, 14,400 customers per day.','wp-loyalty-migration' ) . '</li>
-                        <li>' . __( 'Once a migration job is initiated, it cannot be stopped or interrupted midway. Ensure all configurations are correct before proceeding.' ,'wp-loyalty-migration') . '</li>
+                        <li>' . __( 'Before starting the migration in WPLoyalty, ensure that earning and redeeming points is paused in your existing system/program. Its lead to give extra/low points in migration.' ,'wp-loyalty-migration') . '</li>
+                        <li>' . __( 'The default batch limit is set to 50. You can adjust this in the settings.For example, if the batch limit is 50, then 50 customers will be migrated every 3 minutes — resulting in 1000 customers per hour, 24,400 customers per day.','wp-loyalty-migration' ) . '</li>
+                        <li>' . __( 'Once a migration job is started, it cannot be paused or stopped midway. Please double-check all configurations before initiating the process.' ,'wp-loyalty-migration') . '</li>
                     </ul>
                 ' ),
 		],true );
