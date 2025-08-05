@@ -463,12 +463,13 @@ class Common {
 	 * @return array The modified input data array with minutes added if it was an array.
 	 */
 	public static function addMinutes( $data ) {
-		if ( ! is_array( $data ) ) {
+		if ( ! is_array( $data ) || isset($data['every_3_minutes']) ) {
 			return $data;
 		}
-		$data['minutes'] = [
-			'interval' => 5 * MINUTE_IN_SECONDS,
-			'display'  => __( 'Minutes', 'wp-loyalty-migration' ),
+
+		$data['every_3_minutes'] = [
+			'interval' => 180,
+			'display'  => __( 'Every 3 Minutes', 'wp-loyalty-migration' ),
 		];
 
 		return $data;
