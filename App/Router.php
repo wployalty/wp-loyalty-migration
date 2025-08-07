@@ -41,5 +41,7 @@ class Router
         add_action('woocommerce_init', [Common::class, 'initSchedule'], 10);
         add_filter('cron_schedules', [Common::class, 'addMinutes']);
         add_action('wlrmg_migration_jobs', [Common::class, 'triggerMigrations']);
+        add_action('wlrmg_process_single_job', [Common::class, 'processMigrationJob']);
+        add_action('wlrmg_process_migration_job', [Common::class, 'processMigrationJob']);
     }
 }

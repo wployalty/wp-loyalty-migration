@@ -2,9 +2,8 @@
 
 namespace Wlrm\App\Controller;
 
-
-defined( 'ABSPATH' ) or die();
-
+use Exception;
+use stdClass;
 use Wlrm\App\Controller\Compatibles\WLPRPointsRewards;
 use Wlrm\App\Controller\Compatibles\WooPointsRewards;
 use Wlrm\App\Controller\Compatibles\WPSwings;
@@ -13,6 +12,10 @@ use Wlrm\App\Helper\Pagination;
 use Wlrm\App\Helper\WC;
 use Wlrm\App\Models\MigrationLog;
 use Wlrm\App\Models\ScheduledJobs;
+
+
+defined( 'ABSPATH' ) or die();
+
 
 class Common {
 	/**
@@ -224,7 +227,7 @@ class Common {
 			$result['activity'] = self::getActivityLogsData( $job_id );
 		}
 
-		return apply_filters( 'wlrm_before_acitivity_view_details_data', $result );
+		return apply_filters( 'wlrmg_before_acitivity_view_details_data', $result );
 	}
 
 	/**
@@ -476,33 +479,158 @@ class Common {
 	}
 
 	public static function triggerMigrations() {
-		$data               = ScheduledJobs::getAvailableJob();
-		$process_identifier = 'wlrmg_cron_job_running';
-		if ( get_transient( $process_identifier ) ) {
+		$available_jobs = ScheduledJobs::getAvailableJobs();
+		if (empty($available_jobs)) {
 			return;
 		}
-		set_transient( $process_identifier, true );
-		if ( is_object( $data ) && ! empty( $data ) ) {
-			//process
-			$category = ! empty( $data->category ) ? $data->category : "";
-			switch ( $category ) {
+		
+		$job_table = new ScheduledJobs();
+		$queued_count = 0;
+		
+		foreach ($available_jobs as $job) {
+			// Use Action Scheduler for true parallel processing
+			if (function_exists('as_schedule_single_action')) {
+				// Schedule with a small delay like the subscription plugin
+				$time = time() + 10; // 10 seconds delay
+				$action_id = as_schedule_single_action(
+					$time,
+					'wlrmg_process_migration_job',
+					[$job],
+					'wlrmg_migration_queue'
+				);
+				
+				$process_identifier = 'wlrmg_job_' . $job->uid;
+				
+				// Update job status to 'queued' to prevent re-queuing
+				$update_data = [
+					'status' => 'queued',
+					'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+				];
+				$job_table->updateRow($update_data, [
+					'uid' => $job->uid,
+					'source_app' => 'wlr_migration'
+				]);
+				$queued_count++;
+					} else {
+			// Fallback to WordPress cron if Action Scheduler is not available
+			$process_identifier = 'wlrmg_job_' . $job->uid;
+			wp_schedule_single_event(time(), 'wlrmg_process_single_job', [$job]);
+			
+			// Update job status to 'queued' to prevent re-queuing
+			$update_data = [
+				'status' => 'queued',
+				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+			];
+			$job_table->updateRow($update_data, [
+				'uid' => $job->uid,
+				'source_app' => 'wlr_migration'
+			]);
+			$queued_count++;
+			}
+		}
+	}
+
+	/**
+	 * Process a single migration job
+	 * This method handles both batch jobs and single jobs
+	 *
+	 * @param object $job_data Job data object
+	 * @return void
+	 */
+	private static function processJob($job_data) {
+		$batch_info = ScheduledJobs::getBatchInfo($job_data);
+		
+		if ($batch_info) {
+			// This is a batch job - get users for this specific batch
+			$category = is_object($job_data) ? $job_data->category : $job_data['category'];
+			$users = Migration::getUsersForBatch(
+				$category,
+				$batch_info['offset'],
+				$batch_info['limit']
+			);
+		} else {
+			// This is a single job - let migration class handle user retrieval
+			$users = null;
+		}
+		
+		// Route to appropriate migration class
+		$category = is_object($job_data) ? $job_data->category : $job_data['category'];
+		switch ($category) {
 				case 'wp_swings_migration':
 					$wp_swings = new WPSwings();
-					$wp_swings->migrateToLoyalty( $data );
+				$wp_swings->migrateToLoyalty($job_data, $users);
 					break;
 				case 'wlpr_migration':
 					$wlpr_point_reward = new WLPRPointsRewards();
-					$wlpr_point_reward->migrateToLoyalty( $data );
+				$wlpr_point_reward->migrateToLoyalty($job_data, $users);
 					break;
 				case 'woocommerce_migration':
 					$woo_point_reward = new WooPointsRewards();
-					$woo_point_reward->migrateToLoyalty( $data );
+				$woo_point_reward->migrateToLoyalty($job_data, $users);
 					break;
 				case 'yith_migration':
 				default:
+				wc_get_logger()->add('wlrmg_migration', 'Unknown migration category: ' . $job_data->category);
 					return;
-			}
 		}
-		delete_transient( $process_identifier );
+
 	}
+
+	/**
+	 * Process a single migration job using Action Scheduler
+	 * This method handles both batch jobs and single jobs
+	 *
+	 * @param object $job_data Job data object
+	 * @return void
+	 */
+	public static function processMigrationJob($job_data) {
+		// Convert array to object if needed (Action Scheduler passes arrays)
+		if (is_array($job_data)) {
+			$job_data = (object) $job_data;
+		}
+		
+		$process_identifier = 'wlrmg_job_' . $job_data->uid;
+		
+		try {
+			// Update job status to 'processing' when starting
+			$job_table = new ScheduledJobs();
+			$update_data = [
+				'status' => 'processing',
+				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+			];
+			$job_table->updateRow($update_data, [
+				'uid' => $job_data->uid,
+				'source_app' => 'wlr_migration'
+			]);
+			
+			self::processJob($job_data);
+			
+			// Update job status to 'completed' when finished
+			$update_data = [
+				'status' => 'completed',
+				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+			];
+			$job_table->updateRow($update_data, [
+				'uid' => $job_data->uid,
+				'source_app' => 'wlr_migration'
+			]);
+			
+		} catch (Exception $e) {
+			// Update job status to 'failed' on error
+			$job_table = new ScheduledJobs();
+			$update_data = [
+				'status' => 'failed',
+				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+			];
+			$job_table->updateRow($update_data, [
+				'uid' => $job_data->uid,
+				'source_app' => 'wlr_migration'
+			]);
+			
+			// Re-throw to let Action Scheduler handle retry logic
+			throw $e;
+		}
+	}
+
+
 }

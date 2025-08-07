@@ -70,6 +70,9 @@ $earn_campaign_helper = EarnCampaign::getInstance();
 					<?php endif; ?>
                 </div>
             </div>
+            
+
+            
 			<?php
 			// Check if a search parameter exists in the URL
 			$search = isset( $_GET['search'] ) ? sanitize_text_field(wp_unslash($_GET['search']) ): ''; //phpcs:ignore WordPress.Security.NonceVerification.Recommended

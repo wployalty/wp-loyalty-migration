@@ -47,8 +47,16 @@ class WPSwings implements Base
     static function getMigrationJob()
     {
         $job_table = new ScheduledJobs();
+        
+        // First, try to find a parent job (job without parent_job_id in conditions)
+        $parent_job = $job_table->getWhere("category = 'wp_swings_migration' AND conditions NOT LIKE '%parent_job_id%'");
+        
+        if (!empty($parent_job) && is_object($parent_job) && isset($parent_job->uid)) {
+            return $parent_job;
+        }
+        
+        // Fallback to any job if no parent job found
         $job = $job_table->getWhere("category = 'wp_swings_migration'");
-
         return (!empty($job) && is_object($job) && isset($job->uid)) ? $job : new stdClass();
     }
 
@@ -65,10 +73,12 @@ class WPSwings implements Base
      *                        - action_type: string The type of action for the migration (default: "migration_to_wployalty").
      *                        - last_processed_id: int The ID of the last processed user.
      *                        - limit: int Optional limit for number of users to migrate (default: 0 for no limit).
+     * @param array|null $pre_filtered_users Optional pre-filtered user data for batch processing.
+     *                                      If provided, this data will be used instead of fetching from database.
      *
      * @return void
      */
-    function migrateToLoyalty($job_data)
+    function migrateToLoyalty($job_data, $pre_filtered_users = null)
     {
         if (empty($job_data) || !is_object($job_data)) {
             return;
@@ -76,31 +86,38 @@ class WPSwings implements Base
         $job_id = (int)isset($job_data->uid) && !empty($job_data->uid) ? $job_data->uid : 0;
         $admin_mail = (string)isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '';
         $action_type = (string)isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : "migration_to_wployalty";
-        //Get WPUsers
-        global $wpdb;
-        $where = $wpdb->prepare(" WHERE wp_user.ID > %d AND wp_user.ID > %d ", array(
-            0,
-            (int)$job_data->last_processed_id
-        ));
-        $join = " LEFT JOIN " . $wpdb->usermeta . " AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points' ";
-        $limit_offset = "";
-        if (isset($job_data->limit) && ($job_data->limit > 0)) {
-            $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
-        }
+        
+        // Use pre-filtered users if provided (for batch processing)
+        if ($pre_filtered_users !== null && is_array($pre_filtered_users)) {
+            $wp_users = $pre_filtered_users;
+        } else {
+            //Get WPUsers (original logic for backward compatibility)
+            global $wpdb;
+            $where = $wpdb->prepare(" WHERE wp_user.ID > %d AND wp_user.ID > %d ", array(
+                0,
+                (int)$job_data->last_processed_id
+            ));
+            $join = " LEFT JOIN " . $wpdb->usermeta . " AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points' ";
+            $limit_offset = "";
+            if (isset($job_data->limit) && ($job_data->limit > 0)) {
+                $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
+            }
 
-        $select = "
-    SELECT 
-        wp_user.ID,
-        wp_user.user_email,
-        COALESCE(meta.meta_value, 0) AS wps_points 
-    FROM 
-        " . $wpdb->users . " AS wp_user 
-    " . $join .
-            $where .
-            " ORDER BY wp_user.ID ASC " .
-            $limit_offset;
-	//phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-        $wp_users = $wpdb->get_results(stripslashes($select)); 
+            $select = "
+        SELECT 
+            wp_user.ID,
+            wp_user.user_email,
+            COALESCE(meta.meta_value, 0) AS wps_points 
+        FROM 
+            " . $wpdb->users . " AS wp_user 
+        " . $join .
+                $where .
+                " ORDER BY wp_user.ID ASC " .
+                $limit_offset;
+            //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $wp_users = $wpdb->get_results(stripslashes($select)); 
+        }
+        
         $this->migrateUsers($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }
 

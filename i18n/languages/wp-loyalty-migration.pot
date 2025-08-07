@@ -1,4 +1,4 @@
-# Copyright (C) 2024 WPLoyalty
+# Copyright (C) 2025 WPLoyalty
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
@@ -9,9 +9,9 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-12-31T06:43:10+00:00\n"
+"POT-Creation-Date: 2025-07-23T14:33:12+05:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.10.0\n"
+"X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wp-loyalty-migration\n"
 
 #. Plugin Name of the plugin
@@ -83,11 +83,27 @@ msgstr ""
 msgid "Skip customer"
 msgstr ""
 
-#: App/Controller/Common.php:394
+#: App/Controller/Common.php:376
+msgid "Please read before starting migration:"
+msgstr ""
+
+#: App/Controller/Common.php:378
+msgid "Before starting the migration in WPLoyalty, stop earning/redeeming points in the old point system/program. This may lead to giving extra/low points during migration. NOTE: Do not deactivate or delete the old point system/program."
+msgstr ""
+
+#: App/Controller/Common.php:379
+msgid "The default batch limit is 50. You can reduce the batch limit in settings. If the batch limit is 50, then 50 customers migrate every 5 minutes — resulting in 600 customers per hour, 14,400 customers per day."
+msgstr ""
+
+#: App/Controller/Common.php:380
+msgid "Once a migration job is initiated, it cannot be stopped or interrupted midway. Ensure all configurations are correct before proceeding."
+msgstr ""
+
+#: App/Controller/Common.php:402
 msgid "User migrated via WPLoyalty Migration"
 msgstr ""
 
-#: App/Controller/Common.php:456
+#: App/Controller/Common.php:464
 msgid "Minutes"
 msgstr ""
 
@@ -209,12 +225,12 @@ msgid "MIGRATION ACTION"
 msgstr ""
 
 #: App/Views/Admin/actions.php:22
-#: App/Views/Admin/settings.php:22
+#: App/Views/Admin/settings.php:23
 msgid "Cancel"
 msgstr ""
 
 #: App/Views/Admin/actions.php:23
-#: App/Views/Admin/settings.php:23
+#: App/Views/Admin/settings.php:24
 msgid "Back to WPLoyalty"
 msgstr ""
 
@@ -373,18 +389,18 @@ msgstr ""
 msgid "Add points to banned customer"
 msgstr ""
 
-#: App/Views/Admin/settings.php:16
+#: App/Views/Admin/settings.php:17
 msgid "SETTINGS"
 msgstr ""
 
-#: App/Views/Admin/settings.php:26
+#: App/Views/Admin/settings.php:27
 msgid "Save"
 msgstr ""
 
-#: App/Views/Admin/settings.php:35
+#: App/Views/Admin/settings.php:36
 msgid "Batch limit"
 msgstr ""
 
-#: App/Views/Admin/settings.php:55
+#: App/Views/Admin/settings.php:56
 msgid "Pagination limit"
 msgstr ""

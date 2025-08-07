@@ -34,6 +34,15 @@ class WooPointsRewards implements Base
     static function getMigrationJob()
     {
         $job_table = new ScheduledJobs();
+        
+        // First, try to find a parent job (job without parent_job_id in conditions)
+        $parent_job = $job_table->getWhere("category = 'woocommerce_migration' AND conditions NOT LIKE '%parent_job_id%'");
+        
+        if (!empty($parent_job) && is_object($parent_job) && isset($parent_job->uid)) {
+            return $parent_job;
+        }
+        
+        // Fallback to any job if no parent job found
         $job = $job_table->getWhere("category = 'woocommerce_migration'");
         return (!empty($job) && is_object($job) && isset($job->uid)) ? $job : new stdClass();
     }
@@ -42,9 +51,11 @@ class WooPointsRewards implements Base
      * Migrates user data to the loyalty system
      *
      * @param object $job_data
+     * @param array|null $pre_filtered_users Optional pre-filtered user data for batch processing.
+     *                                      If provided, this data will be used instead of fetching from database.
      * @return void
      */
-    function migrateToLoyalty($job_data)
+    function migrateToLoyalty($job_data, $pre_filtered_users = null)
     {
         if (empty($job_data) || !is_object($job_data)) {
             return;
@@ -54,34 +65,40 @@ class WooPointsRewards implements Base
         $admin_mail = (string)($job_data->admin_mail ?? '');
         $action_type = (string)($job_data->action_type ?? "migration_to_wployalty");
 
-        global $wpdb;
-        $where = $wpdb->prepare(" WHERE wp_user.ID > %d AND wp_user.ID > %d",[
-			0,
-	        (int) $job_data->last_processed_id
-        ]);
-	    $limit_offset = "";
-	    if (isset($job_data->limit) && ($job_data->limit > 0)) {
-		    $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
-	    }
+        // Use pre-filtered users if provided (for batch processing)
+        if ($pre_filtered_users !== null && is_array($pre_filtered_users)) {
+            $wp_users = $pre_filtered_users;
+        } else {
+            // Original logic for backward compatibility
+            global $wpdb;
+            $where = $wpdb->prepare(" WHERE wp_user.ID > %d AND wp_user.ID > %d",[
+                0,
+                (int) $job_data->last_processed_id
+            ]);
+            $limit_offset = "";
+            if (isset($job_data->limit) && ($job_data->limit > 0)) {
+                $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
+            }
 
-        $select = " SELECT wp_user.ID AS user_id, wp_user.user_email, 
-                    IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
-                    FROM " . $wpdb->prefix . "users AS wp_user 
-                    LEFT JOIN " . $wpdb->prefix . "wc_points_rewards_user_points AS woo_points_table 
-                    ON wp_user.ID = woo_points_table.user_id 
-                    $where 
-                    GROUP BY wp_user.ID, wp_user.user_email 
-                    ORDER BY wp_user.ID ASC".$limit_offset;
+            $select = " SELECT wp_user.ID AS user_id, wp_user.user_email, 
+                        IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
+                        FROM " . $wpdb->prefix . "users AS wp_user 
+                        LEFT JOIN " . $wpdb->prefix . "wc_points_rewards_user_points AS woo_points_table 
+                        ON wp_user.ID = woo_points_table.user_id 
+                        $where 
+                        GROUP BY wp_user.ID, wp_user.user_email 
+                        ORDER BY wp_user.ID ASC".$limit_offset;
 
-        $wp_users = $wpdb->get_results(stripslashes($select)); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $wp_users = $wpdb->get_results(stripslashes($select)); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        }
 
         if (empty($wp_users)) {
-	        $migration_log_model = new MigrationLog();
-	        $data_logs=[
-		        'action' => 'woo_points_and_rewards_migration_completed',
-		        'note'=>__('No available records for processing','wp-loyalty-migration')
-	        ];
-	        $migration_log_model->saveLogs($data_logs, "woocommerce_migration");
+            $migration_log_model = new MigrationLog();
+            $data_logs=[
+                'action' => 'woo_points_and_rewards_migration_completed',
+                'note'=>__('No available records for processing','wp-loyalty-migration')
+            ];
+            $migration_log_model->saveLogs($data_logs, "woocommerce_migration");
             $this->logMigrationCompletion($job_id);
             return;
         }
@@ -123,15 +140,21 @@ class WooPointsRewards implements Base
         $loyalty_user_model = new Users();
         $campaign = EarnCampaign::getInstance();
 
+        wc_get_logger()->add('wlrmg_migration', 'Starting processUserMigration for job_id: ' . $job_id . ' with ' . count($wp_users) . ' users');
+
 	    $conditions = isset($data->conditions) && !empty($data->conditions) ? json_decode($data->conditions, true) : [];
+        $processed_count = 0;
         foreach ($wp_users as $wp_user) {
             $user_email = !empty($wp_user) && is_object($wp_user) && isset($wp_user->user_email) && !empty($wp_user->user_email) ? sanitize_email($wp_user->user_email) : "";
             if (empty($user_email)) {
+                wc_get_logger()->add('wlrmg_migration', 'Skipping user with empty email');
                 continue;
             }
 
             $user_id = (int)($wp_user->user_id ?? 0);
             $total_points = (int) (!empty($wp_user->total_points_balance)) ? $wp_user->total_points_balance : 0;
+
+            wc_get_logger()->add('wlrmg_migration', 'Processing user: ' . $user_email . ' with points: ' . $total_points);
 
             $user_points = $loyalty_user_model->getQueryData(
                 ['user_email' => ['operator' => '=', 'value' => $user_email]],
@@ -143,6 +166,7 @@ class WooPointsRewards implements Base
                     (isset($user_points->user_email) && isset($conditions['update_point']) && $conditions['update_point'] == 'skip') ||
                     (isset($user_points->is_banned_user) && $user_points->is_banned_user == 1 && isset($conditions['update_banned_user']) && $conditions['update_banned_user'] == 'skip')
                 )) {
+                wc_get_logger()->add('wlrmg_migration', 'Skipping user ' . $user_email . ' due to conditions');
 				$data->last_processed_id = $user_id;
 				$update_status = [
 					'status' => 'processing',
@@ -197,8 +221,15 @@ class WooPointsRewards implements Base
             ];
 	        if (!$migration_status) {
 		        $data_logs['action'] = 'woocommerce_migration_failed';
-	        }
-            if($migration_log_model->saveLogs($data_logs, "woocommerce_migration") > 0){
+                wc_get_logger()->add('wlrmg_migration', 'Migration failed for user: ' . $user_email);
+	        } else {
+                wc_get_logger()->add('wlrmg_migration', 'Migration successful for user: ' . $user_email . ' with points: ' . $total_points);
+            }
+            
+            $log_id = $migration_log_model->saveLogs($data_logs, "woocommerce_migration");
+            wc_get_logger()->add('wlrmg_migration', 'Log saved with ID: ' . $log_id . ' for user: ' . $user_email);
+            
+            if($log_id > 0){
 				$data->offset = $data->offset + 1;
 				$data->last_processed_id = $user_id;
 				$update_status = [
@@ -211,9 +242,12 @@ class WooPointsRewards implements Base
 					'uid' => $job_id,
 					'source_app' => 'wlr_migration'
 				]);
+                $processed_count++;
             }
 
         }
+        
+        wc_get_logger()->add('wlrmg_migration', 'Completed processUserMigration for job_id: ' . $job_id . ' - processed ' . $processed_count . ' users');
 
     }
 
