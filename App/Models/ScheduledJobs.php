@@ -81,6 +81,10 @@ class ScheduledJobs extends Base
         if (isset($post['batch_limit'])) {
             $conditions['batch_limit'] = (int) $post['batch_limit'];
         }
+        // Store per-batch info (for multi-row batches)
+        if (!empty($post['batch_info']) && is_array($post['batch_info'])) {
+            $conditions['batch_info'] = $post['batch_info'];
+        }
         
         $job_data = [
             'uid' => $max_uid,
@@ -195,12 +199,16 @@ class ScheduledJobs extends Base
         }
         
         $job_table = new ScheduledJobs();
+        // Match both numeric and string parent_job_id encodings in JSON
+        $like_numeric = '%"parent_job_id":' . (int)$parent_job_id . '%';
+        $like_string  = '%"parent_job_id":"' . (int)$parent_job_id . '"%';
         $where = self::$db->prepare(
-            "source_app = %s AND (uid = %d OR conditions LIKE %s) ORDER BY uid ASC",
+            "source_app = %s AND (uid = %d OR conditions LIKE %s OR conditions LIKE %s) ORDER BY uid ASC",
             [
                 "wlr_migration",
                 $parent_job_id,
-                '%"parent_job_id":"' . $parent_job_id . '"%'
+                $like_numeric,
+                $like_string
             ]
         );
         

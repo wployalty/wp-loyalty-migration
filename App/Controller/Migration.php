@@ -84,24 +84,56 @@ class Migration
             wp_send_json_error(['message' => __('Migration job already created', 'wp-loyalty-migration')]);
         }
 
-        // Get total count and derive batches based on single-job batching (offset/limit)
+        // Get total count and derive batch plan
         $total_count = self::getTotalRecordsCount($post['migration_action']);
         $batch_limit = (int)Settings::get('batch_limit', 50);
         $total_batches = $batch_limit > 0 ? (int)ceil($total_count / $batch_limit) : 0;
 
-        // Create a single job and store batch metadata in conditions
-        $job_post = $post;
-        $job_post['total_count'] = $total_count;
-        $job_post['batch_limit'] = $batch_limit;
+        if ($total_batches <= 0) {
+            wp_send_json_error(['message' => __('No records to migrate', 'wp-loyalty-migration')]);
+        }
 
-        $job_id = ScheduledJobs::insertData($job_post);
-        if ($job_id <= 0) {
-            wp_send_json_error(['message' => __('Unable to create migration job', 'wp-loyalty-migration')]);
+        // Create multiple job records (one per batch) for parallel/concurrent processing
+        $created_jobs = [];
+
+        // Create parent batch (no parent_job_id in conditions)
+        $parent_job_post = $post;
+        $parent_job_post['batch_info'] = [
+            'batch_number' => 1,
+            'offset' => 0,
+            'limit' => $batch_limit,
+        ];
+        $parent_job_post['total_count'] = $total_count;
+        $parent_job_post['batch_limit'] = $batch_limit;
+        $parent_job_id = ScheduledJobs::insertData($parent_job_post);
+        if ($parent_job_id <= 0) {
+            wp_send_json_error(['message' => __('Unable to create parent job batch', 'wp-loyalty-migration')]);
+        }
+        $created_jobs[] = $parent_job_id;
+
+        // Create remaining child batches with parent reference
+        for ($i = 1; $i < $total_batches; $i++) {
+            $offset = $i * $batch_limit;
+            $job_post = $post;
+            $job_post['batch_info'] = [
+                'batch_number' => $i + 1,
+                'offset' => $offset,
+                'limit' => $batch_limit,
+                'parent_job_id' => $parent_job_id,
+            ];
+            $job_post['total_count'] = $total_count;
+            $job_post['batch_limit'] = $batch_limit;
+
+            $child_job_id = ScheduledJobs::insertData($job_post);
+            if ($child_job_id <= 0) {
+                wp_send_json_error(['message' => __('Unable to create job batch', 'wp-loyalty-migration')]);
+            }
+            $created_jobs[] = $child_job_id;
         }
 
         wp_send_json_success([
-            'message' => __('Migration job created', 'wp-loyalty-migration'),
-            'job_id' => $job_id,
+            'message' => __('Migration jobs created', 'wp-loyalty-migration'),
+            'job_id' => $parent_job_id, // Return parent job ID
             'total_batches' => $total_batches,
             'total_records' => $total_count
         ]);
@@ -331,9 +363,33 @@ class Migration
                 'job_id' => $post['job_id']
             ]));
 
+        // Determine parent and all child batch ids for export
+        $parent_uid = (int)$post['job_id'];
+        $job_table = new ScheduledJobs();
+        global $wpdb;
+        $job_row = $job_table->getWhere($wpdb->prepare(" uid = %d AND source_app = %s", [$parent_uid, 'wlr_migration']));
+        if (!empty($job_row) && is_object($job_row) && !empty($job_row->conditions)) {
+            $decoded = json_decode($job_row->conditions, true);
+            if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
+                $parent_uid = (int)$decoded['batch_info']['parent_job_id'];
+            }
+        }
+        $all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
+        $all_batch_ids = [];
+        if (!empty($all_batches) && is_array($all_batches)) {
+            foreach ($all_batches as $row) {
+                if (isset($row->uid)) {
+                    $all_batch_ids[] = (int)$row->uid;
+                }
+            }
+        }
+        if (empty($all_batch_ids)) {
+            $all_batch_ids = [$parent_uid];
+        }
+
         $page_details = [
             'base_url' => $base_url,
-            'total_count' => MigrationLog::getLogCount($post['migration_action'], $post['job_id']),
+            'total_count' => MigrationLog::getLogCount($post['migration_action'], $all_batch_ids),
             'process_count' => 0,
             'limit_start' => 0,
             'limit' => 5,
@@ -421,10 +477,32 @@ class Migration
             $table = $log_table->getTableName();
 
             $where = "id > 0";
-            $where .= $wpdb->prepare(" AND action = %s AND job_id = %d AND user_email !=''", [
-                $post['category'],
-                (int)$post['job_id']
-            ]);
+            $where .= $wpdb->prepare(" AND action = %s AND user_email !=''", [ $post['category'] ]);
+
+            // Include all batch job_ids for the same parent
+            $parent_uid = (int)$post['job_id'];
+            $job_table = new ScheduledJobs();
+            $job_row = $job_table->getWhere($wpdb->prepare(" uid = %d AND source_app = %s", [$parent_uid, 'wlr_migration']));
+            if (!empty($job_row) && is_object($job_row) && !empty($job_row->conditions)) {
+                $decoded = json_decode($job_row->conditions, true);
+                if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
+                    $parent_uid = (int)$decoded['batch_info']['parent_job_id'];
+                }
+            }
+            $all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
+            $all_batch_ids = [];
+            if (!empty($all_batches) && is_array($all_batches)) {
+                foreach ($all_batches as $row) {
+                    if (isset($row->uid)) {
+                        $all_batch_ids[] = (int)$row->uid;
+                    }
+                }
+            }
+            if (empty($all_batch_ids)) {
+                $all_batch_ids = [$parent_uid];
+            }
+            $placeholders = implode(',', array_fill(0, count($all_batch_ids), '%d'));
+            $where .= $wpdb->prepare(" AND job_id IN ($placeholders)", $all_batch_ids);
             $where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d;', [
                 $limit,
                 $limit_start

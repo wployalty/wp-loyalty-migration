@@ -32,17 +32,27 @@ class MigrationLog extends Base
         );
     }
 
-    public static function getLogCount($action, $job_id)
+    public static function getLogCount($action, $job_id_or_ids)
     {
-        if (empty($job_id) || empty($action) || $job_id <= 0 || !is_string($action)) {
+        if (empty($job_id_or_ids) || empty($action) || !is_string($action)) {
             return 0;
         }
 
         $log_table = new MigrationLog();
-        $query = self::$db->prepare(" id > 0 AND action != %s AND job_id = %d AND user_email !='' ", [
+        // Base filter
+        $query = self::$db->prepare(" id > 0 AND action != %s AND user_email !='' ", [
             $action . "_completed",
-            (int)$job_id
         ]);
+        // Filter by one or many job ids
+        if (is_array($job_id_or_ids)) {
+            $ids = array_map('intval', $job_id_or_ids);
+            if (!empty($ids)) {
+                $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+                $query .= self::$db->prepare(" AND job_id IN ($placeholders) ", $ids);
+            }
+        } else {
+            $query .= self::$db->prepare(" AND job_id = %d ", [ (int) $job_id_or_ids ]);
+        }
         $log_count = $log_table->getWhere($query, "count(*) as total_count", true);
 
         return !empty($log_count) ? $log_count->total_count : 0;
@@ -124,14 +134,16 @@ class MigrationLog extends Base
         )));
     }
 
-    function getActivityList($job_id, $current_page)
+    function getActivityList($job_id_or_ids, $current_page)
     {
-        if (empty($job_id) || empty($current_page)) {
+        if (empty($job_id_or_ids) || empty($current_page)) {
             return array();
         }
         $input = new Input();
         $cron_job_modal = new ScheduledJobs();
-        $where = self::$db->prepare(" uid = %d AND source_app=%s", array($job_id, 'wlr_migration'));
+        // Determine a representative job for metadata (category, exports)
+        $representative_job_id = is_array($job_id_or_ids) ? (int)reset($job_id_or_ids) : (int)$job_id_or_ids;
+        $where = self::$db->prepare(" uid = %d AND source_app=%s", array($representative_job_id, 'wlr_migration'));
         $job_data = $cron_job_modal->getwhere($where);
 
         $settings = get_option('wlrmg_settings');
@@ -144,8 +156,14 @@ class MigrationLog extends Base
             0,
             $job_data->category . '_completed'
         ));
-        if (!empty($job_id)) {
-            $where .= self::$db->prepare(" AND job_id=%d ", array($job_id));
+        if (!empty($job_id_or_ids)) {
+            if (is_array($job_id_or_ids)) {
+                $ids = array_map('intval', $job_id_or_ids);
+                $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+                $where .= self::$db->prepare(" AND job_id IN ($placeholders) ", $ids);
+            } else {
+                $where .= self::$db->prepare(" AND job_id=%d ", array((int)$job_id_or_ids));
+            }
         }
         if (!empty($search)) {
             $search_key = '%' . $search . '%';
@@ -158,7 +176,7 @@ class MigrationLog extends Base
         }
         $log_list = $this->getWhere($where, "*", false);
 
-        $export_files = $this->exportFileList(array('category' => $job_data->category, 'job_id' => $job_id));
+        $export_files = $this->exportFileList(array('category' => $job_data->category, 'job_id' => $representative_job_id));
 
         return apply_filters('wlrmg_before_activity_log_list', array(
             'data' => $log_list,

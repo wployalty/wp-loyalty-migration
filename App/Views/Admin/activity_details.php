@@ -42,21 +42,24 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                     </div>
                     <div class="wlrmg-activity-date">
                         <p class="wlrmg-desc-label"><strong><?php echo esc_html__("Processed items", "wp-loyalty-migration") ?></strong></p>
-						<?php if (isset($job_data["offset"])): ?>
-                            <p class="wlrmg-desc-value"><?php echo esc_html__($job_data["offset"], "wp-loyalty-migration"); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	?></p>
-						<?php endif; ?>
+                        <?php if (isset($job_data["processed_items"])): ?>
+                            <p class="wlrmg-desc-value"><?php echo esc_html($job_data["processed_items"]); ?></p>
+                        <?php endif; ?>
                     </div>
                     <?php if (!empty($job_data['batch_stats'])): ?>
                         <div class="wlrmg-activity-date">
                             <p class="wlrmg-desc-label"><strong><?php echo esc_html__('Batches', 'wp-loyalty-migration'); ?></strong></p>
                             <p class="wlrmg-desc-value ">
                                 <?php
-                                // translators: 1: total batches, 2: completed batches, 3: pending batches
+                                // translators: 1: total, 2: completed, 3: queued, 4: processing, 5: pending, 6: failed
                                 printf(
-                                    esc_html__('%1$d total, %2$d completed, %3$d pending', 'wp-loyalty-migration'),
+                                    esc_html__('%1$d total, %2$d completed, %3$d queued, %4$d processing, %5$d pending, %6$d failed', 'wp-loyalty-migration'),
                                     (int)$job_data['batch_stats']['total'],
                                     (int)$job_data['batch_stats']['completed'],
-                                    (int)$job_data['batch_stats']['pending']
+                                    (int)$job_data['batch_stats']['queued'],
+                                    (int)$job_data['batch_stats']['processing'],
+                                    (int)$job_data['batch_stats']['pending'],
+                                    (int)$job_data['batch_stats']['failed']
                                 );
                                 ?>
                             </p>
