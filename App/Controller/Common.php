@@ -591,38 +591,24 @@ class Common {
 		$in_flight = 0;
 		
 		foreach ($available_jobs as $job) {
-			// Use Action Scheduler for true parallel processing
-			if (function_exists('as_schedule_single_action')) {
-				// Schedule with a small delay like the subscription plugin
-				$time = time() + 10; // 10 seconds delay
-				// Enforce concurrency cap
-				if ($in_flight >= $max_in_flight) {
-					continue;
-				}
-				$action_id = as_schedule_single_action(
-					$time,
-					'wlrmg_process_migration_job',
-					[$job],
-					'wlrmg_migration_queue'
-				);
-				
-				$process_identifier = 'wlrmg_job_' . $job->uid;
-				
-				// Update job status to 'queued' to prevent re-queuing
-				$update_data = [
-					'status' => 'queued',
-					'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-				];
-				$job_table->updateRow($update_data, [
-					'uid' => $job->uid,
-					'source_app' => 'wlr_migration'
-				]);
-				$queued_count++;
-				$in_flight++;
-					} else {
-			// Fallback to WordPress cron if Action Scheduler is not available
+			// Require Action Scheduler; do nothing if unavailable
+			if (!function_exists('as_schedule_single_action')) {
+				continue;
+			}
+			// Schedule with a small delay like the subscription plugin
+			$time = time() + 10; // 10 seconds delay
+			// Enforce concurrency cap
+			if ($in_flight >= $max_in_flight) {
+				continue;
+			}
+			$action_id = as_schedule_single_action(
+				$time,
+				'wlrmg_process_migration_job',
+				[$job],
+				'wlrmg_migration_queue'
+			);
+			
 			$process_identifier = 'wlrmg_job_' . $job->uid;
-			wp_schedule_single_event(time(), 'wlrmg_process_single_job', [$job]);
 			
 			// Update job status to 'queued' to prevent re-queuing
 			$update_data = [
@@ -634,7 +620,7 @@ class Common {
 				'source_app' => 'wlr_migration'
 			]);
 			$queued_count++;
-			}
+			$in_flight++;
 		}
 	}
 
