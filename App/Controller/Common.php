@@ -254,7 +254,7 @@ class Common {
 			'admin_mail' => ! empty( $job_data->admin_mail ) ? $job_data->admin_mail : '',
 			'status'     => ! empty( $job_data->status ) ? $job_data->status : '',
 			'action'     => ! empty( $job_data->category ) ? $job_data->category : '',
-			'conditions' => ! empty( $job_data->conditions ) ? json_decode( $job_data->conditions, true ) : [],
+            'conditions' => ! empty( $job_data->conditions ) ? json_decode( $job_data->conditions, true ) : [],
 		];
 		if ( ! empty( $job_data->category ) ) {
 			switch ( $job_data->category ) {
@@ -276,6 +276,20 @@ class Common {
 			$result['conditions']['update_point'] = ( $result['conditions']['update_point'] == 'add' ) ? __( 'Add points to customer', 'wp-loyalty-migration' )
 				: __( 'Skip customer', 'wp-loyalty-migration' );
 		}
+
+        // Compute batch stats for UI
+        $limit  = (int) (isset($job_data->limit) ? $job_data->limit : 0);
+        $total  = (int) (isset($result['conditions']['total_count']) ? $result['conditions']['total_count'] : 0);
+        $total_batches = ($limit > 0) ? (int) ceil($total / $limit) : 0;
+        $completed_batches = ($limit > 0) ? (int) floor(((int)$result['offset']) / $limit) : 0;
+        if (!empty($result['status']) && $result['status'] === 'completed') {
+            $completed_batches = $total_batches;
+        }
+        $result['batch_stats'] = [
+            'total'     => $total_batches,
+            'completed' => min($completed_batches, $total_batches),
+            'pending'   => max($total_batches - $completed_batches, 0),
+        ];
 
 		return $result;
 	}
@@ -537,25 +551,13 @@ class Common {
 	 * @param object $job_data Job data object
 	 * @return void
 	 */
-	private static function processJob($job_data) {
-		$batch_info = ScheduledJobs::getBatchInfo($job_data);
-		
-		if ($batch_info) {
-			// This is a batch job - get users for this specific batch
-			$category = is_object($job_data) ? $job_data->category : $job_data['category'];
-			$users = Migration::getUsersForBatch(
-				$category,
-				$batch_info['offset'],
-				$batch_info['limit']
-			);
-		} else {
-			// This is a single job - let migration class handle user retrieval
-			$users = null;
-		}
-		
-		// Route to appropriate migration class
-		$category = is_object($job_data) ? $job_data->category : $job_data['category'];
-		switch ($category) {
+    private static function processJob($job_data) {
+        // With single-job batching, let migration classes fetch by last_processed_id & limit
+        $category = is_object($job_data) ? $job_data->category : $job_data['category'];
+        $users = null;
+
+        // Route to appropriate migration class
+        switch ($category) {
 				case 'wp_swings_migration':
 					$wp_swings = new WPSwings();
 				$wp_swings->migrateToLoyalty($job_data, $users);
@@ -603,17 +605,23 @@ class Common {
 				'source_app' => 'wlr_migration'
 			]);
 			
-			self::processJob($job_data);
-			
-			// Update job status to 'completed' when finished
-			$update_data = [
-				'status' => 'completed',
-				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-			];
-			$job_table->updateRow($update_data, [
-				'uid' => $job_data->uid,
-				'source_app' => 'wlr_migration'
-			]);
+            self::processJob($job_data);
+
+            // After processing, if classes didn't mark completed (no data), set back to pending for next batch
+            global $wpdb;
+            $latest = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [$job_data->uid, 'wlr_migration']));
+            if (!empty($latest) && is_object($latest)) {
+                if ($latest->status !== 'completed') {
+                    $update_data = [
+                        'status' => 'pending',
+                        'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+                    ];
+                    $job_table->updateRow($update_data, [
+                        'uid' => $job_data->uid,
+                        'source_app' => 'wlr_migration'
+                    ]);
+                }
+            }
 			
 		} catch (Exception $e) {
 			// Update job status to 'failed' on error

@@ -73,10 +73,13 @@ class ScheduledJobs extends Base
             'update_point' => !empty($post['update_point']) ? $post['update_point'] : 'skip',
             'update_banned_user' => !empty($post['update_banned_user']) ? $post['update_banned_user'] : 'skip',
         ];
-        
-        // Add batch info if present (for parallel processing)
-        if (!empty($post['batch_info']) && is_array($post['batch_info'])) {
-            $conditions['batch_info'] = $post['batch_info'];
+
+        // Store single-job batch metadata
+        if (isset($post['total_count'])) {
+            $conditions['total_count'] = (int) $post['total_count'];
+        }
+        if (isset($post['batch_limit'])) {
+            $conditions['batch_limit'] = (int) $post['batch_limit'];
         }
         
         $job_data = [

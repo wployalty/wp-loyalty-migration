@@ -46,6 +46,22 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                             <p class="wlrmg-desc-value"><?php echo esc_html__($job_data["offset"], "wp-loyalty-migration"); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	?></p>
 						<?php endif; ?>
                     </div>
+                    <?php if (!empty($job_data['batch_stats'])): ?>
+                        <div class="wlrmg-activity-date">
+                            <p class="wlrmg-desc-label"><strong><?php echo esc_html__('Batches', 'wp-loyalty-migration'); ?></strong></p>
+                            <p class="wlrmg-desc-value ">
+                                <?php
+                                // translators: 1: total batches, 2: completed batches, 3: pending batches
+                                printf(
+                                    esc_html__('%1$d total, %2$d completed, %3$d pending', 'wp-loyalty-migration'),
+                                    (int)$job_data['batch_stats']['total'],
+                                    (int)$job_data['batch_stats']['completed'],
+                                    (int)$job_data['batch_stats']['pending']
+                                );
+                                ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
                     <div>
                         <p class=".wlrmg-desc-label"><strong><?php echo esc_html__('Status', 'wp-loyalty-migration'); ?></strong></p>
                         <p class="wlrmg-desc-value wlrmg-activity-status">
@@ -86,7 +102,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
 					echo '<script>
             //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped	
             document.addEventListener("DOMContentLoaded", function() {
-                alertify.error("' . esc_html($v->errors('search')[0], ENT_QUOTES, 'UTF-8') . '"); 
+                alertify.error("' . esc_html($v->errors('search')[0]) . '"); 
                 alertify.set("notifier","position", "top-right"); 
                 
             });

@@ -84,35 +84,24 @@ class Migration
             wp_send_json_error(['message' => __('Migration job already created', 'wp-loyalty-migration')]);
         }
 
-        // Get total count of records to migrate
+        // Get total count and derive batches based on single-job batching (offset/limit)
         $total_count = self::getTotalRecordsCount($post['migration_action']);
         $batch_limit = (int)Settings::get('batch_limit', 50);
-        $total_batches = ceil($total_count / $batch_limit);
-        
-        $created_jobs = [];
-        
-        // Create multiple job records for parallel processing
-        for ($i = 0; $i < $total_batches; $i++) {
-            $offset = $i * $batch_limit;
-            
-            $job_post = $post;
-            $job_post['batch_info'] = [
-                'batch_number' => $i + 1,
-                'offset' => $offset,
-                'limit' => $batch_limit,
-                'parent_job_id' => $i === 0 ? 0 : $created_jobs[0] // First job becomes parent
-            ];
-            
-            $job_id = ScheduledJobs::insertData($job_post);
-            if ($job_id <= 0) {
-                wp_send_json_error(['message' => __('Unable to create job batch', 'wp-loyalty-migration')]);
-            }
-            $created_jobs[] = $job_id;
+        $total_batches = $batch_limit > 0 ? (int)ceil($total_count / $batch_limit) : 0;
+
+        // Create a single job and store batch metadata in conditions
+        $job_post = $post;
+        $job_post['total_count'] = $total_count;
+        $job_post['batch_limit'] = $batch_limit;
+
+        $job_id = ScheduledJobs::insertData($job_post);
+        if ($job_id <= 0) {
+            wp_send_json_error(['message' => __('Unable to create migration job', 'wp-loyalty-migration')]);
         }
-        
+
         wp_send_json_success([
-            'message' => __('Migration jobs created', 'wp-loyalty-migration'),
-            'job_id' => $created_jobs[0], // Return parent job ID for backward compatibility
+            'message' => __('Migration job created', 'wp-loyalty-migration'),
+            'job_id' => $job_id,
             'total_batches' => $total_batches,
             'total_records' => $total_count
         ]);
