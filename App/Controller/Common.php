@@ -236,7 +236,6 @@ class Common {
             $total_batches = is_array($all_batches) ? count($all_batches) : 0;
             $status_counts = [
                 'pending' => 0,
-                'queued' => 0,
                 'processing' => 0,
                 'completed' => 0,
                 'failed' => 0,
@@ -252,14 +251,6 @@ class Common {
                     }
                 }
             }
-            $job_info['batch_stats'] = [
-                'total' => $total_batches,
-                'completed' => $status_counts['completed'],
-                'queued' => $status_counts['queued'],
-                'processing' => $status_counts['processing'],
-                'pending' => $status_counts['pending'],
-                'failed' => $status_counts['failed'],
-            ];
 
             // Compute aggregated processed items across all batches (sum of offsets)
             $processed_items = 0;
@@ -276,8 +267,6 @@ class Common {
                 $overall_status = 'completed';
             } elseif ($status_counts['processing'] > 0) {
                 $overall_status = 'processing';
-            } elseif ($status_counts['queued'] > 0) {
-                $overall_status = 'queued';
             } elseif ($status_counts['failed'] > 0 && $status_counts['completed'] === 0) {
                 $overall_status = 'failed';
             }
@@ -336,20 +325,6 @@ class Common {
 			$result['conditions']['update_point'] = ( $result['conditions']['update_point'] == 'add' ) ? __( 'Add points to customer', 'wp-loyalty-migration' )
 				: __( 'Skip customer', 'wp-loyalty-migration' );
 		}
-
-        // Compute batch stats for UI
-        $limit  = (int) (isset($job_data->limit) ? $job_data->limit : 0);
-        $total  = (int) (isset($result['conditions']['total_count']) ? $result['conditions']['total_count'] : 0);
-        $total_batches = ($limit > 0) ? (int) ceil($total / $limit) : 0;
-        $completed_batches = ($limit > 0) ? (int) floor(((int)$result['offset']) / $limit) : 0;
-        if (!empty($result['status']) && $result['status'] === 'completed') {
-            $completed_batches = $total_batches;
-        }
-        $result['batch_stats'] = [
-            'total'     => $total_batches,
-            'completed' => min($completed_batches, $total_batches),
-            'pending'   => max($total_batches - $completed_batches, 0),
-        ];
 
 		return $result;
 	}
@@ -578,51 +553,210 @@ class Common {
 	}
 
 	public static function triggerMigrations() {
-		$available_jobs = ScheduledJobs::getAvailableJobs();
-		if (empty($available_jobs)) {
+		// Produce child batches for the active category first
+		self::produceChildBatches();
+
+		// Only queue pending child jobs for the active category (option-backed)
+		$active_opt = get_option('wlrmg_active_category', array());
+		$active_category = is_array($active_opt) && ! empty($active_opt['category']) ? (string) $active_opt['category'] : '';
+        if (empty($active_category)) {
+            return; // No active category selected yet
+        }
+
+        $pending_jobs = ScheduledJobs::getPendingJobsByCategory($active_category);
+        if (empty($pending_jobs)) {
+            return;
+        }
+
+        $job_table = new ScheduledJobs();
+        $max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 3);
+        $in_flight = 0;
+
+        foreach ($pending_jobs as $job) {
+            if (!function_exists('as_schedule_single_action')) {
+                continue;
+            }
+            if ($in_flight >= $max_in_flight) {
+                break;
+            }
+            $time = time() + 10;
+            as_schedule_single_action($time, 'wlrmg_process_migration_job', [$job], 'wlrmg_migration_queue');
+            $in_flight++;
+        }
+	}
+
+    /**
+     * Produce child range batches for the active migration category.
+     * Ensures only one category runs at a time and per-parent production is serialized by transient lock.
+     */
+    private static function produceChildBatches()
+    {
+		// Resolve active category via option instead of transient
+		$active_opt = get_option('wlrmg_active_category', array());
+		$active_category = is_array($active_opt) && ! empty($active_opt['category']) ? (string) $active_opt['category'] : '';
+		$parent_job = null;
+
+        if (empty($active_category)) {
+            // Pick the oldest parent job across all categories
+            $parents = ScheduledJobs::getParentJobsPendingOrActive();
+            if (empty($parents)) {
+                return;
+            }
+            $parent_job = is_array($parents) ? reset($parents) : $parents;
+            if (empty($parent_job) || !is_object($parent_job)) {
+                return;
+            }
+			$active_category = isset($parent_job->category) ? $parent_job->category : '';
+            if (empty($active_category)) {
+                return;
+            }
+			// Persist active category as a durable option
+			update_option('wlrmg_active_category', array(
+				'category' => $active_category,
+				'set_at' => time(),
+			));
+        } else {
+            // Resolve the active category's parent
+			$parent_job = ScheduledJobs::getParentJobByCategory($active_category);
+            if (empty($parent_job) || !is_object($parent_job)) {
+				// No more parent for this category; release lock
+				delete_option('wlrmg_active_category');
+                return;
+            }
+        }
+
+        // Parse cursor and limit from parent conditions
+        $conditions = !empty($parent_job->conditions) ? json_decode($parent_job->conditions, true) : [];
+        $batch_limit = (int) ($conditions['batch_limit'] ?? (int)$parent_job->limit ?? 50);
+        if ($batch_limit <= 0) {
+            $batch_limit = 50;
+        }
+        $last_enqueued_id = (int) ($conditions['last_enqueued_id'] ?? 0);
+
+        // Per-parent lock (option-backed with stale recovery)
+		$parent_uid = (int) $parent_job->uid;
+		$got_lock = self::acquireProducerLock($parent_uid);
+		if (!$got_lock) {
 			return;
 		}
-		
-		$job_table = new ScheduledJobs();
-		$queued_count = 0;
-		$max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 3);
 
-		// Track how many we queue this run
-		$in_flight = 0;
-		
-		foreach ($available_jobs as $job) {
-			// Require Action Scheduler; do nothing if unavailable
-			if (!function_exists('as_schedule_single_action')) {
-				continue;
-			}
-			// Schedule with a small delay like the subscription plugin
-			$time = time() + 10; // 10 seconds delay
-			// Enforce concurrency cap
-			if ($in_flight >= $max_in_flight) {
-				continue;
-			}
-			$action_id = as_schedule_single_action(
-				$time,
-				'wlrmg_process_migration_job',
-				[$job],
-				'wlrmg_migration_queue'
-			);
-			
-			$process_identifier = 'wlrmg_job_' . $job->uid;
-			
-			// Update job status to 'queued' to prevent re-queuing
-			$update_data = [
-				'status' => 'queued',
-				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-			];
-			$job_table->updateRow($update_data, [
-				'uid' => $job->uid,
-				'source_app' => 'wlr_migration'
-			]);
-			$queued_count++;
-			$in_flight++;
+        try {
+            $current_max_id = Migration::getCurrentMaxId($active_category);
+            if ($current_max_id <= 0 || $last_enqueued_id >= $current_max_id) {
+                // Nothing to enqueue now. If no child jobs are active for this parent, finalize parent and release category.
+                $children = ScheduledJobs::getBatchesByParent((int)$parent_job->uid);
+                $has_active_children = false;
+                if (!empty($children) && is_array($children)) {
+                    foreach ($children as $child) {
+                        if ((int)$child->uid === (int)$parent_job->uid) {
+                            // Skip the parent row itself
+                            continue;
+                        }
+                        if (in_array((string)$child->status, ['pending','processing'], true)) {
+                            $has_active_children = true;
+                            break;
+                        }
+                    }
+                }
+				if (!$has_active_children) {
+					// Mark parent as completed
+					$job_table = new ScheduledJobs();
+					$job_table->updateRow([
+						'status' => 'completed',
+						'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+					], [
+						'uid' => (int)$parent_job->uid,
+						'source_app' => 'wlr_migration'
+					]);
+					delete_option('wlrmg_active_category');
+				}
+                return;
+            }
+
+            // Create up to N child jobs per tick
+            $max_batches_per_tick = (int) apply_filters('wlrmg_max_batches_per_tick', 5);
+            for ($i = 0; $i < $max_batches_per_tick; $i++) {
+                $ids = Migration::getIdsWindow($active_category, $last_enqueued_id, $batch_limit, $current_max_id);
+                if (empty($ids)) {
+                    break;
+                }
+                $end_id = (int) end($ids);
+                $insert_id = ScheduledJobs::insertChildRangeJob($parent_job, $last_enqueued_id, $end_id, $batch_limit);
+                if ($insert_id > 0) {
+                    ScheduledJobs::updateParentEnqueuedCursor((int)$parent_job->uid, $end_id);
+                    $last_enqueued_id = $end_id;
+                } else {
+                    // Failed to insert; stop to avoid loop
+                    break;
+                }
+                if ($last_enqueued_id >= $current_max_id) {
+                    break;
+                }
+            }
+
+            // If we've enqueued all up to current max and there are no active children, complete parent and release category
+            if ($last_enqueued_id >= $current_max_id) {
+                $children = ScheduledJobs::getBatchesByParent((int)$parent_job->uid);
+                $has_active_children = false;
+                if (!empty($children) && is_array($children)) {
+                    foreach ($children as $child) {
+                        if ((int)$child->uid === (int)$parent_job->uid) {
+                            continue;
+                        }
+                        if (in_array((string)$child->status, ['pending','processing'], true)) {
+                            $has_active_children = true;
+                            break;
+                        }
+                    }
+                }
+				if (!$has_active_children) {
+					$job_table = new ScheduledJobs();
+					$job_table->updateRow([
+						'status' => 'completed',
+						'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+					], [
+						'uid' => (int)$parent_job->uid,
+						'source_app' => 'wlr_migration'
+					]);
+					delete_option('wlrmg_active_category');
+				}
+            }
+		} finally {
+			self::releaseProducerLock($parent_uid);
 		}
-	}
+    }
+
+    /**
+     * Acquire per-parent producer lock using options API (no token variant).
+     * Returns true if we acquired the lock, false otherwise.
+     */
+    private static function acquireProducerLock($parent_uid)
+    {
+        $option_name = 'wlrmg_producer_lock_' . (int) $parent_uid;
+        $now = time();
+        // Atomic acquire
+        if (add_option($option_name, array('locked_at' => $now))) {
+            return true;
+        }
+        // Stale detection: older than 10 minutes → recover lock
+        $existing = get_option($option_name, array());
+        $locked_at = (int) ($existing['locked_at'] ?? 0);
+        if ($locked_at > 0 && ($now - $locked_at) > (10 * MINUTE_IN_SECONDS)) {
+            // Recover by deleting and reacquiring atomically
+            delete_option($option_name);
+            return add_option($option_name, array('locked_at' => $now));
+        }
+        return false;
+    }
+
+    /**
+     * Release producer lock (no owner check; we assume short critical sections).
+     */
+    private static function releaseProducerLock($parent_uid)
+    {
+        $option_name = 'wlrmg_producer_lock_' . (int) $parent_uid;
+        delete_option($option_name);
+    }
 
 	/**
 	 * Process a single migration job
@@ -635,11 +769,11 @@ class Common {
         // Batch jobs: fetch users using batch_info (offset/limit)
         $batch_info = ScheduledJobs::getBatchInfo($job_data);
         $category = is_object($job_data) ? $job_data->category : $job_data['category'];
-        if ($batch_info) {
-            $users = Migration::getUsersForBatch(
+        if ($batch_info && isset($batch_info['start_id']) && isset($batch_info['end_id'])) {
+            $users = Migration::getUsersForRange(
                 $category,
-                (int)$batch_info['offset'],
-                (int)$batch_info['limit']
+                (int)$batch_info['start_id'],
+                (int)$batch_info['end_id']
             );
         } else {
             // Fallback: let classes fetch

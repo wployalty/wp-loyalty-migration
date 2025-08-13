@@ -84,169 +84,132 @@ class Migration
             wp_send_json_error(['message' => __('Migration job already created', 'wp-loyalty-migration')]);
         }
 
-        // Get total count and derive batch plan
-        $total_count = self::getTotalRecordsCount($post['migration_action']);
+        // Create only a parent job. Child range batches will be produced on-the-fly by the scheduler.
         $batch_limit = (int)Settings::get('batch_limit', 50);
-        $total_batches = $batch_limit > 0 ? (int)ceil($total_count / $batch_limit) : 0;
-
-        if ($total_batches <= 0) {
-            wp_send_json_error(['message' => __('No records to migrate', 'wp-loyalty-migration')]);
+        if ($batch_limit <= 0) {
+            $batch_limit = 50;
         }
 
-        // Create multiple job records (one per batch) for parallel/concurrent processing
-        $created_jobs = [];
-
-        // Create parent batch (no parent_job_id in conditions)
         $parent_job_post = $post;
-        $parent_job_post['batch_info'] = [
-            'batch_number' => 1,
-            'offset' => 0,
-            'limit' => $batch_limit,
-        ];
-        $parent_job_post['total_count'] = $total_count;
         $parent_job_post['batch_limit'] = $batch_limit;
+        $parent_job_post['last_enqueued_id'] = 0;
+
         $parent_job_id = ScheduledJobs::insertData($parent_job_post);
         if ($parent_job_id <= 0) {
-            wp_send_json_error(['message' => __('Unable to create parent job batch', 'wp-loyalty-migration')]);
-        }
-        $created_jobs[] = $parent_job_id;
-
-        // Create remaining child batches with parent reference
-        for ($i = 1; $i < $total_batches; $i++) {
-            $offset = $i * $batch_limit;
-            $job_post = $post;
-            $job_post['batch_info'] = [
-                'batch_number' => $i + 1,
-                'offset' => $offset,
-                'limit' => $batch_limit,
-                'parent_job_id' => $parent_job_id,
-            ];
-            $job_post['total_count'] = $total_count;
-            $job_post['batch_limit'] = $batch_limit;
-
-            $child_job_id = ScheduledJobs::insertData($job_post);
-            if ($child_job_id <= 0) {
-                wp_send_json_error(['message' => __('Unable to create job batch', 'wp-loyalty-migration')]);
-            }
-            $created_jobs[] = $child_job_id;
+            wp_send_json_error(['message' => __('Unable to create parent job', 'wp-loyalty-migration')]);
         }
 
         wp_send_json_success([
-            'message' => __('Migration jobs created', 'wp-loyalty-migration'),
-            'job_id' => $parent_job_id, // Return parent job ID
-            'total_batches' => $total_batches,
-            'total_records' => $total_count
+            'message' => __('Migration job created', 'wp-loyalty-migration'),
+            'job_id' => $parent_job_id
         ]);
     }
 
     /**
-     * Get total count of records to migrate for the given migration action
-     * This method counts users based on how each migration class actually processes data
-     * Note: All migration classes include users with 0 points
+     * Get the current maximum ID for a given migration category
      *
-     * @param string $migration_action The migration action type
-     * @return int Total count of records
+     * @param string $migration_action
+     * @return int
      */
-    private static function getTotalRecordsCount($migration_action)
+    public static function getCurrentMaxId($migration_action)
     {
         global $wpdb;
-        
         switch ($migration_action) {
             case 'wlpr_migration':
-                // WLPRPointsRewards: Gets ALL records from wp_wlpr_points table (including 0 points)
-                // Query: SELECT * FROM wp_wlpr_points WHERE id > last_processed_id ORDER BY id ASC
-                return (int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}wlpr_points");
-                
+                return (int)$wpdb->get_var("SELECT MAX(id) FROM {$wpdb->prefix}wlpr_points");
             case 'wp_swings_migration':
-                // WPSwings: Gets ALL users with wps_wpr_points usermeta (including 0 points)
-                // Query: SELECT wp_user.ID, wp_user.user_email, COALESCE(meta.meta_value, 0) AS wps_points 
-                //        FROM wp_users AS wp_user 
-                //        LEFT JOIN wp_usermeta AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points'
-                //        WHERE wp_user.ID > last_processed_id ORDER BY wp_user.ID ASC
-                return (int)$wpdb->get_var("
-                    SELECT COUNT(DISTINCT wp_user.ID) 
-                    FROM {$wpdb->users} AS wp_user 
-                    LEFT JOIN {$wpdb->usermeta} AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points'
-                ");
-                
             case 'woocommerce_migration':
-                // WooPointsRewards: Gets ALL users with LEFT JOIN to wp_wc_points_rewards_user_points (including 0 points)
-                // Query: SELECT wp_user.ID AS user_id, wp_user.user_email, 
-                //        IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
-                //        FROM wp_users AS wp_user 
-                //        LEFT JOIN wp_wc_points_rewards_user_points AS woo_points_table ON wp_user.ID = woo_points_table.user_id 
-                //        WHERE wp_user.ID > last_processed_id GROUP BY wp_user.ID, wp_user.user_email ORDER BY wp_user.ID ASC
-                return (int)$wpdb->get_var("
-                    SELECT COUNT(DISTINCT wp_user.ID) 
-                    FROM {$wpdb->users} AS wp_user 
-                    LEFT JOIN {$wpdb->prefix}wc_points_rewards_user_points AS woo_points_table 
-                    ON wp_user.ID = woo_points_table.user_id
-                ");
-                
+                return (int)$wpdb->get_var("SELECT MAX(ID) FROM {$wpdb->users}");
             default:
                 return 0;
         }
     }
 
     /**
-     * Get user data for a specific batch based on migration type
-     * This method returns the actual user data that will be processed by each batch
-     * Note: All migration classes include users with 0 points
+     * Get next window of primary IDs after a cursor up to a limit and within an upper bound
      *
-     * @param string $migration_action The migration action type
-     * @param int $offset The offset for the batch
-     * @param int $limit The limit for the batch
-     * @return array Array of user objects
+     * @param string $migration_action
+     * @param int $after_id
+     * @param int $limit
+     * @param int $upto_id
+     * @return array<int>
      */
-    public static function getUsersForBatch($migration_action, $offset, $limit)
+    public static function getIdsWindow($migration_action, $after_id, $limit, $upto_id)
     {
         global $wpdb;
-        
+        if ($limit <= 0 || $upto_id <= 0 || $after_id >= $upto_id) {
+            return [];
+        }
         switch ($migration_action) {
             case 'wlpr_migration':
-                // WLPRPointsRewards: Gets ALL records from wp_wlpr_points table (including 0 points)
-                // Query: SELECT * FROM wp_wlpr_points WHERE id > last_processed_id ORDER BY id ASC LIMIT limit OFFSET offset
-                return $wpdb->get_results($wpdb->prepare("
-                    SELECT * FROM {$wpdb->prefix}wlpr_points 
-                    ORDER BY id ASC 
-                    LIMIT %d OFFSET %d
-                ", $limit, $offset));
-                
+                $sql = $wpdb->prepare(
+                    "SELECT id FROM {$wpdb->prefix}wlpr_points WHERE id > %d AND id <= %d ORDER BY id ASC LIMIT %d",
+                    (int)$after_id,
+                    (int)$upto_id,
+                    (int)$limit
+                );
+                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return array_map('intval', $wpdb->get_col($sql));
             case 'wp_swings_migration':
-                // WPSwings: Gets ALL users with wps_wpr_points usermeta (including 0 points)
-                // Query: SELECT wp_user.ID, wp_user.user_email, COALESCE(meta.meta_value, 0) AS wps_points 
-                //        FROM wp_users AS wp_user 
-                //        LEFT JOIN wp_usermeta AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points'
-                //        WHERE wp_user.ID > last_processed_id ORDER BY wp_user.ID ASC LIMIT limit OFFSET offset
-                return $wpdb->get_results($wpdb->prepare("
-                    SELECT 
-                        wp_user.ID,
-                        wp_user.user_email,
-                        COALESCE(meta.meta_value, 0) AS wps_points 
-                    FROM {$wpdb->users} AS wp_user 
-                    LEFT JOIN {$wpdb->usermeta} AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points'
-                    ORDER BY wp_user.ID ASC 
-                    LIMIT %d OFFSET %d
-                ", $limit, $offset));
-                
             case 'woocommerce_migration':
-                // WooPointsRewards: Gets ALL users with LEFT JOIN to wp_wc_points_rewards_user_points (including 0 points)
-                // Query: SELECT wp_user.ID AS user_id, wp_user.user_email, 
-                //        IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
-                //        FROM wp_users AS wp_user 
-                //        LEFT JOIN wp_wc_points_rewards_user_points AS woo_points_table ON wp_user.ID = woo_points_table.user_id 
-                //        WHERE wp_user.ID > last_processed_id GROUP BY wp_user.ID, wp_user.user_email ORDER BY wp_user.ID ASC LIMIT limit OFFSET offset
-                return $wpdb->get_results($wpdb->prepare("
-                    SELECT wp_user.ID AS user_id, wp_user.user_email, 
-                           IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
-                    FROM {$wpdb->users} AS wp_user 
-                    LEFT JOIN {$wpdb->prefix}wc_points_rewards_user_points AS woo_points_table 
-                    ON wp_user.ID = woo_points_table.user_id 
-                    GROUP BY wp_user.ID, wp_user.user_email 
-                    ORDER BY wp_user.ID ASC
-                    LIMIT %d OFFSET %d
-                ", $limit, $offset));
-                
+                $sql = $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->users} WHERE ID > %d AND ID <= %d ORDER BY ID ASC LIMIT %d",
+                    (int)$after_id,
+                    (int)$upto_id,
+                    (int)$limit
+                );
+                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return array_map('intval', $wpdb->get_col($sql));
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * Fetch users for a specific ID range (no OFFSET) per migration category
+     *
+     * @param string $migration_action
+     * @param int $start_id exclusive lower bound
+     * @param int $end_id inclusive upper bound
+     * @return array
+     */
+    public static function getUsersForRange($migration_action, $start_id, $end_id)
+    {
+        global $wpdb;
+        if ($end_id <= $start_id) {
+            return [];
+        }
+        switch ($migration_action) {
+            case 'wlpr_migration':
+                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return $wpdb->get_results($wpdb->prepare(
+                    "SELECT * FROM {$wpdb->prefix}wlpr_points WHERE id > %d AND id <= %d ORDER BY id ASC",
+                    (int)$start_id,
+                    (int)$end_id
+                ));
+            case 'wp_swings_migration':
+                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return $wpdb->get_results($wpdb->prepare(
+                    "SELECT wp_user.ID, wp_user.user_email, COALESCE(meta.meta_value, 0) AS wps_points 
+                     FROM {$wpdb->users} AS wp_user 
+                     LEFT JOIN {$wpdb->usermeta} AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points' 
+                     WHERE wp_user.ID > %d AND wp_user.ID <= %d 
+                     ORDER BY wp_user.ID ASC",
+                    (int)$start_id,
+                    (int)$end_id
+                ));
+            case 'woocommerce_migration':
+                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return $wpdb->get_results($wpdb->prepare(
+                    "SELECT wp_user.ID AS user_id, wp_user.user_email, IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
+                     FROM {$wpdb->users} AS wp_user 
+                     LEFT JOIN {$wpdb->prefix}wc_points_rewards_user_points AS woo_points_table ON wp_user.ID = woo_points_table.user_id 
+                     WHERE wp_user.ID > %d AND wp_user.ID <= %d 
+                     GROUP BY wp_user.ID, wp_user.user_email 
+                     ORDER BY wp_user.ID ASC",
+                    (int)$start_id,
+                    (int)$end_id
+                ));
             default:
                 return [];
         }

@@ -46,25 +46,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                             <p class="wlrmg-desc-value"><?php echo esc_html($job_data["processed_items"]); ?></p>
                         <?php endif; ?>
                     </div>
-                    <?php if (!empty($job_data['batch_stats'])): ?>
-                        <div class="wlrmg-activity-date">
-                            <p class="wlrmg-desc-label"><strong><?php echo esc_html__('Batches', 'wp-loyalty-migration'); ?></strong></p>
-                            <p class="wlrmg-desc-value ">
-                                <?php
-                                // translators: 1: total, 2: completed, 3: queued, 4: processing, 5: pending, 6: failed
-                                printf(
-                                    esc_html__('%1$d total, %2$d completed, %3$d queued, %4$d processing, %5$d pending, %6$d failed', 'wp-loyalty-migration'),
-                                    (int)$job_data['batch_stats']['total'],
-                                    (int)$job_data['batch_stats']['completed'],
-                                    (int)$job_data['batch_stats']['queued'],
-                                    (int)$job_data['batch_stats']['processing'],
-                                    (int)$job_data['batch_stats']['pending'],
-                                    (int)$job_data['batch_stats']['failed']
-                                );
-                                ?>
-                            </p>
-                        </div>
-                    <?php endif; ?>
+                    <?php // Batch stats removed from UI; only show status and processed items ?>
                     <div>
                         <p class=".wlrmg-desc-label"><strong><?php echo esc_html__('Status', 'wp-loyalty-migration'); ?></strong></p>
                         <p class="wlrmg-desc-value wlrmg-activity-status">

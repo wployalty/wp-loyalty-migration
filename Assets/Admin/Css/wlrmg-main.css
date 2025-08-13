@@ -475,11 +475,6 @@
   color: blue;
   background: rgba(0, 0, 255, 0.3);
 }
-#wlrmg-main-page #wlrmg-activity-details .wlrmg-queued {
-  color: #6c2bd9;
-  background: rgba(108, 43, 217, 0.18);
-  border: 1px solid rgba(108, 43, 217, 0.35);
-}
 #wlrmg-main-page #wlrmg-activity-details .wlrmg-pending {
   color: orange;
   background: rgba(255, 165, 0, 0.3);

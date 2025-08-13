@@ -81,6 +81,10 @@ class ScheduledJobs extends Base
         if (isset($post['batch_limit'])) {
             $conditions['batch_limit'] = (int) $post['batch_limit'];
         }
+        // Store enqueue cursor if provided
+        if (isset($post['last_enqueued_id'])) {
+            $conditions['last_enqueued_id'] = (int) $post['last_enqueued_id'];
+        }
         // Store per-batch info (for multi-row batches)
         if (!empty($post['batch_info']) && is_array($post['batch_info'])) {
             $conditions['batch_info'] = $post['batch_info'];
@@ -157,33 +161,78 @@ class ScheduledJobs extends Base
         return self::getBatchInfo($job_data) !== null;
     }
 
-    public static function getAvailableJob()
+    /**
+     * Get pending jobs for a specific category. Used for queueing child jobs only.
+     * Excludes parent jobs by requiring batch_info to be present in conditions JSON.
+     *
+     * @param string $category
+     * @return array
+     */
+    public static function getPendingJobsByCategory($category)
     {
+        if (empty($category)) {
+            return [];
+        }
         $job_table = new ScheduledJobs();
-        $where = self::$db->prepare("  source_app = %s AND id > 0 AND status IN (%s,%s) ORDER BY id ASC", [
-            "wlr_migration",
-            "pending",
-            "processing"
-        ]);
+        // Match jobs that have batch_info (child jobs). Parent jobs don't include batch_info
+        $where = self::$db->prepare(
+            "source_app = %s AND category = %s AND id > 0 AND status = %s AND conditions LIKE %s ORDER BY id ASC",
+            [
+                'wlr_migration',
+                $category,
+                'pending',
+                '%\"batch_info\"%'
+            ]
+        );
 
-        return $job_table->getWhere($where);
+        return $job_table->getWhere($where, '*', false);
     }
 
     /**
-     * Get all available jobs for parallel processing
-     * This method returns multiple jobs that can be processed simultaneously
+     * Get parent jobs that are pending or active (processing) across all categories.
+     * Parent jobs are identified by conditions not containing parent_job_id (i.e., no batch_info/parent link).
      *
-     * @return array Array of job objects
+     * @return array
      */
-    public static function getAvailableJobs()
+    public static function getParentJobsPendingOrActive()
     {
         $job_table = new ScheduledJobs();
-        $where = self::$db->prepare("source_app = %s AND id > 0 AND status = %s ORDER BY id ASC", [
-            "wlr_migration",
-            "pending"
-        ]);
-
+        // Parent jobs do not contain parent_job_id reference in conditions
+        $where = self::$db->prepare(
+            "source_app = %s AND id > 0 AND status IN (%s,%s) AND (conditions NOT LIKE %s) ORDER BY created_at ASC, id ASC",
+            [
+                'wlr_migration',
+                'pending',
+                'processing',
+                '%\"parent_job_id\"%'
+            ]
+        );
         return $job_table->getWhere($where, '*', false);
+    }
+
+    /**
+     * Get parent job for a specific category that is pending or active
+     *
+     * @param string $category
+     * @return object|null
+     */
+    public static function getParentJobByCategory($category)
+    {
+        if (empty($category)) {
+            return null;
+        }
+        $job_table = new ScheduledJobs();
+        $where = self::$db->prepare(
+            "source_app = %s AND category = %s AND id > 0 AND status IN (%s,%s) AND (conditions NOT LIKE %s) ORDER BY created_at ASC, id ASC",
+            [
+                'wlr_migration',
+                $category,
+                'pending',
+                'processing',
+                '%\"parent_job_id\"%'
+            ]
+        );
+        return $job_table->getWhere($where);
     }
 
     /**
@@ -213,6 +262,123 @@ class ScheduledJobs extends Base
         );
         
         return $job_table->getWhere($where, '*', false);
+    }
+
+    /**
+     * Insert a child job representing a range batch.
+     * The child job inherits category and options from parent and stores batch_info with start/end ids.
+     *
+     * @param object|array $parent_job
+     * @param int $start_id
+     * @param int $end_id
+     * @param int $limit
+     * @return int Inserted row id or 0 on failure
+     */
+    public static function insertChildRangeJob($parent_job, $start_id, $end_id, $limit)
+    {
+        if (empty($parent_job) || $end_id <= $start_id) {
+            return 0;
+        }
+        // Normalize parent_job to object
+        if (is_array($parent_job)) {
+            $parent_job = (object) $parent_job;
+        }
+
+        $job_table_model = new ScheduledJobs();
+        $max_uid = ScheduledJobs::getMaxUid();
+
+        // Inherit parent conditions
+        $parent_conditions = [];
+        if (!empty($parent_job->conditions)) {
+            $decoded = json_decode($parent_job->conditions, true);
+            if (is_array($decoded)) {
+                $parent_conditions = $decoded;
+            }
+        }
+
+        $parent_uid = isset($parent_job->uid) ? (int)$parent_job->uid : 0;
+        $batch_info = [
+            'parent_job_id' => $parent_uid,
+            'start_id' => (int)$start_id,
+            'end_id' => (int)$end_id,
+            'limit' => (int)$limit,
+        ];
+        $parent_conditions['batch_info'] = $batch_info;
+
+        $job_data = [
+            'uid' => $max_uid,
+            'source_app' => 'wlr_migration',
+            'admin_mail' => isset($parent_job->admin_mail) ? $parent_job->admin_mail : WC::getLoginUserEmail(),
+            'category' => isset($parent_job->category) ? $parent_job->category : '',
+            'action_type' => 'migration_to_wployalty',
+            'conditions' => json_encode($parent_conditions),
+            'status' => 'pending',
+            'limit' => (int) $limit,
+            'offset' => 0,
+            'last_processed_id' => 0,
+            'created_at' => strtotime(gmdate('Y-m-d h:i:s')),
+        ];
+
+        return $job_table_model->insertRow($job_data);
+    }
+
+    /**
+     * Update parent's last_enqueued_id cursor
+     *
+     * @param int $parent_uid
+     * @param int $end_id
+     * @return bool
+     */
+    public static function updateParentEnqueuedCursor($parent_uid, $end_id)
+    {
+        if (empty($parent_uid) || $end_id < 0) {
+            return false;
+        }
+        $job_table = new ScheduledJobs();
+        global $wpdb;
+        $parent = $job_table->getWhere($wpdb->prepare(" uid = %d AND source_app = %s", [$parent_uid, 'wlr_migration']));
+        if (empty($parent) || !is_object($parent)) {
+            return false;
+        }
+        $conditions = [];
+        if (!empty($parent->conditions)) {
+            $decoded = json_decode($parent->conditions, true);
+            if (is_array($decoded)) {
+                $conditions = $decoded;
+            }
+        }
+        $conditions['last_enqueued_id'] = (int) $end_id;
+        $update_data = [
+            'conditions' => json_encode($conditions),
+            'updated_at' => strtotime(gmdate('Y-m-d h:i:s')),
+        ];
+        return (bool) $job_table->updateRow($update_data, [
+            'uid' => (int)$parent_uid,
+            'source_app' => 'wlr_migration'
+        ]);
+    }
+
+    /**
+     * Count active jobs by category (pending, processing)
+     *
+     * @param string $category
+     * @return int
+     */
+    public static function countActiveJobsByCategory($category)
+    {
+        if (empty($category)) {
+            return 0;
+        }
+        $job_table = new ScheduledJobs();
+        $where = self::$db->prepare(
+            "source_app = %s AND category = %s AND id > 0 AND status IN (%s,%s)",
+            ['wlr_migration', $category, 'pending', 'processing']
+        );
+        $row = $job_table->getWhere($where, 'COUNT(1) AS cnt');
+        if (!empty($row) && is_object($row) && isset($row->cnt)) {
+            return (int) $row->cnt;
+        }
+        return 0;
     }
 
 
@@ -261,13 +427,4 @@ class ScheduledJobs extends Base
         $this->insertIndex($index_fields);
     }
 
-    function getDataById($job_id)
-    {
-        if (empty($job_id) || $job_id == 0) {
-            return new stdClass();
-        }
-        $where = self::$db->prepare(" source_app = %s AND uid = %d ", array("wlr_bulk_action", $job_id));
-
-        return $this->getWhere($where, '*', true);
-    }
 }
