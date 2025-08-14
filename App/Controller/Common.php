@@ -565,22 +565,29 @@ class Common {
 
         $pending_jobs = ScheduledJobs::getPendingJobsByCategory($active_category);
         if (empty($pending_jobs)) {
-            return;
-        }
-
-        $job_table = new ScheduledJobs();
-        $max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 3);
-        $in_flight = 0;
-
+			return;
+		}
+		
+		$job_table = new ScheduledJobs();
+		$max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 3);
+		$in_flight = 0;
+		
         foreach ($pending_jobs as $job) {
-            if (!function_exists('as_schedule_single_action')) {
-                continue;
-            }
-            if ($in_flight >= $max_in_flight) {
+			if (!function_exists('as_schedule_single_action')) {
+				continue;
+			}
+			if ($in_flight >= $max_in_flight) {
                 break;
             }
             $time = time() + 10;
-            as_schedule_single_action($time, 'wlrmg_process_migration_job', [$job], 'wlrmg_migration_queue');
+            $uid = isset($job->uid) ? (int)$job->uid : 0;
+            if ($uid <= 0) {
+                continue;
+            }
+            // Deduplicate scheduling by checking existing action for this uid in our queue group
+            if (false === as_next_scheduled_action('wlrmg_process_migration_job', [[ 'uid' => $uid ]], 'wlrmg_migration_queue')) {
+                as_schedule_single_action($time, 'wlrmg_process_migration_job', [[ 'uid' => $uid ]], 'wlrmg_migration_queue');
+            }
             $in_flight++;
         }
 	}
@@ -650,8 +657,8 @@ class Common {
                     foreach ($children as $child) {
                         if ((int)$child->uid === (int)$parent_job->uid) {
                             // Skip the parent row itself
-                            continue;
-                        }
+				continue;
+			}
                         if (in_array((string)$child->status, ['pending','processing'], true)) {
                             $has_active_children = true;
                             break;
@@ -713,11 +720,11 @@ class Common {
 					$job_table = new ScheduledJobs();
 					$job_table->updateRow([
 						'status' => 'completed',
-						'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
 					], [
 						'uid' => (int)$parent_job->uid,
-						'source_app' => 'wlr_migration'
-					]);
+				'source_app' => 'wlr_migration'
+			]);
 					delete_option('wlrmg_active_category');
 				}
             }
@@ -766,6 +773,17 @@ class Common {
 	 * @return void
 	 */
     private static function processJob($job_data) {
+        // Support being invoked with array args { uid: X } from Action Scheduler
+        if (is_array($job_data) && isset($job_data['uid'])) {
+            $job_table = new ScheduledJobs();
+            global $wpdb;
+            $loaded = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [(int)$job_data['uid'], 'wlr_migration']));
+            if (empty($loaded) || !is_object($loaded)) {
+                return;
+            }
+            $job_data = $loaded;
+        }
+
         // Batch jobs: fetch users using batch_info (offset/limit)
         $batch_info = ScheduledJobs::getBatchInfo($job_data);
         $category = is_object($job_data) ? $job_data->category : $job_data['category'];
@@ -810,12 +828,27 @@ class Common {
 	 * @return void
 	 */
 	public static function processMigrationJob($job_data) {
-		// Convert array to object if needed (Action Scheduler passes arrays)
-		if (is_array($job_data)) {
-			$job_data = (object) $job_data;
-		}
-		
-		$process_identifier = 'wlrmg_job_' . $job_data->uid;
+        // Resolve minimal AS args to full job row before any status updates
+        if (is_array($job_data) && isset($job_data['uid'])) {
+            $job_table = new ScheduledJobs();
+            global $wpdb;
+            $loaded = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [(int)$job_data['uid'], 'wlr_migration']));
+            if (empty($loaded) || !is_object($loaded)) {
+                return;
+            }
+            $job_data = $loaded;
+        } elseif (is_object($job_data) && (!isset($job_data->category) || empty($job_data->category))) {
+            // Handle object with only uid
+            $job_table = new ScheduledJobs();
+            global $wpdb;
+            $loaded = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [(int)$job_data->uid, 'wlr_migration']));
+            if (empty($loaded) || !is_object($loaded)) {
+                return;
+            }
+            $job_data = $loaded;
+        }
+
+        $process_identifier = 'wlrmg_job_' . (isset($job_data->uid) ? $job_data->uid : 0);
 		
 		try {
 			// Update job status to 'processing' when starting
