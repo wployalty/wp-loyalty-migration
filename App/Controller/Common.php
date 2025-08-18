@@ -651,37 +651,12 @@ class Common {
             $current_max_id = Migration::getCurrentMaxId($active_category);
             if ($current_max_id <= 0 || $last_enqueued_id >= $current_max_id) {
                 // Nothing to enqueue now. If no child jobs are active for this parent, finalize parent and release category.
-                $children = ScheduledJobs::getBatchesByParent((int)$parent_job->uid);
-                $has_active_children = false;
-                if (!empty($children) && is_array($children)) {
-                    foreach ($children as $child) {
-                        if ((int)$child->uid === (int)$parent_job->uid) {
-                            // Skip the parent row itself
-				continue;
-			}
-                        if (in_array((string)$child->status, ['pending','processing'], true)) {
-                            $has_active_children = true;
-                            break;
-                        }
-                    }
-                }
-				if (!$has_active_children) {
-					// Mark parent as completed
-					$job_table = new ScheduledJobs();
-					$job_table->updateRow([
-						'status' => 'completed',
-						'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-					], [
-						'uid' => (int)$parent_job->uid,
-						'source_app' => 'wlr_migration'
-					]);
-					delete_option('wlrmg_active_category');
-				}
+                self::finalizeParentIfNoActiveChildren((int)$parent_job->uid);
                 return;
             }
 
             // Create up to N child jobs per tick
-            $max_batches_per_tick = (int) apply_filters('wlrmg_max_batches_per_tick', 5);
+            $max_batches_per_tick = (int) apply_filters('wlrmg_max_batches_per_tick', 3);
             for ($i = 0; $i < $max_batches_per_tick; $i++) {
                 $ids = Migration::getIdsWindow($active_category, $last_enqueued_id, $batch_limit, $current_max_id);
                 if (empty($ids)) {
@@ -703,30 +678,7 @@ class Common {
 
             // If we've enqueued all up to current max and there are no active children, complete parent and release category
             if ($last_enqueued_id >= $current_max_id) {
-                $children = ScheduledJobs::getBatchesByParent((int)$parent_job->uid);
-                $has_active_children = false;
-                if (!empty($children) && is_array($children)) {
-                    foreach ($children as $child) {
-                        if ((int)$child->uid === (int)$parent_job->uid) {
-                            continue;
-                        }
-                        if (in_array((string)$child->status, ['pending','processing'], true)) {
-                            $has_active_children = true;
-                            break;
-                        }
-                    }
-                }
-				if (!$has_active_children) {
-					$job_table = new ScheduledJobs();
-					$job_table->updateRow([
-						'status' => 'completed',
-				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-					], [
-						'uid' => (int)$parent_job->uid,
-				'source_app' => 'wlr_migration'
-			]);
-					delete_option('wlrmg_active_category');
-				}
+                self::finalizeParentIfNoActiveChildren((int)$parent_job->uid);
             }
 		} finally {
 			self::releaseProducerLock($parent_uid);
@@ -765,13 +717,52 @@ class Common {
         delete_option($option_name);
     }
 
-	/**
-	 * Process a single migration job
-	 * This method handles both batch jobs and single jobs
-	 *
-	 * @param object $job_data Job data object
-	 * @return void
-	 */
+    /**
+     * Finalize parent job if no active (pending/processing) children remain.
+     * If any child has failed, parent is marked failed; otherwise completed.
+     * Returns true if parent status was updated.
+     */
+    private static function finalizeParentIfNoActiveChildren($parent_uid)
+    {
+        $children = ScheduledJobs::getBatchesByParent((int)$parent_uid);
+        $has_active_children = false;
+        $has_failed_children = false;
+        if (!empty($children) && is_array($children)) {
+            foreach ($children as $child) {
+                if ((int)$child->uid === (int)$parent_uid) {
+                    continue;
+                }
+                $status = isset($child->status) ? (string)$child->status : '';
+                if (in_array($status, ['pending','processing'], true)) {
+                    $has_active_children = true;
+                } elseif ($status === 'failed') {
+                    $has_failed_children = true;
+                }
+            }
+        }
+        if (!$has_active_children) {
+            $job_table = new ScheduledJobs();
+            $parent_status = $has_failed_children ? 'failed' : 'completed';
+            $job_table->updateRow([
+                'status' => $parent_status,
+                'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
+            ], [
+                'uid' => (int)$parent_uid,
+                'source_app' => 'wlr_migration'
+            ]);
+            delete_option('wlrmg_active_category');
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Process a single migration job
+     * This method handles both batch jobs and single jobs
+     *
+     * @param object $job_data Job data object
+     * @return void
+     */
     private static function processJob($job_data) {
         // Support being invoked with array args { uid: X } from Action Scheduler
         if (is_array($job_data) && isset($job_data['uid'])) {
@@ -784,14 +775,18 @@ class Common {
             $job_data = $loaded;
         }
 
-        // Batch jobs: fetch users using batch_info (offset/limit)
+        // Batch jobs: fetch users using batch_info (range). Support idempotent resume using last_processed_id
         $batch_info = ScheduledJobs::getBatchInfo($job_data);
         $category = is_object($job_data) ? $job_data->category : $job_data['category'];
         if ($batch_info && isset($batch_info['start_id']) && isset($batch_info['end_id'])) {
+            $start_id = (int)$batch_info['start_id'];
+            $end_id = (int)$batch_info['end_id'];
+            $last_processed_id = isset($job_data->last_processed_id) ? (int)$job_data->last_processed_id : 0;
+            $effective_start = max($start_id, $last_processed_id);
             $users = Migration::getUsersForRange(
                 $category,
-                (int)$batch_info['start_id'],
-                (int)$batch_info['end_id']
+                $effective_start,
+                $end_id
             );
         } else {
             // Fallback: let classes fetch
@@ -881,17 +876,35 @@ class Common {
             }
 			
 		} catch (Exception $e) {
-			// Update job status to 'failed' on error
+			// Retry policy: increment attempts and decide requeue or fail
 			$job_table = new ScheduledJobs();
+			global $wpdb;
+			$latest = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [$job_data->uid, 'wlr_migration']));
+			$conditions = [];
+			if (!empty($latest) && is_object($latest) && !empty($latest->conditions)) {
+				$decoded = json_decode($latest->conditions, true);
+				if (is_array($decoded)) { $conditions = $decoded; }
+			}
+			$attempts = isset($conditions['attempts']) ? (int)$conditions['attempts'] : 0;
+			$attempts++;
+			$max_attempts = (int) apply_filters('wlrmg_max_attempts', 3);
+			$conditions['attempts'] = $attempts;
+
 			$update_data = [
-				'status' => 'failed',
+				'conditions' => json_encode($conditions),
 				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
 			];
+			// If attempts remaining, set back to pending to allow reschedule; else mark failed
+			if ($attempts < $max_attempts) {
+				$update_data['status'] = 'pending';
+			} else {
+				$update_data['status'] = 'failed';
+			}
 			$job_table->updateRow($update_data, [
 				'uid' => $job_data->uid,
 				'source_app' => 'wlr_migration'
 			]);
-			
+
 			// Re-throw to let Action Scheduler handle retry logic
 			throw $e;
 		}
