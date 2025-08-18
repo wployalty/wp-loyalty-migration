@@ -118,12 +118,15 @@ class Migration
      */
     public static function getCurrentMaxId($migration_action)
     {
-        global $wpdb;
         switch ($migration_action) {
             case 'wlpr_migration':
-                return (int)$wpdb->get_var("SELECT MAX(id) FROM {$wpdb->prefix}wlpr_points");
+                $base_helper = new ScheduledJobs();
+                $base_helper->table = $base_helper->getTablePrefix() . 'wlpr_points';
+                $result = $base_helper->rawQuery("SELECT MAX(id) FROM {$base_helper->table}", true);
+                return (int)($result->{'MAX(id)'} ?? 0);
             case 'wp_swings_migration':
             case 'woocommerce_migration':
+                global $wpdb;
                 return (int)$wpdb->get_var("SELECT MAX(ID) FROM {$wpdb->users}");
             default:
                 return 0;
@@ -141,21 +144,19 @@ class Migration
      */
     public static function getIdsWindow($migration_action, $after_id, $limit, $upto_id)
     {
-        global $wpdb;
         if ($limit <= 0 || $upto_id <= 0 || $after_id >= $upto_id) {
             return [];
         }
         switch ($migration_action) {
             case 'wlpr_migration':
-                $sql = $wpdb->prepare(
-                    "SELECT id FROM {$wpdb->prefix}wlpr_points WHERE id > %d AND id <= %d ORDER BY id ASC LIMIT %d",
-                    (int)$after_id,
-                    (int)$upto_id,
-                    (int)$limit
-                );
-                return array_map('intval', $wpdb->get_col($sql));
+                $base_helper = new ScheduledJobs();
+                $base_helper->table = $base_helper->getTablePrefix() . 'wlpr_points';
+                $where = "id > " . (int)$after_id . " AND id <= " . (int)$upto_id . " ORDER BY id ASC LIMIT " . (int)$limit;
+                $result = $base_helper->rawQuery("SELECT id FROM {$base_helper->table} WHERE {$where}", false);
+                return array_map('intval', array_column($result, 'id'));
             case 'wp_swings_migration':
             case 'woocommerce_migration':
+                global $wpdb;
                 $sql = $wpdb->prepare(
                     "SELECT ID FROM {$wpdb->users} WHERE ID > %d AND ID <= %d ORDER BY ID ASC LIMIT %d",
                     (int)$after_id,
@@ -178,18 +179,17 @@ class Migration
      */
     public static function getUsersForRange($migration_action, $start_id, $end_id)
     {
-        global $wpdb;
         if ($end_id <= $start_id) {
             return [];
         }
         switch ($migration_action) {
             case 'wlpr_migration':
-                return $wpdb->get_results($wpdb->prepare(
-                    "SELECT * FROM {$wpdb->prefix}wlpr_points WHERE id > %d AND id <= %d ORDER BY id ASC",
-                    (int)$start_id,
-                    (int)$end_id
-                ));
+                $base_helper = new ScheduledJobs();
+                $base_helper->table = $base_helper->getTablePrefix() . 'wlpr_points';
+                $where = "id > " . (int)$start_id . " AND id <= " . (int)$end_id . " ORDER BY id ASC";
+                return $base_helper->rawQuery("SELECT * FROM {$base_helper->table} WHERE {$where}", false);
             case 'wp_swings_migration':
+                global $wpdb;
                 return $wpdb->get_results($wpdb->prepare(
                     "SELECT wp_user.ID, wp_user.user_email, COALESCE(meta.meta_value, 0) AS wps_points 
                      FROM {$wpdb->users} AS wp_user 
@@ -200,6 +200,7 @@ class Migration
                     (int)$end_id
                 ));
             case 'woocommerce_migration':
+                global $wpdb;
                 return $wpdb->get_results($wpdb->prepare(
                     "SELECT wp_user.ID AS user_id, wp_user.user_email, IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
                      FROM {$wpdb->users} AS wp_user 
