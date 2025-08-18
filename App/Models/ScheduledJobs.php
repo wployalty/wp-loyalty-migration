@@ -14,6 +14,12 @@ use Wlrm\App\Helper\WC;
 
 defined("ABSPATH") or die();
 
+/**
+ * Data access object for the wlr_scheduled_jobs table.
+ *
+ * Creates, reads, and updates parent and child migration jobs, including
+ * helpers for range-batch metadata, enqueue cursor, and status queries.
+ */
 class ScheduledJobs extends Base
 {
     function __construct()
@@ -74,18 +80,15 @@ class ScheduledJobs extends Base
             'update_banned_user' => !empty($post['update_banned_user']) ? $post['update_banned_user'] : 'skip',
         ];
 
-        // Store single-job batch metadata
         if (isset($post['total_count'])) {
             $conditions['total_count'] = (int) $post['total_count'];
         }
         if (isset($post['batch_limit'])) {
             $conditions['batch_limit'] = (int) $post['batch_limit'];
         }
-        // Store enqueue cursor if provided
         if (isset($post['last_enqueued_id'])) {
             $conditions['last_enqueued_id'] = (int) $post['last_enqueued_id'];
         }
-        // Store per-batch info (for multi-row batches)
         if (!empty($post['batch_info']) && is_array($post['batch_info'])) {
             $conditions['batch_info'] = $post['batch_info'];
         }
@@ -134,7 +137,6 @@ class ScheduledJobs extends Base
             return null;
         }
         
-        // Handle both arrays and objects
         $conditions = null;
         if (is_object($job_data) && !empty($job_data->conditions)) {
             $conditions = $job_data->conditions;
@@ -174,7 +176,6 @@ class ScheduledJobs extends Base
             return [];
         }
         $job_table = new ScheduledJobs();
-        // Match jobs that have batch_info (child jobs). Parent jobs don't include batch_info
         $where = self::$db->prepare(
             "source_app = %s AND category = %s AND id > 0 AND status = %s AND conditions LIKE %s ORDER BY id ASC",
             [
@@ -197,7 +198,6 @@ class ScheduledJobs extends Base
     public static function getParentJobsPendingOrActive()
     {
         $job_table = new ScheduledJobs();
-        // Parent jobs do not contain parent_job_id reference in conditions
         $where = self::$db->prepare(
             "source_app = %s AND id > 0 AND status IN (%s,%s) AND (conditions NOT LIKE %s) ORDER BY created_at ASC, id ASC",
             [
@@ -248,7 +248,6 @@ class ScheduledJobs extends Base
         }
         
         $job_table = new ScheduledJobs();
-        // Match both numeric and string parent_job_id encodings in JSON
         $like_numeric = '%"parent_job_id":' . (int)$parent_job_id . '%';
         $like_string  = '%"parent_job_id":"' . (int)$parent_job_id . '"%';
         $where = self::$db->prepare(
@@ -279,7 +278,6 @@ class ScheduledJobs extends Base
         if (empty($parent_job) || $end_id <= $start_id) {
             return 0;
         }
-        // Normalize parent_job to object
         if (is_array($parent_job)) {
             $parent_job = (object) $parent_job;
         }
@@ -287,7 +285,6 @@ class ScheduledJobs extends Base
         $job_table_model = new ScheduledJobs();
         $max_uid = ScheduledJobs::getMaxUid();
 
-        // Inherit parent conditions
         $parent_conditions = [];
         if (!empty($parent_job->conditions)) {
             $decoded = json_decode($parent_job->conditions, true);

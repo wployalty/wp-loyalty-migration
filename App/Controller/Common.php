@@ -12,11 +12,19 @@ use Wlrm\App\Helper\Pagination;
 use Wlrm\App\Helper\WC;
 use Wlrm\App\Models\MigrationLog;
 use Wlrm\App\Models\ScheduledJobs;
+use Wlrm\App\Controller\MigrationProducer;
+use Wlrm\App\Controller\MigrationRunner;
 
 
 defined( 'ABSPATH' ) or die();
 
 
+/**
+ * Core controller for admin pages, assets, and migration orchestration glue.
+ *
+ * Provides menu setup, views rendering, asset loading, and the cron entrypoint
+ * that delegates migration production and scheduling to dedicated controllers.
+ */
 class Common {
 	/**
 	 * Adds a menu page for WPLoyalty plugin migration if the current user has admin privilege.
@@ -223,56 +231,51 @@ class Common {
 			'job_id' => $job_id,
 		];
 		if ( ! empty( $job_data ) && is_object( $job_data ) ) {
-            $job_info = self::handleJobData( $job_data );
+			$job_info = self::handleJobData( $job_data );
 
-            // Batch stats across all batches of the same parent
-            // Determine parent uid: job without parent_job_id acts as parent
-            $parent_uid = $job_data->uid;
-            $decoded = !empty($job_data->conditions) ? json_decode($job_data->conditions, true) : [];
-            if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
-                $parent_uid = (int)$decoded['batch_info']['parent_job_id'];
-            }
-            $all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
-            $total_batches = is_array($all_batches) ? count($all_batches) : 0;
-            $status_counts = [
-                'pending' => 0,
-                'processing' => 0,
-                'completed' => 0,
-                'failed' => 0,
-            ];
-            if (!empty($all_batches)) {
-                foreach ($all_batches as $single_job) {
-                    $st = isset($single_job->status) ? (string)$single_job->status : '';
-                    if (isset($status_counts[$st])) {
-                        $status_counts[$st]++;
-                    } else {
-                        // Treat unknown statuses as pending for display purposes
-                        $status_counts['pending']++;
-                    }
-                }
-            }
+			$parent_uid = $job_data->uid;
+			$decoded = !empty($job_data->conditions) ? json_decode($job_data->conditions, true) : [];
+			if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
+				$parent_uid = (int)$decoded['batch_info']['parent_job_id'];
+			}
+			$all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
+			$total_batches = is_array($all_batches) ? count($all_batches) : 0;
+			$status_counts = [
+				'pending' => 0,
+				'processing' => 0,
+				'completed' => 0,
+				'failed' => 0,
+			];
+			if (!empty($all_batches)) {
+				foreach ($all_batches as $single_job) {
+					$st = isset($single_job->status) ? (string)$single_job->status : '';
+					if (isset($status_counts[$st])) {
+						$status_counts[$st]++;
+					} else {
+						$status_counts['pending']++;
+					}
+				}
+			}
 
-            // Compute aggregated processed items across all batches (sum of offsets)
-            $processed_items = 0;
-            if (!empty($all_batches)) {
-                foreach ($all_batches as $single_job) {
-                    $processed_items += (int)($single_job->offset ?? 0);
-                }
-            }
-            $job_info['processed_items'] = $processed_items;
+			$processed_items = 0;
+			if (!empty($all_batches)) {
+				foreach ($all_batches as $single_job) {
+					$processed_items += (int)($single_job->offset ?? 0);
+				}
+			}
+			$job_info['processed_items'] = $processed_items;
 
-            // Derive overall status for the badge from batch statuses instead of the parent-only status
-            $overall_status = 'pending';
-            if ($total_batches > 0 && $status_counts['completed'] === $total_batches) {
-                $overall_status = 'completed';
-            } elseif ($status_counts['processing'] > 0) {
-                $overall_status = 'processing';
-            } elseif ($status_counts['failed'] > 0 && $status_counts['completed'] === 0) {
-                $overall_status = 'failed';
-            }
-            $job_info['status'] = $overall_status;
+			$overall_status = 'pending';
+			if ($total_batches > 0 && $status_counts['completed'] === $total_batches) {
+				$overall_status = 'completed';
+			} elseif ($status_counts['processing'] > 0) {
+				$overall_status = 'processing';
+			} elseif ($status_counts['failed'] > 0 && $status_counts['completed'] === 0) {
+				$overall_status = 'failed';
+			}
+			$job_info['status'] = $overall_status;
 
-            $result['job_data'] = $job_info;
+			$result['job_data'] = $job_info;
 			$result['activity'] = self::getActivityLogsData( $job_id );
 		}
 
@@ -303,7 +306,7 @@ class Common {
 			'admin_mail' => ! empty( $job_data->admin_mail ) ? $job_data->admin_mail : '',
 			'status'     => ! empty( $job_data->status ) ? $job_data->status : '',
 			'action'     => ! empty( $job_data->category ) ? $job_data->category : '',
-            'conditions' => ! empty( $job_data->conditions ) ? json_decode( $job_data->conditions, true ) : [],
+			'conditions' => ! empty( $job_data->conditions ) ? json_decode( $job_data->conditions, true ) : [],
 		];
 		if ( ! empty( $job_data->category ) ) {
 			switch ( $job_data->category ) {
@@ -351,32 +354,30 @@ class Common {
 				'job_id' => $job_id,
 			] ) );
 		$current_page     = (int) Input::get( 'migration_page', 1 );
-        // Aggregate logs across all batches belonging to the same parent
-        $parent_uid = $job_id;
-        $job_table = new ScheduledJobs();
-        global $wpdb;
-        $parent_or_child = $job_table->getWhere( $wpdb->prepare( " uid = %d AND source_app =%s", [ $job_id, 'wlr_migration' ] ) );
-        if ( ! empty( $parent_or_child ) && is_object( $parent_or_child ) && ! empty( $parent_or_child->conditions ) ) {
-            $decoded = json_decode( $parent_or_child->conditions, true );
-            if ( isset( $decoded['batch_info']['parent_job_id'] ) && (int) $decoded['batch_info']['parent_job_id'] > 0 ) {
-                $parent_uid = (int) $decoded['batch_info']['parent_job_id'];
-            }
-        }
-        $all_batches = ScheduledJobs::getBatchesByParent( $parent_uid );
-        $all_batch_ids = [];
-        if ( ! empty( $all_batches ) && is_array( $all_batches ) ) {
-            foreach ( $all_batches as $row ) {
-                if ( isset( $row->uid ) ) {
-                    $all_batch_ids[] = (int) $row->uid;
-                }
-            }
-        }
-        // Fallback to current job id if something goes wrong
-        if ( empty( $all_batch_ids ) ) {
-            $all_batch_ids = [ (int) $job_id ];
-        }
+		$parent_uid = $job_id;
+		$job_table = new ScheduledJobs();
+		global $wpdb;
+		$parent_or_child = $job_table->getWhere( $wpdb->prepare( " uid = %d AND source_app =%s", [ $job_id, 'wlr_migration' ] ) );
+		if ( ! empty( $parent_or_child ) && is_object( $parent_or_child ) && ! empty( $parent_or_child->conditions ) ) {
+			$decoded = json_decode( $parent_or_child->conditions, true );
+			if ( isset( $decoded['batch_info']['parent_job_id'] ) && (int) $decoded['batch_info']['parent_job_id'] > 0 ) {
+				$parent_uid = (int) $decoded['batch_info']['parent_job_id'];
+			}
+		}
+		$all_batches = ScheduledJobs::getBatchesByParent( $parent_uid );
+		$all_batch_ids = [];
+		if ( ! empty( $all_batches ) && is_array( $all_batches ) ) {
+			foreach ( $all_batches as $row ) {
+				if ( isset( $row->uid ) ) {
+					$all_batch_ids[] = (int) $row->uid;
+				}
+			}
+		}
+		if ( empty( $all_batch_ids ) ) {
+			$all_batch_ids = [ (int) $job_id ];
+		}
 
-        $activity_list    = $bulk_action_log->getActivityList( $all_batch_ids, $current_page );
+		$activity_list    = $bulk_action_log->getActivityList( $all_batch_ids, $current_page );
 		$per_page         = (int) is_array( $activity_list ) && isset( $activity_list['per_page'] ) ? $activity_list['per_page'] : 0;
 		$current_page     = (int) is_array( $activity_list ) && isset( $activity_list['current_page'] ) ? $activity_list['current_page'] : 0;
 		$pagination_param = [
@@ -438,9 +439,7 @@ class Common {
 		wp_enqueue_style( WLR_PLUGIN_SLUG . '-wlr-font', WLR_PLUGIN_URL . 'Assets/Site/Css/wlr-fonts' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time() );
 		wp_enqueue_style( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time() );
 		wp_enqueue_style( WLRMG_PLUGIN_SLUG . '-main-style', WLRMG_PLUGIN_URL . 'Assets/Admin/Css/wlrmg-main.css', [ 'woocommerce_admin_styles' ], WLRMG_PLUGIN_VERSION . '&t=' . time() );
-		//phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_enqueue_script( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', [], WLR_PLUGIN_VERSION . '&t=' . time() );
-		//phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
         wp_enqueue_script( WLRMG_PLUGIN_SLUG . '-main-script', WLRMG_PLUGIN_URL . 'Assets/Admin/Js/wlrmg-main.js', [
 			'jquery',
 			'select2'
@@ -554,360 +553,16 @@ class Common {
 
 	public static function triggerMigrations() {
 		// Produce child batches for the active category first
-		self::produceChildBatches();
+		MigrationProducer::produceChildBatches();
 
-		// Only queue pending child jobs for the active category (option-backed)
 		$active_opt = get_option('wlrmg_active_category', array());
 		$active_category = is_array($active_opt) && ! empty($active_opt['category']) ? (string) $active_opt['category'] : '';
         if (empty($active_category)) {
-            return; // No active category selected yet
+            return;
         }
 
-        $pending_jobs = ScheduledJobs::getPendingJobsByCategory($active_category);
-        if (empty($pending_jobs)) {
-			return;
-		}
-		
-		$job_table = new ScheduledJobs();
 		$max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 3);
-		$in_flight = 0;
-		
-        foreach ($pending_jobs as $job) {
-			if (!function_exists('as_schedule_single_action')) {
-				continue;
-			}
-			if ($in_flight >= $max_in_flight) {
-                break;
-            }
-            $time = time() + 10;
-            $uid = isset($job->uid) ? (int)$job->uid : 0;
-            if ($uid <= 0) {
-                continue;
-            }
-            // Deduplicate scheduling by checking existing action for this uid in our queue group
-            if (false === as_next_scheduled_action('wlrmg_process_migration_job', [[ 'uid' => $uid ]], 'wlrmg_migration_queue')) {
-                as_schedule_single_action($time, 'wlrmg_process_migration_job', [[ 'uid' => $uid ]], 'wlrmg_migration_queue');
-            }
-            $in_flight++;
-        }
-	}
-
-    /**
-     * Produce child range batches for the active migration category.
-     * Ensures only one category runs at a time and per-parent production is serialized by transient lock.
-     */
-    private static function produceChildBatches()
-    {
-		// Resolve active category via option instead of transient
-		$active_opt = get_option('wlrmg_active_category', array());
-		$active_category = is_array($active_opt) && ! empty($active_opt['category']) ? (string) $active_opt['category'] : '';
-		$parent_job = null;
-
-        if (empty($active_category)) {
-            // Pick the oldest parent job across all categories
-            $parents = ScheduledJobs::getParentJobsPendingOrActive();
-            if (empty($parents)) {
-                return;
-            }
-            $parent_job = is_array($parents) ? reset($parents) : $parents;
-            if (empty($parent_job) || !is_object($parent_job)) {
-                return;
-            }
-			$active_category = isset($parent_job->category) ? $parent_job->category : '';
-            if (empty($active_category)) {
-                return;
-            }
-			// Persist active category as a durable option
-			update_option('wlrmg_active_category', array(
-				'category' => $active_category,
-				'set_at' => time(),
-			));
-        } else {
-            // Resolve the active category's parent
-			$parent_job = ScheduledJobs::getParentJobByCategory($active_category);
-            if (empty($parent_job) || !is_object($parent_job)) {
-				// No more parent for this category; release lock
-				delete_option('wlrmg_active_category');
-                return;
-            }
-        }
-
-        // Parse cursor and limit from parent conditions
-        $conditions = !empty($parent_job->conditions) ? json_decode($parent_job->conditions, true) : [];
-        $batch_limit = (int) ($conditions['batch_limit'] ?? (int)$parent_job->limit ?? 50);
-        if ($batch_limit <= 0) {
-            $batch_limit = 50;
-        }
-        $last_enqueued_id = (int) ($conditions['last_enqueued_id'] ?? 0);
-
-        // Per-parent lock (option-backed with stale recovery)
-		$parent_uid = (int) $parent_job->uid;
-		$got_lock = self::acquireProducerLock($parent_uid);
-		if (!$got_lock) {
-			return;
-		}
-
-        try {
-            $current_max_id = Migration::getCurrentMaxId($active_category);
-            if ($current_max_id <= 0 || $last_enqueued_id >= $current_max_id) {
-                // Nothing to enqueue now. If no child jobs are active for this parent, finalize parent and release category.
-                self::finalizeParentIfNoActiveChildren((int)$parent_job->uid);
-                return;
-            }
-
-            // Create up to N child jobs per tick
-            $max_batches_per_tick = (int) apply_filters('wlrmg_max_batches_per_tick', 3);
-            for ($i = 0; $i < $max_batches_per_tick; $i++) {
-                $ids = Migration::getIdsWindow($active_category, $last_enqueued_id, $batch_limit, $current_max_id);
-                if (empty($ids)) {
-                    break;
-                }
-                $end_id = (int) end($ids);
-                $insert_id = ScheduledJobs::insertChildRangeJob($parent_job, $last_enqueued_id, $end_id, $batch_limit);
-                if ($insert_id > 0) {
-                    ScheduledJobs::updateParentEnqueuedCursor((int)$parent_job->uid, $end_id);
-                    $last_enqueued_id = $end_id;
-                } else {
-                    // Failed to insert; stop to avoid loop
-                    break;
-                }
-                if ($last_enqueued_id >= $current_max_id) {
-                    break;
-                }
-            }
-
-            // If we've enqueued all up to current max and there are no active children, complete parent and release category
-            if ($last_enqueued_id >= $current_max_id) {
-                self::finalizeParentIfNoActiveChildren((int)$parent_job->uid);
-            }
-		} finally {
-			self::releaseProducerLock($parent_uid);
-		}
-    }
-
-    /**
-     * Acquire per-parent producer lock using options API (no token variant).
-     * Returns true if we acquired the lock, false otherwise.
-     */
-    private static function acquireProducerLock($parent_uid)
-    {
-        $option_name = 'wlrmg_producer_lock_' . (int) $parent_uid;
-        $now = time();
-        // Atomic acquire
-        if (add_option($option_name, array('locked_at' => $now))) {
-            return true;
-        }
-        // Stale detection: older than 10 minutes → recover lock
-        $existing = get_option($option_name, array());
-        $locked_at = (int) ($existing['locked_at'] ?? 0);
-        if ($locked_at > 0 && ($now - $locked_at) > (10 * MINUTE_IN_SECONDS)) {
-            // Recover by deleting and reacquiring atomically
-            delete_option($option_name);
-            return add_option($option_name, array('locked_at' => $now));
-        }
-        return false;
-    }
-
-    /**
-     * Release producer lock (no owner check; we assume short critical sections).
-     */
-    private static function releaseProducerLock($parent_uid)
-    {
-        $option_name = 'wlrmg_producer_lock_' . (int) $parent_uid;
-        delete_option($option_name);
-    }
-
-    /**
-     * Finalize parent job if no active (pending/processing) children remain.
-     * If any child has failed, parent is marked failed; otherwise completed.
-     * Returns true if parent status was updated.
-     */
-    private static function finalizeParentIfNoActiveChildren($parent_uid)
-    {
-        $children = ScheduledJobs::getBatchesByParent((int)$parent_uid);
-        $has_active_children = false;
-        $has_failed_children = false;
-        if (!empty($children) && is_array($children)) {
-            foreach ($children as $child) {
-                if ((int)$child->uid === (int)$parent_uid) {
-                    continue;
-                }
-                $status = isset($child->status) ? (string)$child->status : '';
-                if (in_array($status, ['pending','processing'], true)) {
-                    $has_active_children = true;
-                } elseif ($status === 'failed') {
-                    $has_failed_children = true;
-                }
-            }
-        }
-        if (!$has_active_children) {
-            $job_table = new ScheduledJobs();
-            $parent_status = $has_failed_children ? 'failed' : 'completed';
-            $job_table->updateRow([
-                'status' => $parent_status,
-                'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-            ], [
-                'uid' => (int)$parent_uid,
-                'source_app' => 'wlr_migration'
-            ]);
-            delete_option('wlrmg_active_category');
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Process a single migration job
-     * This method handles both batch jobs and single jobs
-     *
-     * @param object $job_data Job data object
-     * @return void
-     */
-    private static function processJob($job_data) {
-        // Support being invoked with array args { uid: X } from Action Scheduler
-        if (is_array($job_data) && isset($job_data['uid'])) {
-            $job_table = new ScheduledJobs();
-            global $wpdb;
-            $loaded = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [(int)$job_data['uid'], 'wlr_migration']));
-            if (empty($loaded) || !is_object($loaded)) {
-                return;
-            }
-            $job_data = $loaded;
-        }
-
-        // Batch jobs: fetch users using batch_info (range). Support idempotent resume using last_processed_id
-        $batch_info = ScheduledJobs::getBatchInfo($job_data);
-        $category = is_object($job_data) ? $job_data->category : $job_data['category'];
-        if ($batch_info && isset($batch_info['start_id']) && isset($batch_info['end_id'])) {
-            $start_id = (int)$batch_info['start_id'];
-            $end_id = (int)$batch_info['end_id'];
-            $last_processed_id = isset($job_data->last_processed_id) ? (int)$job_data->last_processed_id : 0;
-            $effective_start = max($start_id, $last_processed_id);
-            $users = Migration::getUsersForRange(
-                $category,
-                $effective_start,
-                $end_id
-            );
-        } else {
-            // Fallback: let classes fetch
-            $users = null;
-        }
-
-        // Route to appropriate migration class
-        switch ($category) {
-				case 'wp_swings_migration':
-					$wp_swings = new WPSwings();
-				$wp_swings->migrateToLoyalty($job_data, $users);
-					break;
-				case 'wlpr_migration':
-					$wlpr_point_reward = new WLPRPointsRewards();
-				$wlpr_point_reward->migrateToLoyalty($job_data, $users);
-					break;
-				case 'woocommerce_migration':
-					$woo_point_reward = new WooPointsRewards();
-				$woo_point_reward->migrateToLoyalty($job_data, $users);
-					break;
-				case 'yith_migration':
-				default:
-				wc_get_logger()->add('wlrmg_migration', 'Unknown migration category: ' . $job_data->category);
-					return;
-		}
-
-	}
-
-	/**
-	 * Process a single migration job using Action Scheduler
-	 * This method handles both batch jobs and single jobs
-	 *
-	 * @param object $job_data Job data object
-	 * @return void
-	 */
-	public static function processMigrationJob($job_data) {
-        // Resolve minimal AS args to full job row before any status updates
-        if (is_array($job_data) && isset($job_data['uid'])) {
-            $job_table = new ScheduledJobs();
-            global $wpdb;
-            $loaded = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [(int)$job_data['uid'], 'wlr_migration']));
-            if (empty($loaded) || !is_object($loaded)) {
-                return;
-            }
-            $job_data = $loaded;
-        } elseif (is_object($job_data) && (!isset($job_data->category) || empty($job_data->category))) {
-            // Handle object with only uid
-            $job_table = new ScheduledJobs();
-            global $wpdb;
-            $loaded = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [(int)$job_data->uid, 'wlr_migration']));
-            if (empty($loaded) || !is_object($loaded)) {
-                return;
-            }
-            $job_data = $loaded;
-        }
-
-        $process_identifier = 'wlrmg_job_' . (isset($job_data->uid) ? $job_data->uid : 0);
-		
-		try {
-			// Update job status to 'processing' when starting
-			$job_table = new ScheduledJobs();
-			$update_data = [
-				'status' => 'processing',
-				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-			];
-			$job_table->updateRow($update_data, [
-				'uid' => $job_data->uid,
-				'source_app' => 'wlr_migration'
-			]);
-			
-            self::processJob($job_data);
-
-            // After processing, if this is a batch job, mark this batch row as completed.
-            // The migration classes process the provided $users entirely in one run.
-            global $wpdb;
-            $latest = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [$job_data->uid, 'wlr_migration']));
-            $batch_info = ScheduledJobs::getBatchInfo($latest);
-            if (!empty($latest) && is_object($latest) && $latest->status !== 'completed') {
-                $update_data = [
-                    'status' => $batch_info ? 'completed' : 'pending',
-                    'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-                ];
-                $job_table->updateRow($update_data, [
-                    'uid' => $job_data->uid,
-                    'source_app' => 'wlr_migration'
-                ]);
-            }
-			
-		} catch (Exception $e) {
-			// Retry policy: increment attempts and decide requeue or fail
-			$job_table = new ScheduledJobs();
-			global $wpdb;
-			$latest = $job_table->getWhere($wpdb->prepare("uid = %d AND source_app = %s", [$job_data->uid, 'wlr_migration']));
-			$conditions = [];
-			if (!empty($latest) && is_object($latest) && !empty($latest->conditions)) {
-				$decoded = json_decode($latest->conditions, true);
-				if (is_array($decoded)) { $conditions = $decoded; }
-			}
-			$attempts = isset($conditions['attempts']) ? (int)$conditions['attempts'] : 0;
-			$attempts++;
-			$max_attempts = (int) apply_filters('wlrmg_max_attempts', 3);
-			$conditions['attempts'] = $attempts;
-
-			$update_data = [
-				'conditions' => json_encode($conditions),
-				'updated_at' => strtotime(gmdate('Y-m-d h:i:s'))
-			];
-			// If attempts remaining, set back to pending to allow reschedule; else mark failed
-			if ($attempts < $max_attempts) {
-				$update_data['status'] = 'pending';
-			} else {
-				$update_data['status'] = 'failed';
-			}
-			$job_table->updateRow($update_data, [
-				'uid' => $job_data->uid,
-				'source_app' => 'wlr_migration'
-			]);
-
-			// Re-throw to let Action Scheduler handle retry logic
-			throw $e;
-		}
+		MigrationRunner::schedulePendingChildren($active_category, $max_in_flight);
 	}
 
 

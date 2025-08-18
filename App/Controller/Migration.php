@@ -13,6 +13,12 @@ use Wlrm\App\Helper\Settings;
 use Wlrm\App\Models\MigrationLog;
 use Wlrm\App\Models\ScheduledJobs;
 
+/**
+ * Handles migration entrypoints, job creation, data windowing, and export.
+ *
+ * Provides methods to create parent jobs, fetch ID windows and users for
+ * range-based batches, and export migration logs.
+ */
 class Migration
 {
     /**
@@ -84,7 +90,6 @@ class Migration
             wp_send_json_error(['message' => __('Migration job already created', 'wp-loyalty-migration')]);
         }
 
-        // Create only a parent job. Child range batches will be produced on-the-fly by the scheduler.
         $batch_limit = (int)Settings::get('batch_limit', 50);
         if ($batch_limit <= 0) {
             $batch_limit = 50;
@@ -148,7 +153,6 @@ class Migration
                     (int)$upto_id,
                     (int)$limit
                 );
-                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return array_map('intval', $wpdb->get_col($sql));
             case 'wp_swings_migration':
             case 'woocommerce_migration':
@@ -158,7 +162,6 @@ class Migration
                     (int)$upto_id,
                     (int)$limit
                 );
-                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return array_map('intval', $wpdb->get_col($sql));
             default:
                 return [];
@@ -181,14 +184,12 @@ class Migration
         }
         switch ($migration_action) {
             case 'wlpr_migration':
-                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return $wpdb->get_results($wpdb->prepare(
                     "SELECT * FROM {$wpdb->prefix}wlpr_points WHERE id > %d AND id <= %d ORDER BY id ASC",
                     (int)$start_id,
                     (int)$end_id
                 ));
             case 'wp_swings_migration':
-                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return $wpdb->get_results($wpdb->prepare(
                     "SELECT wp_user.ID, wp_user.user_email, COALESCE(meta.meta_value, 0) AS wps_points 
                      FROM {$wpdb->users} AS wp_user 
@@ -199,7 +200,6 @@ class Migration
                     (int)$end_id
                 ));
             case 'woocommerce_migration':
-                //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return $wpdb->get_results($wpdb->prepare(
                     "SELECT wp_user.ID AS user_id, wp_user.user_email, IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
                      FROM {$wpdb->users} AS wp_user 
@@ -273,16 +273,12 @@ class Migration
             wp_send_json_error(['message' => __('Basic check failed', 'wp-loyalty-migration')]);
         }
 	    global $wp_filesystem;
-		// Initialize WP_Filesystem if not already done
 	    if ( ! function_exists( 'WP_Filesystem' ) ) {
 		    require_once ABSPATH . 'wp-admin/includes/file.php';
 	    }
 	    WP_Filesystem();
-	    // Set the directory path
 	    $directory = WLRMG_PLUGIN_DIR . '/App/File/';
-		// Check if directory is writable using WP_Filesystem
 	    if ( ! $wp_filesystem->is_writable( $directory ) ) {
-		    // Try to set permissions
 		    $permission_set = $wp_filesystem->chmod( $directory, 0777 );
 		    if ( ! $permission_set ) {
 			    wp_send_json_error([
@@ -298,13 +294,12 @@ class Migration
         ];
 
         $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
-//        $file_name = $post['migration_action'] . '_' . $post['job_id'] . '_export_*.*';
 	    switch ($post['migration_action']) {
 		    case 'woocommerce_migration' :
 			    $file_name = 'wc_customer_migration_export_*.*';
-			    break;// woocommerce export
+			    break;
 		    case 'wlpr_migration':
-			    $file_name = 'wlr_customer_migration_export_*.*'; //loyalty export
+			    $file_name = 'wlr_customer_migration_export_*.*';
 			    break;
 		    case 'wp_swings_migration':
 			    $file_name = 'wpswing_customer_migration_export_*.*';
@@ -326,7 +321,6 @@ class Migration
                 'job_id' => $post['job_id']
             ]));
 
-        // Determine parent and all child batch ids for export
         $parent_uid = (int)$post['job_id'];
         $job_table = new ScheduledJobs();
         global $wpdb;
@@ -386,9 +380,9 @@ class Migration
             wp_send_json_error(['message' => __('Basic check failed', 'wp-loyalty-migration')]);
         }
 
-        $limit = 25; // Base size for each file
-        $limit_start = (int)Input::get('limit_start', 0); // Offset
-        $total_count = (int)Input::get('total_count', 0); // Total number of records
+        $limit = 25;
+        $limit_start = (int)Input::get('limit_start', 0);
+        $total_count = (int)Input::get('total_count', 0);
 
         $post = [
             'job_id' => Input::get('job_id'),
@@ -398,31 +392,27 @@ class Migration
         if ($total_count > $limit_start) {
 
 	        global $wp_filesystem;
-			// Initialize WP_Filesystem if needed
 	        if ( ! function_exists( 'WP_Filesystem' ) ) {
 		        require_once ABSPATH . 'wp-admin/includes/file.php';
 	        }
 	        WP_Filesystem();
             $path = WLRMG_PLUGIN_DIR . '/App/File/' . $post['job_id'];
-	        // Check if directory exists
 	        if ( ! $wp_filesystem->is_dir( $path ) ) {
-		        // Create directory with 0777 permission
 		        $created = $wp_filesystem->mkdir( $path, FS_CHMOD_DIR );
-		        // Optionally, set permissions explicitly if needed
 		        if ( $created ) {
 			        $wp_filesystem->chmod( $path, 0777, true );
 		        } else {
 			        wp_send_json_error([
-				        'message' => __( 'Failed to create directory for job files.', 'wp-loyalty-migration' )
+			        	'message' => __( 'Failed to create directory for job files.', 'wp-loyalty-migration' )
 			        ]);
 		        }
 	        }
             switch ($post['category']) {
                 case 'woocommerce_migration' :
                     $file_name = 'wc_customer_migration_export_';
-                    break;// woocommerce export
+                    break;
                 case 'wlpr_migration':
-                    $file_name = 'wlr_customer_migration_export_'; //loyalty export
+                    $file_name = 'wlr_customer_migration_export_';
                     break;
                 case 'wp_swings_migration':
                     $file_name = 'wpswing_customer_migration_export_';
@@ -432,7 +422,7 @@ class Migration
                     break;
             }
 
-            $file_count = (int)floor($limit_start / 500); // File number based on offset
+            $file_count = (int)floor($limit_start / 500);
             $file_path = trim($path . '/' . $file_name . $file_count . '.csv');
 
             $log_table = new MigrationLog();
@@ -442,7 +432,6 @@ class Migration
             $where = "id > 0";
             $where .= $wpdb->prepare(" AND action = %s AND user_email !=''", [ $post['category'] ]);
 
-            // Include all batch job_ids for the same parent
             $parent_uid = (int)$post['job_id'];
             $job_table = new ScheduledJobs();
             $job_row = $job_table->getWhere($wpdb->prepare(" uid = %d AND source_app = %s", [$parent_uid, 'wlr_migration']));
@@ -476,8 +465,7 @@ class Migration
             $csv_helper->titles = ['email', 'referral_code', 'points'];
 
             $query = "SELECT {$select} FROM {$table} WHERE {$where}";
-	    //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-            $file_data = $wpdb->get_results($query, ARRAY_A); 
+	    $file_data = $wpdb->get_results($query, ARRAY_A); 
 
             if (!empty($file_data)) {
                 foreach ($file_data as &$single_file_data) {
@@ -486,18 +474,15 @@ class Migration
                     }
                 }
 
-                // Write header if file doesn't exist
                 if (!file_exists($file_path)) {
                     $csv_helper->save($file_path, [$csv_helper->titles], true);
                 }
 
-                // Append the data
                 $csv_helper->save($file_path, $file_data, true);
             }
 
             $limit_start += $limit;
 
-            // Check if completed
             if ($limit_start >= $total_count) {
                 wp_send_json_success([
                     'success' => 'completed',
