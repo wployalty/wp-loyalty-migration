@@ -32,10 +32,10 @@ class Validation
         }
         $rule_validator->labels($labels);
         $rule_validator->stopOnFirstFail(false);
-        $rule_validator->rule('required', array(
+        $rule_validator->rule('required', [
             'migration_action',
             'update_point'
-        ))->message(__('{field} is required', "wp-loyalty-migration"));
+        ])->message(__('{field} is required', "wp-loyalty-migration"));
         if ($rule_validator->validate()) {
             return true;
         }

@@ -27,9 +27,9 @@ class WPSwings implements Base
      */
     static function checkPluginIsActive()
     {
-        $active_plugins = apply_filters('active_plugins', get_option('active_plugins', array()));
+        $active_plugins = apply_filters('active_plugins', get_option('active_plugins', []));
         if (is_multisite()) {
-            $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', array()));
+            $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', []));
         }
 
         return in_array('points-and-rewards-for-woocommerce/points-rewards-for-woocommerce.php', $active_plugins, false);
@@ -113,24 +113,24 @@ class WPSwings implements Base
     {
         $migration_job_model = new ScheduledJobs();
         $migration_log_model = new MigrationLog();
-        $data_logs = array(
+        $data_logs = [
             'job_id' => $job_id,
-        );
+        ];
         if (count($wp_users) == 0) {
             $data_logs['action'] = 'wp_swings_migration_completed';
             $data_logs['note'] = __('No available records for processing.', 'wp-loyalty-migration');
             $migration_log_model->saveLogs($data_logs, "wp_swings_migration");
-            $update_data = array(
+            $update_data = [
                 "status" => "completed",
-            );
-            $migration_job_model->updateRow($update_data, array("uid" => $job_id, 'source_app' => 'wlr_migration'));
+            ];
+            $migration_job_model->updateRow($update_data, ["uid" => $job_id, 'source_app' => 'wlr_migration']);
 
             return;
         }
         $loyalty_user_model = new Users();
         $campaign = EarnCampaign::getInstance();
         $helper_base = new \Wlr\App\Helpers\Base();
-        $conditions = isset($data->conditions) && !empty($data->conditions) ? json_decode($data->conditions, true) : array();
+        $conditions = isset($data->conditions) && !empty($data->conditions) ? json_decode($data->conditions, true) : [];
         foreach ($wp_users as $wp_user) {
             $user_email = !empty($wp_user) && is_object($wp_user) && isset($wp_user->user_email) && !empty($wp_user->user_email) ? $wp_user->user_email : "";
             if (empty($user_email)) {
@@ -139,12 +139,12 @@ class WPSwings implements Base
             $user_id = !empty($wp_user) && is_object($wp_user) && isset($wp_user->ID) && !empty($wp_user->ID) ? $wp_user->ID : 0;
             $new_points = (int)(!empty($wp_user->wps_points)) ? $wp_user->wps_points : 0;
             //check user exist in loyalty
-            $user_points = $loyalty_user_model->getQueryData(array(
-                'user_email' => array(
+            $user_points = $loyalty_user_model->getQueryData([
+                'user_email' => [
                     'operator' => '=',
                     'value' => sanitize_email($user_email)
-                )
-            ), '*', array(), false, true);
+                ]
+            ], '*', [], false, true);
             $created_at = strtotime(gmdate("Y-m-d h:i:s"));
             if (is_object($user_points) &&
                 (
@@ -158,10 +158,7 @@ class WPSwings implements Base
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => $created_at,
                 ];
-                $migration_job_model->updateRow($update_status, array(
-                    'uid' => $job_id,
-                    'source_app' => 'wlr_migration'
-                ));
+                $migration_job_model->updateRow($update_status, ["uid" => $job_id, 'source_app' => 'wlr_migration']);
                 continue;
             }
 
@@ -170,7 +167,7 @@ class WPSwings implements Base
             } else {
                 $refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
             }
-            $action_data = array(
+            $action_data = [
                 "user_email" => $user_email,
                 "customer_command" => "",
                 "points" => $new_points,
@@ -184,10 +181,10 @@ class WPSwings implements Base
                 /* translators: 1: user email, 2: number of points, 3: point label, 4: admin email */
 	                __( '%1$s customer migrated from WPSwings with %2$d %3$s by administrator (%4$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $user_email, $new_points, $campaign->getPointLabel( $new_points ), $admin_mail
                 ),
-            );
+            ];
             $trans_type = 'credit';
             $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
-            $data_logs = array(
+            $data_logs = [
                 'job_id' => $job_id,
                 'action' => 'wp_swings_migration',
                 'user_email' => $user_email,
@@ -195,23 +192,20 @@ class WPSwings implements Base
                 'points' => $new_points,
                 'earn_total_points' => $new_points,
                 'created_at' => strtotime(gmdate("Y-m-d h:i:s")),
-            );
+            ];
             if (!$wployalty_migration_status) {
                 $data_logs['action'] = 'wp_swings_migration_failed';
             }
             if ($migration_log_model->saveLogs($data_logs, "wp_swings_migration") > 0) {
                 $data->offset = $data->offset + 1;
                 $data->last_processed_id = $user_id;
-                $update_status = array(
+                $update_status = [
                     "status" => "processing",
                     "offset" => $data->offset,
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => strtotime(gmdate("Y-m-d h:i:s")),
-                );
-                $migration_job_model->updateRow($update_status, array(
-                    'uid' => $job_id,
-                    'source_app' => 'wlr_migration'
-                ));
+                ];
+                $migration_job_model->updateRow($update_status, ["uid" => $job_id, 'source_app' => 'wlr_migration']);
             }
         }
     }

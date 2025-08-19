@@ -23,7 +23,7 @@ class MigrationProducer
      */
     public static function produceChildBatches()
     {
-        $active_opt = get_option('wlrmg_active_category', array());
+        $active_opt = get_option('wlrmg_active_category', []);
         $active_category = is_array($active_opt) && !empty($active_opt['category']) ? (string)$active_opt['category'] : '';
         $parent_job = null;
 
@@ -40,7 +40,7 @@ class MigrationProducer
             if (empty($active_category)) {
                 return;
             }
-            update_option('wlrmg_active_category', array('category' => $active_category, 'set_at' => time()));
+            update_option('wlrmg_active_category', ['category' => $active_category, 'set_at' => time()]);
         } else {
             $parent_job = ScheduledJobs::getParentJobByCategory($active_category);
             if (empty($parent_job) || !is_object($parent_job)) {
@@ -105,14 +105,14 @@ class MigrationProducer
     {
         $option_name = 'wlrmg_producer_lock_' . (int)$parent_uid;
         $now = time();
-        if (add_option($option_name, array('locked_at' => $now))) {
+        if (add_option($option_name, ['locked_at' => $now])) {
             return true;
         }
-        $existing = get_option($option_name, array());
+        $existing = get_option($option_name, []);
         $locked_at = (int)($existing['locked_at'] ?? 0);
         if ($locked_at > 0 && ($now - $locked_at) > (10 * MINUTE_IN_SECONDS)) {
             delete_option($option_name);
-            return add_option($option_name, array('locked_at' => $now));
+            return add_option($option_name, ['locked_at' => $now]);
         }
         return false;
     }

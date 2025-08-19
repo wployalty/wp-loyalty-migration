@@ -19,9 +19,9 @@ class WooPointsRewards implements Base
      */
     static function checkPluginIsActive()
     {
-        $active_plugins = apply_filters('active_plugins', get_option('active_plugins', array()));
+        $active_plugins = apply_filters('active_plugins', get_option('active_plugins', []));
         if (is_multisite()) {
-            $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', array()));
+            $active_plugins = array_merge($active_plugins, get_site_option('active_sitewide_plugins', []));
         }
         return in_array('woocommerce-points-and-rewards/woocommerce-points-and-rewards.php', $active_plugins, false);
     }

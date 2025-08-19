@@ -107,24 +107,24 @@ class WLPRPointsRewards implements Base
         global $wpdb;
         $migration_job_model = new ScheduledJobs();
         $migration_log_model = new MigrationLog();
-        $data_logs = array(
-            'job_id' => $job_id,
-        );
+        $data_logs = [
+            'job_id' => $job_id
+        ];
         if (count($users) == 0) {
             $data_logs['action'] = 'wlpr_migration_completed';
             $data_logs['note'] = __('No available records for processing.', 'wp-loyalty-migration');
             $migration_log_model->saveLogs($data_logs, "wlpr_migration");
-            $update_data = array(
-                "status" => "completed",
-            );
-            $migration_job_model->updateRow($update_data, array("uid" => $job_id, 'source_app' => 'wlr_migration'));
+            $update_data = [
+                "status" => "completed"
+            ];
+            $migration_job_model->updateRow($update_data, ["uid" => $job_id, 'source_app' => 'wlr_migration']);
 
             return;
         }
         $loyalty_user_model = new Users();
         $campaign = EarnCampaign::getInstance();
         $helper_base = new \Wlr\App\Helpers\Base();
-        $conditions = isset($data->conditions) && !empty($data->conditions) ? json_decode($data->conditions, true) : array();
+        $conditions = isset($data->conditions) && !empty($data->conditions) ? json_decode($data->conditions, true) : [];
         foreach ($users as $user) {
             $user_email = !empty($user) && is_object($user) && isset($user->user_email) && !empty($user->user_email) ? $user->user_email : "";
             if (empty($user_email)) {
@@ -133,12 +133,12 @@ class WLPRPointsRewards implements Base
             $user_id = !empty($user) && is_object($user) && isset($user->id) && !empty($user->id) ? $user->id : 0;
             $new_points = (int)(!empty($user->points)) ? $user->points : 0;
             //check user exist in loyalty
-            $user_points = $loyalty_user_model->getQueryData(array(
-                'user_email' => array(
+            $user_points = $loyalty_user_model->getQueryData([
+                'user_email' => [
                     'operator' => '=',
                     'value' => sanitize_email($user_email)
-                )
-            ), '*', array(), false, true);
+                ]
+            ], '*', [], false, true);
             $created_at = strtotime(gmdate("Y-m-d h:i:s"));
             if (is_object($user_points) &&
                 (
@@ -152,10 +152,7 @@ class WLPRPointsRewards implements Base
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => $created_at,
                 ];
-                $migration_job_model->updateRow($update_status, array(
-                    'uid' => $job_id,
-                    'source_app' => 'wlr_migration'
-                ));
+                $migration_job_model->updateRow($update_status, ["uid" => $job_id, 'source_app' => 'wlr_migration']);
                 continue;
             }
 	    //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -169,7 +166,7 @@ class WLPRPointsRewards implements Base
             } else {
                 $refer_code = $helper_base->get_unique_refer_code('', false, $user_email);
             }
-            $action_data = array(
+            $action_data = [
                 "user_email" => $user_email,
                 "customer_command" => "",
                 "points" => $new_points,
@@ -179,10 +176,10 @@ class WLPRPointsRewards implements Base
 	                __( 'Added %1$d %2$s by site administrator (%3$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
                 "note" => sprintf(    /* translators: 1: customer email, 2: number of points, 3: point label, 4: admin email */
 	                __( '%1$s customer migrated from WooCommerce Loyalty Points and Rewards with %2$d %3$s by administrator (%4$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
-            );
+            ];
             $trans_type = 'credit';
 	        $wployalty_migration_status = $campaign->addExtraPointAction($action_type, (int)$new_points, $action_data, $trans_type);
-            $data_logs = array(
+            $data_logs = [
                 'job_id' => $job_id,
                 'action' => 'wlpr_migration',
                 'user_email' => $user_email,
@@ -190,23 +187,20 @@ class WLPRPointsRewards implements Base
                 'points' => $new_points,
                 'earn_total_points' => $new_points,
                 'created_at' => strtotime(gmdate("Y-m-d h:i:s")),
-            );
+            ];
             if (!$wployalty_migration_status) {
                 $data_logs['action'] = 'wlpr_migration_failed';
             }
             if ($migration_log_model->saveLogs($data_logs, "wlpr_migration") > 0) {
                 $data->offset = $data->offset + 1;
                 $data->last_processed_id = $user_id;
-                $update_status = array(
+                $update_status = [
                     "status" => "processing",
                     "offset" => $data->offset,
                     "last_processed_id" => $data->last_processed_id,
                     "updated_at" => strtotime(gmdate("Y-m-d h:i:s")),
-                );
-                $migration_job_model->updateRow($update_status, array(
-                    'uid' => $job_id,
-                    'source_app' => 'wlr_migration'
-                ));
+                ];
+                $migration_job_model->updateRow($update_status, ["uid" => $job_id, 'source_app' => 'wlr_migration']);
             }
         }
 

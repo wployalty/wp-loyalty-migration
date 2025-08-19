@@ -188,7 +188,7 @@ class Common {
 	 */
 	public static function getActivityDetailsPage() {
 		$job_id    = (int) Input::get( 'job_id', 0 );
-		$args      = array(
+		$args      = [
 			"current_page"     => 'activity',
 			"job_id"           => $job_id,
 			"search"           => (string) Input::get( 'search', '' ),
@@ -196,7 +196,7 @@ class Common {
 			"activity"         => self::getActivityDetailsData( $job_id ),
 			"back"             => WLRMG_PLUGIN_URL . "Assets/svg/back_button.svg",
 			"no_activity_icon" => WLRMG_PLUGIN_URL . "Assets/svg/no_activity_list.svg",
-		);
+		];
 		$args      = apply_filters( 'wlrm_before_activity_details_page', $args );
 		$file_path = get_theme_file_path( 'wp-loyalty-migration/Admin/activity_details.php' );
 		if ( ! file_exists( $file_path ) ) {
@@ -557,7 +557,7 @@ class Common {
 		// Produce child batches for the active category first
 		MigrationProducer::produceChildBatches();
 
-		$active_opt = get_option('wlrmg_active_category', array());
+		$active_opt = get_option('wlrmg_active_category', []);
 		$active_category = is_array($active_opt) && ! empty($active_opt['category']) ? (string) $active_opt['category'] : '';
         if (empty($active_category)) {
             return;

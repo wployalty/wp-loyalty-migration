@@ -27,7 +27,7 @@ class ScheduledJobs extends Base
         parent::__construct();
         $this->table = self::$db->prefix . "wlr_scheduled_jobs";
         $this->primary_key = "id";
-        $this->fields = array(
+        $this->fields = [
             "uid" => "%d",
             "source_app" => "%s",
             "admin_mail" => "%s",
@@ -43,7 +43,7 @@ class ScheduledJobs extends Base
             "revert_offset" => "%d",
             "created_at" => "%d",
             "updated_at" => "%d",
-        );
+        ];
     }
 
     public static function getJobByAction($action = '')
@@ -411,7 +411,7 @@ class ScheduledJobs extends Base
 
     function afterTableCreation()
     {
-        $index_fields = array(
+        $index_fields = [
             "source_app",
             "category",
             "action_type",
@@ -420,7 +420,7 @@ class ScheduledJobs extends Base
             "revert_enabled",
             "revert_status",
             "created_at"
-        );
+        ];
         $this->insertIndex($index_fields);
     }
 

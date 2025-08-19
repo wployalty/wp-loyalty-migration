@@ -46,7 +46,7 @@ class Pagination
      *
      * @since 1.0.0
      */
-    function __construct($params = array())
+    function __construct($params = [])
     {
         if (count($params) > 0) {
             $this->initialize($params);
@@ -60,7 +60,7 @@ class Pagination
      *
      * @since 1.0.0
      */
-    function initialize($params = array())
+    function initialize($params = [])
     {
         if (count($params) > 0) {
             foreach ($params as $key => $val) {
@@ -87,7 +87,7 @@ class Pagination
      * @return string
      * @since 1.0.0
      */
-    function createLinks($pagination_args = array())
+    function createLinks($pagination_args = [])
     {
         if ($this->totalRows == 0 || $this->perPage == 0) {
             return '';
