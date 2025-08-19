@@ -23,96 +23,96 @@ class MigrationProducer
      */
     public static function produceChildBatches()
     {
-        $activeOpt = get_option('wlrmg_active_category', array());
-        $activeCategory = is_array($activeOpt) && !empty($activeOpt['category']) ? (string)$activeOpt['category'] : '';
-        $parentJob = null;
+        $active_opt = get_option('wlrmg_active_category', array());
+        $active_category = is_array($active_opt) && !empty($active_opt['category']) ? (string)$active_opt['category'] : '';
+        $parent_job = null;
 
-        if (empty($activeCategory)) {
+        if (empty($active_category)) {
             $parents = ScheduledJobs::getParentJobsPendingOrActive();
             if (empty($parents)) {
                 return;
             }
-            $parentJob = is_array($parents) ? reset($parents) : $parents;
-            if (empty($parentJob) || !is_object($parentJob)) {
+            $parent_job = is_array($parents) ? reset($parents) : $parents;
+            if (empty($parent_job) || !is_object($parent_job)) {
                 return;
             }
-            $activeCategory = isset($parentJob->category) ? $parentJob->category : '';
-            if (empty($activeCategory)) {
+            $active_category = isset($parent_job->category) ? $parent_job->category : '';
+            if (empty($active_category)) {
                 return;
             }
-            update_option('wlrmg_active_category', array('category' => $activeCategory, 'set_at' => time()));
+            update_option('wlrmg_active_category', array('category' => $active_category, 'set_at' => time()));
         } else {
-            $parentJob = ScheduledJobs::getParentJobByCategory($activeCategory);
-            if (empty($parentJob) || !is_object($parentJob)) {
+            $parent_job = ScheduledJobs::getParentJobByCategory($active_category);
+            if (empty($parent_job) || !is_object($parent_job)) {
                 delete_option('wlrmg_active_category');
                 return;
             }
         }
 
-        $conditions = !empty($parentJob->conditions) ? json_decode($parentJob->conditions, true) : [];
-        $batchLimit = (int)($conditions['batch_limit'] ?? (int)$parentJob->limit ?? 50);
-        if ($batchLimit <= 0) {
-            $batchLimit = 50;
+        $conditions = !empty($parent_job->conditions) ? json_decode($parent_job->conditions, true) : [];
+        $batch_limit = (int)($conditions['batch_limit'] ?? (int)$parent_job->limit ?? 50);
+        if ($batch_limit <= 0) {
+            $batch_limit = 50;
         }
-        $lastEnqueuedId = (int)($conditions['last_enqueued_id'] ?? 0);
+        $last_enqueued_id = (int)($conditions['last_enqueued_id'] ?? 0);
 
-        $parentUid = (int)$parentJob->uid;
-        if (!self::acquireProducerLock($parentUid)) {
+        $parent_uid = (int)$parent_job->uid;
+        if (!self::acquireProducerLock($parent_uid)) {
             return;
         }
 
         try {
-            $currentMaxId = Migration::getCurrentMaxId($activeCategory);
-            if ($currentMaxId <= 0 || $lastEnqueuedId >= $currentMaxId) {
-                self::finalizeParentIfNoActiveChildren($parentUid);
+            $current_max_id = Migration::getCurrentMaxId($active_category);
+            if ($current_max_id <= 0 || $last_enqueued_id >= $current_max_id) {
+                self::finalizeParentIfNoActiveChildren($parent_uid);
                 return;
             }
 
-            $maxBatches = (int)apply_filters('wlrmg_max_batches_per_tick', 3);
-            for ($i = 0; $i < $maxBatches; $i++) {
-                $ids = Migration::getIdsWindow($activeCategory, $lastEnqueuedId, $batchLimit, $currentMaxId);
+            $max_batches = (int)apply_filters('wlrmg_max_batches_per_tick', 3);
+            for ($i = 0; $i < $max_batches; $i++) {
+                $ids = Migration::getIdsWindow($active_category, $last_enqueued_id, $batch_limit, $current_max_id);
                 if (empty($ids)) {
                     break;
                 }
-                $endId = (int)end($ids);
-                $insertId = ScheduledJobs::insertChildRangeJob($parentJob, $lastEnqueuedId, $endId, $batchLimit);
-                if ($insertId > 0) {
-                    ScheduledJobs::updateParentEnqueuedCursor($parentUid, $endId);
-                    $lastEnqueuedId = $endId;
+                $end_id = (int)end($ids);
+                $insert_id = ScheduledJobs::insertChildRangeJob($parent_job, $last_enqueued_id, $end_id, $batch_limit);
+                if ($insert_id > 0) {
+                    ScheduledJobs::updateParentEnqueuedCursor($parent_uid, $end_id);
+                    $last_enqueued_id = $end_id;
                 } else {
                     break;
                 }
-                if ($lastEnqueuedId >= $currentMaxId) {
+                if ($last_enqueued_id >= $current_max_id) {
                     break;
                 }
             }
 
-            if ($lastEnqueuedId >= $currentMaxId) {
-                self::finalizeParentIfNoActiveChildren($parentUid);
+            if ($last_enqueued_id >= $current_max_id) {
+                self::finalizeParentIfNoActiveChildren($parent_uid);
             }
         } finally {
-            self::releaseProducerLock($parentUid);
+            self::releaseProducerLock($parent_uid);
         }
     }
 
     /**
      * Acquire producer lock for a parent job using options API.
      *
-     * @param int $parentUid
+     * @param int $parent_uid
      * @return bool
      */
-    private static function acquireProducerLock($parentUid)
+    private static function acquireProducerLock($parent_uid)
     {
-        $optionName = 'wlrmg_producer_lock_' . (int)$parentUid;
+        $option_name = 'wlrmg_producer_lock_' . (int)$parent_uid;
         $now = time();
-        if (add_option($optionName, array('locked_at' => $now))) {
+        if (add_option($option_name, array('locked_at' => $now))) {
             return true;
         }
-        $existing = get_option($optionName, array());
-        $lockedAt = (int)($existing['locked_at'] ?? 0);
-        if ($lockedAt > 0 && ($now - $lockedAt) > (10 * MINUTE_IN_SECONDS)) {
-            delete_option($optionName);
-            return add_option($optionName, array('locked_at' => $now));
+        $existing = get_option($option_name, array());
+        $locked_at = (int)($existing['locked_at'] ?? 0);
+        if ($locked_at > 0 && ($now - $locked_at) > (10 * MINUTE_IN_SECONDS)) {
+            delete_option($option_name);
+            return add_option($option_name, array('locked_at' => $now));
         }
         return false;
     }
@@ -120,47 +120,47 @@ class MigrationProducer
     /**
      * Release producer lock for a parent job.
      *
-     * @param int $parentUid
+     * @param int $parent_uid
      * @return void
      */
-    private static function releaseProducerLock($parentUid)
+    private static function releaseProducerLock($parent_uid)
     {
-        $optionName = 'wlrmg_producer_lock_' . (int)$parentUid;
-        delete_option($optionName);
+        $option_name = 'wlrmg_producer_lock_' . (int)$parent_uid;
+        delete_option($option_name);
     }
 
     /**
      * Finalize parent job if no active children; set failed if any child failed, else completed.
      *
-     * @param int $parentUid
+     * @param int $parent_uid
      * @return bool
      */
-    public static function finalizeParentIfNoActiveChildren($parentUid)
+    public static function finalizeParentIfNoActiveChildren($parent_uid)
     {
-        $children = ScheduledJobs::getBatchesByParent((int)$parentUid);
-        $hasActive = false;
-        $hasFailed = false;
+        $children = ScheduledJobs::getBatchesByParent((int)$parent_uid);
+        $has_active = false;
+        $has_failed = false;
         if (!empty($children) && is_array($children)) {
             foreach ($children as $child) {
-                if ((int)$child->uid === (int)$parentUid) {
+                if ((int)$child->uid === (int)$parent_uid) {
                     continue;
                 }
                 $st = isset($child->status) ? (string)$child->status : '';
                 if (in_array($st, ['pending', 'processing'], true)) {
-                    $hasActive = true;
+                    $has_active = true;
                 } elseif ($st === 'failed') {
-                    $hasFailed = true;
+                    $has_failed = true;
                 }
             }
         }
-        if (!$hasActive) {
+        if (!$has_active) {
             $table = new ScheduledJobs();
-            $status = $hasFailed ? 'failed' : 'completed';
+            $status = $has_failed ? 'failed' : 'completed';
             $table->updateRow([
                 'status' => $status,
                 'updated_at' => time()
             ], [
-                'uid' => (int)$parentUid,
+                'uid' => (int)$parent_uid,
                 'source_app' => 'wlr_migration'
             ]);
             delete_option('wlrmg_active_category');

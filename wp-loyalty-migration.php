@@ -82,12 +82,12 @@ if ( ! file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 }
 require_once __DIR__ . '/vendor/autoload.php';
 
-$myUpdateChecker = PucFactory::buildUpdateChecker(
+$my_update_checker = PucFactory::buildUpdateChecker(
 	'https://github.com/wployalty/wp-loyalty-migration',
 	__FILE__,
 	'wp-loyalty-migration'
 );
-$myUpdateChecker->getVcsApi()->enableReleaseAssets();
+$my_update_checker->getVcsApi()->enableReleaseAssets();
 add_filter( 'plugins_loaded', function () {
 	if ( ! class_exists( '\Wlr\App\Helpers\Input' ) ) {
 		return;
