@@ -72,7 +72,7 @@ class Migration
             'update_point' => Input::get('update_point'),
             'update_banned_user' => Input::get('update_banned_user'),
         ];
-	//phpcs:ignore WordPress.Security.NonceVerification.Missing    
+	    //phpcs:ignore WordPress.Security.NonceVerification.Missing
         $validate_data = Validation::validateMigrationData($_POST);
         if (is_array($validate_data) && !empty($validate_data) && count($validate_data) > 0) {
             foreach ($validate_data as $key => $validate) {
@@ -121,12 +121,13 @@ class Migration
         switch ($migration_action) {
             case 'wlpr_migration':
                 $base_helper = new ScheduledJobs();
-                $base_helper->table = $base_helper->getTablePrefix() . 'wlpr_points';
-                $result = $base_helper->rawQuery("SELECT MAX(id) FROM {$base_helper->table}", true);
-                return (int)($result->{'MAX(id)'} ?? 0);
+                $where = 'ORDER BY id DESC';
+                $result = $base_helper->getWhere($where, 'id', true);
+                return $result ? (int)$result->id : 0;
             case 'wp_swings_migration':
             case 'woocommerce_migration':
                 global $wpdb;
+                //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return (int)$wpdb->get_var("SELECT MAX(ID) FROM {$wpdb->users}");
             default:
                 return 0;
@@ -147,23 +148,26 @@ class Migration
         if ($limit <= 0 || $upto_id <= 0 || $after_id >= $upto_id) {
             return [];
         }
+        global $wpdb;
         switch ($migration_action) {
             case 'wlpr_migration':
                 $base_helper = new ScheduledJobs();
-                $base_helper->table = $base_helper->getTablePrefix() . 'wlpr_points';
-                $where = "id > " . (int)$after_id . " AND id <= " . (int)$upto_id . " ORDER BY id ASC LIMIT " . (int)$limit;
-                $result = $base_helper->rawQuery("SELECT id FROM {$base_helper->table} WHERE {$where}", false);
-                return array_map('intval', array_column($result, 'id'));
+                $where = $wpdb->prepare('id > %d AND id <= %d ORDER BY id ASC LIMIT %d', [
+                    (int)$after_id,
+                    (int)$upto_id,
+                    (int)$limit
+                ]);
+                $result = $base_helper->getWhere($where, 'id', false);
+                return array_map(fn($row) => (int)$row->id, $result);
             case 'wp_swings_migration':
             case 'woocommerce_migration':
-                global $wpdb;
-                $sql = $wpdb->prepare(
+                //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return array_map('intval', $wpdb->get_col($wpdb->prepare(
                     "SELECT ID FROM {$wpdb->users} WHERE ID > %d AND ID <= %d ORDER BY ID ASC LIMIT %d",
                     (int)$after_id,
                     (int)$upto_id,
                     (int)$limit
-                );
-                return array_map('intval', $wpdb->get_col($sql));
+                )));
             default:
                 return [];
         }
@@ -182,14 +186,17 @@ class Migration
         if ($end_id <= $start_id) {
             return [];
         }
+        global $wpdb;
         switch ($migration_action) {
             case 'wlpr_migration':
                 $base_helper = new ScheduledJobs();
-                $base_helper->table = $base_helper->getTablePrefix() . 'wlpr_points';
-                $where = "id > " . (int)$start_id . " AND id <= " . (int)$end_id . " ORDER BY id ASC";
-                return $base_helper->rawQuery("SELECT * FROM {$base_helper->table} WHERE {$where}", false);
+                $where = $wpdb->prepare('id > %d AND id <= %d ORDER BY id ASC', [
+                    (int)$start_id,
+                    (int)$end_id
+                ]);
+                return $base_helper->getWhere($where, '*', false);
             case 'wp_swings_migration':
-                global $wpdb;
+                //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return $wpdb->get_results($wpdb->prepare(
                     "SELECT wp_user.ID, wp_user.user_email, COALESCE(meta.meta_value, 0) AS wps_points 
                      FROM {$wpdb->users} AS wp_user 
@@ -200,7 +207,7 @@ class Migration
                     (int)$end_id
                 ));
             case 'woocommerce_migration':
-                global $wpdb;
+                //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return $wpdb->get_results($wpdb->prepare(
                     "SELECT wp_user.ID AS user_id, wp_user.user_email, IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
                      FROM {$wpdb->users} AS wp_user 
@@ -392,7 +399,7 @@ class Migration
 
         if ($total_count > $limit_start) {
 
-	        global $wp_filesystem;
+	        global $wp_filesystem, $wpdb;
 	        if ( ! function_exists( 'WP_Filesystem' ) ) {
 		        require_once ABSPATH . 'wp-admin/includes/file.php';
 	        }
@@ -427,15 +434,14 @@ class Migration
             $file_path = trim($path . '/' . $file_name . $file_count . '.csv');
 
             $log_table = new MigrationLog();
-            global $wpdb;
             $table = $log_table->getTableName();
 
-            $where = "id > 0";
-            $where .= $wpdb->prepare(" AND action = %s AND user_email !=''", [ $post['category'] ]);
+            $where = 'id > 0 AND user_email != ""';
+            $where .= $wpdb->prepare(' AND action = %s', [$post['category']]);
 
             $parent_uid = (int)$post['job_id'];
             $job_table = new ScheduledJobs();
-            $job_row = $job_table->getWhere($wpdb->prepare(" uid = %d AND source_app = %s", [$parent_uid, 'wlr_migration']));
+            $job_row = $job_table->getWhere($wpdb->prepare(' uid = %d AND source_app = %s', [$parent_uid, 'wlr_migration']));
             if (!empty($job_row) && is_object($job_row) && !empty($job_row->conditions)) {
                 $decoded = json_decode($job_row->conditions, true);
                 if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
@@ -455,18 +461,19 @@ class Migration
                 $all_batch_ids = [$parent_uid];
             }
             $placeholders = implode(',', array_fill(0, count($all_batch_ids), '%d'));
+            //phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
             $where .= $wpdb->prepare(" AND job_id IN ($placeholders)", $all_batch_ids);
-            $where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d;', [
+            $where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d', [
                 $limit,
                 $limit_start
             ]);
 
             $csv_helper = new Csv();
-            $select = "user_email, referral_code, points";
+            $select = 'user_email, referral_code, points';
             $csv_helper->titles = ['email', 'referral_code', 'points'];
 
-            $query = "SELECT {$select} FROM {$table} WHERE {$where}";
-	    $file_data = $wpdb->get_results($query, ARRAY_A); 
+            //phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+            $file_data = $wpdb->get_results($wpdb->prepare("SELECT {$select} FROM {$table} WHERE {$where}"), ARRAY_A);
 
             if (!empty($file_data)) {
                 foreach ($file_data as &$single_file_data) {

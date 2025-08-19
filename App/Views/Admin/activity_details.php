@@ -116,7 +116,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                         <div>
                             <h4><?php echo esc_html__("Action details", "wp-loyalty-migration"); ?></h4>
                         </div>
-						<?php if ($action == $activity['job_data']['action'] && $job_data['offset'] >0 ) : ?>
+						<?php if ($action == $activity['job_data']['action'] && $job_data['processed_items'] > 0) : ?>
                             <div class="wlrmg-table-search-export">
                                 <div class="search-box">
                                     <input type="text" name="search" id="search_email"
