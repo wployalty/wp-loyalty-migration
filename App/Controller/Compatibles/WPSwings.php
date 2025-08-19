@@ -87,36 +87,10 @@ class WPSwings implements Base
         $admin_mail = (string)isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '';
         $action_type = (string)isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : "migration_to_wployalty";
         
-        // Use pre-filtered users if provided (for batch processing)
-        if ($pre_filtered_users !== null && is_array($pre_filtered_users)) {
-            $wp_users = $pre_filtered_users;
-        } else {
-            //Get WPUsers (original logic for backward compatibility)
-            global $wpdb;
-            $where = $wpdb->prepare(" WHERE wp_user.ID > %d AND wp_user.ID > %d ", array(
-                0,
-                (int)$job_data->last_processed_id
-            ));
-            $join = " LEFT JOIN " . $wpdb->usermeta . " AS meta ON wp_user.ID = meta.user_id AND meta.meta_key = 'wps_wpr_points' ";
-            $limit_offset = "";
-            if (isset($job_data->limit) && ($job_data->limit > 0)) {
-                $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
-            }
-
-            $select = "
-        SELECT 
-            wp_user.ID,
-            wp_user.user_email,
-            COALESCE(meta.meta_value, 0) AS wps_points 
-        FROM 
-            " . $wpdb->users . " AS wp_user 
-        " . $join .
-                $where .
-                " ORDER BY wp_user.ID ASC " .
-                $limit_offset;
-            //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-            $wp_users = $wpdb->get_results(stripslashes($select)); 
+        if (!is_array($pre_filtered_users)) {
+            return;
         }
+        $wp_users = $pre_filtered_users;
         
         $this->migrateUsers($wp_users, $job_id, $job_data, $admin_mail, $action_type);
     }

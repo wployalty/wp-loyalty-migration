@@ -81,24 +81,10 @@ class WLPRPointsRewards implements Base
         $admin_mail = (string)isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '';
         $action_type = (string)isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : "migration_to_wployalty";
         
-        // Use pre-filtered users if provided (for batch processing)
-        if ($pre_filtered_users !== null && is_array($pre_filtered_users)) {
-            $users = $pre_filtered_users;
-        } else {
-            // Original logic for backward compatibility
-            $last_processed_id = (int)isset($job_data->last_processed_id) && !empty($job_data->last_processed_id) ? $job_data->last_processed_id : 0;
-            global $wpdb;
-            $where = $wpdb->prepare(" WHERE id > %d ", array((int)$last_processed_id));
-            $limit_offset = "";
-            if (isset($job_data->limit) && ($job_data->limit > 0)) {
-                $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
-            }
-            $select = " SELECT * FROM " . $wpdb->prefix . "wlpr_points ";
-            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-            $query = $select . $where . " ORDER BY id ASC " . $limit_offset; 
-            //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-            $users = $wpdb->get_results(stripslashes($query)); 
+        if (!is_array($pre_filtered_users)) {
+            return;
         }
+        $users = $pre_filtered_users;
         
         $this->migrateUsers($users, $job_id, $job_data, $admin_mail, $action_type);
     }

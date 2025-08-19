@@ -65,32 +65,10 @@ class WooPointsRewards implements Base
         $admin_mail = (string)($job_data->admin_mail ?? '');
         $action_type = (string)($job_data->action_type ?? "migration_to_wployalty");
 
-        // Use pre-filtered users if provided (for batch processing)
-        if ($pre_filtered_users !== null && is_array($pre_filtered_users)) {
-            $wp_users = $pre_filtered_users;
-        } else {
-            // Original logic for backward compatibility
-            global $wpdb;
-            $where = $wpdb->prepare(" WHERE wp_user.ID > %d AND wp_user.ID > %d",[
-                0,
-                (int) $job_data->last_processed_id
-            ]);
-            $limit_offset = "";
-            if (isset($job_data->limit) && ($job_data->limit > 0)) {
-                $limit_offset .= $wpdb->prepare(" LIMIT %d OFFSET %d ", array((int)$job_data->limit, 0));
-            }
-
-            $select = " SELECT wp_user.ID AS user_id, wp_user.user_email, 
-                        IFNULL(SUM(woo_points_table.points_balance), 0) AS total_points_balance 
-                        FROM " . $wpdb->prefix . "users AS wp_user 
-                        LEFT JOIN " . $wpdb->prefix . "wc_points_rewards_user_points AS woo_points_table 
-                        ON wp_user.ID = woo_points_table.user_id 
-                        $where 
-                        GROUP BY wp_user.ID, wp_user.user_email 
-                        ORDER BY wp_user.ID ASC".$limit_offset;
-
-            $wp_users = $wpdb->get_results(stripslashes($select)); //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        if (!is_array($pre_filtered_users)) {
+            return;
         }
+        $wp_users = $pre_filtered_users;
 
         if (empty($wp_users)) {
             $migration_log_model = new MigrationLog();
