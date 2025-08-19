@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-08-11T11:24:39+00:00\n"
+"POT-Creation-Date: 2025-08-19T07:14:49+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wp-loyalty-migration\n"
@@ -40,95 +40,95 @@ msgstr ""
 msgid "https://wployalty.net/"
 msgstr ""
 
-#: App/Controller/Common.php:33
+#: App/Controller/Common.php:41
 msgid "WPLoyalty: Migration"
 msgstr ""
 
-#: App/Controller/Common.php:98
+#: App/Controller/Common.php:106
 msgid "WPSwings points and rewards"
 msgstr ""
 
-#: App/Controller/Common.php:99
 #: App/Controller/Common.php:107
 #: App/Controller/Common.php:115
+#: App/Controller/Common.php:123
 msgid "Migrate users with points"
 msgstr ""
 
-#: App/Controller/Common.php:106
+#: App/Controller/Common.php:114
 msgid "WooCommerce Loyalty Points and Rewards"
 msgstr ""
 
-#: App/Controller/Common.php:114
+#: App/Controller/Common.php:122
 msgid "Woocommerce points and rewards"
 msgstr ""
 
-#: App/Controller/Common.php:322
+#: App/Controller/Common.php:314
 msgid "WP Swings Migration"
 msgstr ""
 
-#: App/Controller/Common.php:325
+#: App/Controller/Common.php:317
 msgid "Woocommerce Loyalty Points and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:328
+#: App/Controller/Common.php:320
 msgid "Woocommerce Point and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:336
+#: App/Controller/Common.php:328
 #: App/Views/Admin/popup.php:25
 msgid "Add points to customer"
 msgstr ""
 
-#: App/Controller/Common.php:337
+#: App/Controller/Common.php:329
 #: App/Views/Admin/popup.php:24
 msgid "Skip customer"
 msgstr ""
 
-#: App/Controller/Common.php:478
+#: App/Controller/Common.php:454
 msgid "Yes, Proceed"
 msgstr ""
 
-#: App/Controller/Common.php:479
+#: App/Controller/Common.php:455
 msgid "No, Cancel"
 msgstr ""
 
-#: App/Controller/Common.php:480
+#: App/Controller/Common.php:456
 msgid "Are you sure you want to leave?"
 msgstr ""
 
-#: App/Controller/Common.php:481
+#: App/Controller/Common.php:457
 msgid "Migration Warning"
 msgstr ""
 
-#: App/Controller/Common.php:482
+#: App/Controller/Common.php:458
 msgid "Export is in progress. Do you really want to close?"
 msgstr ""
 
-#: App/Controller/Common.php:483
+#: App/Controller/Common.php:459
 msgid "Make sure you want to close?"
 msgstr ""
 
-#: App/Controller/Common.php:485
+#: App/Controller/Common.php:461
 msgid "Important Note : Please read before starting migration,Do not deactivate or delete your old point system/program during migration."
 msgstr ""
 
-#: App/Controller/Common.php:487
+#: App/Controller/Common.php:463
 msgid "Before starting the migration in WPLoyalty, ensure that earning and redeeming points is paused in your existing system/program. Its lead to give extra/low points in migration."
 msgstr ""
 
-#: App/Controller/Common.php:488
+#: App/Controller/Common.php:464
 msgid "The default batch limit is set to 50. You can adjust this in the settings.For example, if the batch limit is 50, then 50 customers will be migrated every 3 minutes — resulting in 1000 customers per hour, 24,400 customers per day."
 msgstr ""
 
-#: App/Controller/Common.php:489
+#: App/Controller/Common.php:465
 msgid "Once a migration job is started, it cannot be paused or stopped midway. Please double-check all configurations before initiating the process."
 msgstr ""
 
-#: App/Controller/Common.php:511
+#: App/Controller/Common.php:487
 msgid "User migrated via WPLoyalty Migration"
 msgstr ""
 
-#: App/Controller/Common.php:574
+#: App/Controller/Common.php:550
 msgid "Every 3 Minutes"
 msgstr ""
 
@@ -164,70 +164,62 @@ msgstr ""
 msgid "%1$s customer migrated from WPSwings with %2$d %3$s by administrator (%4$s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Migration.php:32
-#: App/Controller/Migration.php:62
-#: App/Controller/Migration.php:270
-#: App/Controller/Migration.php:310
-#: App/Controller/Migration.php:423
-#: App/Controller/Migration.php:568
+#: App/Controller/Migration.php:38
+#: App/Controller/Migration.php:68
+#: App/Controller/Migration.php:241
+#: App/Controller/Migration.php:281
+#: App/Controller/Migration.php:388
+#: App/Controller/Migration.php:524
 msgid "Basic check failed"
 msgstr ""
 
-#: App/Controller/Migration.php:44
+#: App/Controller/Migration.php:50
 msgid "Update points to customers"
 msgstr ""
 
-#: App/Controller/Migration.php:77
-#: App/Controller/Migration.php:284
+#: App/Controller/Migration.php:83
+#: App/Controller/Migration.php:255
 msgid "Invalid fields"
 msgstr ""
 
-#: App/Controller/Migration.php:84
+#: App/Controller/Migration.php:90
 msgid "Migration job already created"
 msgstr ""
 
-#: App/Controller/Migration.php:93
-msgid "No records to migrate"
+#: App/Controller/Migration.php:104
+msgid "Unable to create parent job"
 msgstr ""
 
-#: App/Controller/Migration.php:110
-msgid "Unable to create parent job batch"
+#: App/Controller/Migration.php:108
+msgid "Migration job created"
 msgstr ""
 
-#: App/Controller/Migration.php:129
-msgid "Unable to create job batch"
-msgstr ""
-
-#: App/Controller/Migration.php:135
-msgid "Migration jobs created"
-msgstr ""
-
-#: App/Controller/Migration.php:290
+#: App/Controller/Migration.php:261
 msgid "Settings saved"
 msgstr ""
 
-#: App/Controller/Migration.php:326
+#: App/Controller/Migration.php:293
 msgid "Permission denied to write a file"
 msgstr ""
 
-#: App/Controller/Migration.php:453
+#: App/Controller/Migration.php:414
 msgid "Failed to create directory for job files."
 msgstr ""
 
-#: App/Controller/Migration.php:541
+#: App/Controller/Migration.php:497
 msgid "Export completed successfully."
 msgstr ""
 
 #. translators: %s: limit
-#: App/Controller/Migration.php:552
+#: App/Controller/Migration.php:508
 msgid "Exported %s customer(s)"
 msgstr ""
 
-#: App/Controller/Migration.php:556
+#: App/Controller/Migration.php:512
 msgid "No data to export"
 msgstr ""
 
-#: App/Controller/Migration.php:572
+#: App/Controller/Migration.php:528
 msgid "Invalid job id"
 msgstr ""
 
@@ -314,7 +306,7 @@ msgid "Filter"
 msgstr ""
 
 #: App/Views/Admin/activity.php:52
-#: App/Views/Admin/activity_details.php:221
+#: App/Views/Admin/activity_details.php:203
 msgid "No activities yet"
 msgstr ""
 
@@ -378,65 +370,57 @@ msgid "Processed items"
 msgstr ""
 
 #: App/Views/Admin/activity_details.php:51
-msgid "Batches"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:56
-msgid "%1$d total, %2$d completed, %3$d queued, %4$d processing, %5$d pending, %6$d failed"
-msgstr ""
-
-#: App/Views/Admin/activity_details.php:69
 msgid "Status"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:76
+#: App/Views/Admin/activity_details.php:58
 #: App/Views/Admin/popup.php:12
 msgid "Update points"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:84
+#: App/Views/Admin/activity_details.php:66
 msgid "Update banned user"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:86
+#: App/Views/Admin/activity_details.php:68
 msgid "Add point to banned customer"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:86
+#: App/Views/Admin/activity_details.php:68
 #: App/Views/Admin/popup.php:35
 msgid "Skip banned customer"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:135
+#: App/Views/Admin/activity_details.php:117
 msgid "Action details"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:141
+#: App/Views/Admin/activity_details.php:123
 msgid "Search by email"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:162
+#: App/Views/Admin/activity_details.php:144
 msgid "Show Exported File"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:165
+#: App/Views/Admin/activity_details.php:147
 #: App/Views/Admin/export_logs.php:51
 msgid "Export"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:172
+#: App/Views/Admin/activity_details.php:154
 msgid "User email"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:173
+#: App/Views/Admin/activity_details.php:155
 msgid "Referral code"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:193
+#: App/Views/Admin/activity_details.php:175
 msgid "No activities found for the entered email."
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:225
+#: App/Views/Admin/activity_details.php:207
 msgid "You are in pending status"
 msgstr ""
 
