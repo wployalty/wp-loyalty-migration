@@ -120,10 +120,9 @@ class Migration
     {
         switch ($migration_action) {
             case 'wlpr_migration':
-                $base_helper = new ScheduledJobs();
-                $where = 'ORDER BY id DESC';
-                $result = $base_helper->getWhere($where, 'id', true);
-                return $result ? (int)$result->id : 0;
+                global $wpdb;
+                //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return (int)$wpdb->get_var("SELECT MAX(id) FROM {$wpdb->prefix}wlpr_points");
             case 'wp_swings_migration':
             case 'woocommerce_migration':
                 global $wpdb;
@@ -151,14 +150,13 @@ class Migration
         global $wpdb;
         switch ($migration_action) {
             case 'wlpr_migration':
-                $base_helper = new ScheduledJobs();
-                $where = $wpdb->prepare('id > %d AND id <= %d ORDER BY id ASC LIMIT %d', [
+                //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return array_map('intval', $wpdb->get_col($wpdb->prepare(
+                    "SELECT id FROM {$wpdb->prefix}wlpr_points WHERE id > %d AND id <= %d ORDER BY id ASC LIMIT %d",
                     (int)$after_id,
                     (int)$upto_id,
                     (int)$limit
-                ]);
-                $result = $base_helper->getWhere($where, 'id', false);
-                return array_map(fn($row) => (int)$row->id, $result);
+                )));
             case 'wp_swings_migration':
             case 'woocommerce_migration':
                 //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -189,12 +187,14 @@ class Migration
         global $wpdb;
         switch ($migration_action) {
             case 'wlpr_migration':
-                $base_helper = new ScheduledJobs();
-                $where = $wpdb->prepare('id > %d AND id <= %d ORDER BY id ASC', [
+                //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                return $wpdb->get_results($wpdb->prepare(
+                    "SELECT * FROM {$wpdb->prefix}wlpr_points 
+                     WHERE id > %d AND id <= %d 
+                     ORDER BY id ASC",
                     (int)$start_id,
                     (int)$end_id
-                ]);
-                return $base_helper->getWhere($where, '*', false);
+                ));
             case 'wp_swings_migration':
                 //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 return $wpdb->get_results($wpdb->prepare(
