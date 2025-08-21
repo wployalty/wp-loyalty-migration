@@ -4,6 +4,7 @@ namespace Wlrm\App\Controller;
 
 use Wlrm\App\Models\ScheduledJobs;
 use Wlrm\App\Controller\Migration;
+use Wlrm\App\Helper\Settings;
 
 defined('ABSPATH') or die();
 
@@ -50,10 +51,7 @@ class MigrationProducer
         }
 
         $conditions = !empty($parent_job->conditions) ? json_decode($parent_job->conditions, true) : [];
-        $batch_limit = (int)($conditions['batch_limit'] ?? (int)$parent_job->limit ?? 50);
-        if ($batch_limit <= 0) {
-            $batch_limit = 50;
-        }
+        $batch_limit = (int)($conditions['batch_limit'] ?? (int)$parent_job->limit ?? Settings::get('batch_limit', 50));
         $last_enqueued_id = (int)($conditions['last_enqueued_id'] ?? 0);
 
         $parent_uid = (int)$parent_job->uid;
