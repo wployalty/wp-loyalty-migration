@@ -67,6 +67,7 @@ class MigrationProducer
             }
 
             $max_batches = (int)apply_filters('wlrmg_max_batches_per_tick', 3);
+            $made_child = false;
             for ($i = 0; $i < $max_batches; $i++) {
                 $ids = Migration::getIdsWindow($active_category, $last_enqueued_id, $batch_limit, $current_max_id);
                 if (empty($ids)) {
@@ -77,6 +78,18 @@ class MigrationProducer
                 if ($insert_id > 0) {
                     ScheduledJobs::updateParentEnqueuedCursor($parent_uid, $end_id);
                     $last_enqueued_id = $end_id;
+
+                    if (!$made_child && (!isset($parent_job->status) || $parent_job->status !== 'processing')) {
+                        $made_child = true;
+                        $table = new ScheduledJobs();
+                        $table->updateRow([
+                            'status' => 'processing',
+                            'updated_at' => time()
+                        ], [
+                            'uid' => (int)$parent_uid,
+                            'source_app' => 'wlr_migration'
+                        ]);
+                    }
                 } else {
                     break;
                 }
@@ -167,5 +180,3 @@ class MigrationProducer
         return false;
     }
 }
-
-

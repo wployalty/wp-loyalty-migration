@@ -268,7 +268,7 @@ class Common {
 			$overall_status = 'pending';
 			if ($total_batches > 0 && $status_counts['completed'] === $total_batches) {
 				$overall_status = 'completed';
-			} elseif ($status_counts['processing'] > 0) {
+			} elseif ($status_counts['processing'] > 0 || $total_batches > 1) {
 				$overall_status = 'processing';
 			} elseif ($status_counts['failed'] > 0 && $status_counts['completed'] === 0) {
 				$overall_status = 'failed';
