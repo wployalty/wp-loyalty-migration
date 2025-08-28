@@ -172,8 +172,8 @@ class WLPRPointsRewards implements Base
                 "points" => $new_points,
                 "referral_code" => $refer_code,
                 "action_process_type" => "earn_point",
-                "customer_note" => sprintf(	    /* translators: 1: number of points, 2: point label (e.g. points), 3: admin email */
-	                __( 'Added %1$d %2$s by site administrator (%3$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
+                "customer_note" => sprintf(        /* translators: 1: number of points, 2: point label, 3: admin email */
+                    __( 'Added %1$d %2$s by site administrator (%3$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $new_points, $campaign->getPointLabel($new_points), $admin_mail),
                 "note" => sprintf(    /* translators: 1: customer email, 2: number of points, 3: point label, 4: admin email */
 	                __( '%1$s customer migrated from WooCommerce Loyalty Points and Rewards with %2$d %3$s by administrator (%4$s) via WPLoyalty migration', 'wp-loyalty-migration' ), $user_email, $new_points, $campaign->getPointLabel($new_points), $admin_mail),
             ];
