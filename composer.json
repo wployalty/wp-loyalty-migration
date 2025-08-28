@@ -3,6 +3,12 @@
   "description": "WPLoyalty migration addon",
   "minimum-stability": "stable",
   "license": "proprietary",
+  "authors": [
+    {
+      "name": "Sabhari A",
+      "email": "sabhari@cartrabbit.in"
+    }
+  ],
   "require": {
     "parsecsv/php-parsecsv": "^1.3",
     "ext-json": "*",
