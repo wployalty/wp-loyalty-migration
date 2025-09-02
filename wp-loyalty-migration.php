@@ -10,12 +10,12 @@
  * Domain Path: /i18n/languages/
  * Requires at least: 6.0
  * WC requires at least: 10.0.0
- * WC tested up to: 9.4
+ * WC tested up to: 10.1
  * Contributors: WPLoyalty
  * Author URI: https://wployalty.net/
  * License: GPLv2 or later
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
- * WPLoyalty: 1.2.10
+ * WPLoyalty: 1.4.0
  * WPLoyalty Page Link: wp-loyalty-migration
  */
 
@@ -75,7 +75,7 @@ defined( 'WLRMG_VIEW_PATH' ) or define( 'WLRMG_VIEW_PATH', str_replace( "\\", '/
 defined( 'WLRMG_MINIMUM_PHP_VERSION' ) or define( 'WLRMG_MINIMUM_PHP_VERSION', '7.0.0' );
 defined( 'WLRMG_MINIMUM_WP_VERSION' ) or define( 'WLRMG_MINIMUM_WP_VERSION', '6.0' );
 defined( 'WLRMG_MINIMUM_WC_VERSION' ) or define( 'WLRMG_MINIMUM_WC_VERSION', '10.0.0' );
-defined( 'WLRMG_MINIMUM_WLR_VERSION' ) or define( 'WLRMG_MINIMUM_WLR_VERSION', '1.2.10' );
+defined( 'WLRMG_MINIMUM_WLR_VERSION' ) or define( 'WLRMG_MINIMUM_WLR_VERSION', '1.4.0' );
 
 if ( ! file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	return;
