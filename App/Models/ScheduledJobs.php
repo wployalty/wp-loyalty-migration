@@ -133,18 +133,11 @@ class ScheduledJobs extends Base
      */
     public static function getBatchInfo($job_data)
     {
-        if (empty($job_data)) {
+        if (empty($job_data) || !is_object($job_data) || !isset($job_data->conditions)) {
             return null;
         }
         
-        $conditions = null;
-        if (is_object($job_data) && !empty($job_data->conditions)) {
-            $conditions = $job_data->conditions;
-        } elseif (is_array($job_data) && !empty($job_data['conditions'])) {
-            $conditions = $job_data['conditions'];
-        } else {
-            return null;
-        }
+        $conditions = $job_data->conditions;
         
         $conditions = json_decode($conditions, true);
         return isset($conditions['batch_info']) ? $conditions['batch_info'] : null;

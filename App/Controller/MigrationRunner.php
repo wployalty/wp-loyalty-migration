@@ -28,12 +28,11 @@ class MigrationRunner
         if (empty($pending)) {
             return;
         }
-        $job_table = new ScheduledJobs();
+        if(!function_exists('as_schedule_single_action') || !function_exists('as_next_scheduled_action')) {
+            return;
+        }
         $in_flight = 0;
         foreach ($pending as $job) {
-            if (!function_exists('as_schedule_single_action')) {
-                continue;
-            }
             if ($in_flight >= $max_in_flight) {
                 break;
             }
@@ -57,25 +56,16 @@ class MigrationRunner
      */
     public static function processAction($job_data)
     {
-        if (is_array($job_data) && isset($job_data['uid'])) {
-            $job_table = new ScheduledJobs();
-            global $wpdb;
-            $loaded = $job_table->getWhere($wpdb->prepare('uid = %d AND source_app = %s', [(int)$job_data['uid'], 'wlr_migration']));
-            if (empty($loaded) || !is_object($loaded)) {
-                return;
-            }
-            $job_data = $loaded;
-        } elseif (is_object($job_data) && (!isset($job_data->category) || empty($job_data->category))) {
-            $job_table = new ScheduledJobs();
-            global $wpdb;
-            $loaded = $job_table->getWhere($wpdb->prepare('uid = %d AND source_app = %s', [(int)$job_data->uid, 'wlr_migration']));
-            if (empty($loaded) || !is_object($loaded)) {
-                return;
-            }
-            $job_data = $loaded;
+        if(empty($job_data) || !is_array($job_data) || !isset($job_data['uid'])){
+            return;
         }
-
         $job_table = new ScheduledJobs();
+        global $wpdb;
+        $loaded = $job_table->getWhere($wpdb->prepare('uid = %d AND source_app = %s', [(int)$job_data['uid'], 'wlr_migration']));
+        if (empty($loaded) || !is_object($loaded)) {
+            return;
+        }
+        $job_data = $loaded;
         $job_table->updateRow([
             'status' => 'processing',
             'updated_at' => time(),
@@ -86,7 +76,7 @@ class MigrationRunner
 
         try {
             $batch_info = ScheduledJobs::getBatchInfo($job_data);
-            $category = is_object($job_data) ? $job_data->category : $job_data['category'];
+            $category = $job_data->category;
             $users = null;
             if ($batch_info && isset($batch_info['start_id']) && isset($batch_info['end_id'])) {
                 $start_id = (int)$batch_info['start_id'];
@@ -113,7 +103,6 @@ class MigrationRunner
                     return;
             }
 
-            global $wpdb;
             $latest = $job_table->getWhere($wpdb->prepare('uid = %d AND source_app = %s', [$job_data->uid, 'wlr_migration']));
             $batch_info = ScheduledJobs::getBatchInfo($latest);
             if (!empty($latest) && is_object($latest) && $latest->status !== 'completed') {
