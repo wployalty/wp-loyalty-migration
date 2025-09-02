@@ -3,7 +3,7 @@
  * Plugin Name: WPLoyalty - Migration
  * Plugin URI: https://www.wployalty.net
  * Description: The WPLoyalty Migration Add-On allows you to transfer your customers and their earned points from other loyalty plugins like Loyalty Points Legacy, WPswings, or WooCommerce Points and Rewards into WPLoyalty.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: WPLoyalty
  * Slug: wp-loyalty-migration
  * Text Domain: wp-loyalty-migration
@@ -63,7 +63,7 @@ if ( ! isWLRMGWooCommerceActive() || ! isWLRMGLoyaltyActive() ) {
 }
 
 defined( 'WLRMG_PLUGIN_NAME' ) or define( 'WLRMG_PLUGIN_NAME', 'WPLoyalty - Migration' );
-defined( 'WLRMG_PLUGIN_VERSION' ) or define( 'WLRMG_PLUGIN_VERSION', '1.0.0' );
+defined( 'WLRMG_PLUGIN_VERSION' ) or define( 'WLRMG_PLUGIN_VERSION', '1.0.1' );
 defined( 'WLRMG_TEXT_DOMAIN' ) or define( 'WLRMG_TEXT_DOMAIN', 'wp-loyalty-migration' );
 defined( 'WLRMG_PLUGIN_SLUG' ) or define( 'WLRMG_PLUGIN_SLUG', 'wp-loyalty-migration' );
 defined( 'WLRMG_PLUGIN_PATH' ) or define( 'WLRMG_PLUGIN_PATH', str_replace( "\\", '/', __DIR__ ) . '/' );
