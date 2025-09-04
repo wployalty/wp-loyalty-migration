@@ -565,7 +565,7 @@ class Common {
             return;
         }
 
-		$max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 3);
+		$max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 10);
 		MigrationRunner::schedulePendingChildren($active_category, $max_in_flight);
 	}
 

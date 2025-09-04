@@ -66,7 +66,7 @@ class MigrationProducer
                 return;
             }
 
-            $max_batches = (int)apply_filters('wlrmg_max_batches_per_tick', 3);
+            $max_batches = (int)apply_filters('wlrmg_max_batches_per_tick', 10);
             for ($i = 0; $i < $max_batches; $i++) {
                 $ids = Migration::getIdsWindow($active_category, $last_enqueued_id, $batch_limit, $current_max_id);
                 if (empty($ids)) {
