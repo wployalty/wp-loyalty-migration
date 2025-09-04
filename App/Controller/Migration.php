@@ -103,7 +103,10 @@ class Migration
         if ($parent_job_id <= 0) {
             wp_send_json_error(['message' => __('Unable to create parent job', 'wp-loyalty-migration')]);
         }
-
+        
+        // Trigger the migration cron job immediately to create batches
+        do_action('wlrmg_migration_jobs');
+        
         wp_send_json_success([
             'message' => __('Migration job created', 'wp-loyalty-migration'),
             'job_id' => $parent_job_id
