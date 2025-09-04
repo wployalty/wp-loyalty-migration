@@ -19,7 +19,7 @@ class MigrationLog extends Base
         $this->table = self::$db->prefix . "wlr_migration_log";
         $this->primary_key = "id";
         $this->fields = [
-            "job_id" => "%d",
+            "job_id" => "%s",
             "action" => "%s",
             "user_email" => "%s",
             "referral_code" => "%s",
@@ -45,13 +45,13 @@ class MigrationLog extends Base
         ]);
         // Filter by one or many job ids
         if (is_array($job_id_or_ids)) {
-            $ids = array_map('intval', $job_id_or_ids);
+            $ids = array_map('strval', $job_id_or_ids);
             if (!empty($ids)) {
-                $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+                $placeholders = implode(',', array_fill(0, count($ids), '%s'));
                 $query .= self::$db->prepare(" AND job_id IN ($placeholders) ", $ids);
             }
         } else {
-            $query .= self::$db->prepare(" AND job_id = %d ", [ (int) $job_id_or_ids ]);
+            $query .= self::$db->prepare(" AND job_id = %s ", [(string)$job_id_or_ids]);
         }
         $log_count = $log_table->getWhere($query, "count(*) as total_count", true);
 
@@ -66,7 +66,7 @@ class MigrationLog extends Base
     {
         $create_table_query = "CREATE TABLE IF NOT EXISTS {$this->table} (
                 `{$this->getPrimaryKey()}` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-                `job_id` BIGINT UNSIGNED NOT NULL,
+                `job_id` VARCHAR(8) NOT NULL,
                 `action` varchar(180) DEFAULT NULL,
                 `user_email` varchar(180) DEFAULT NULL,
                 `referral_code` varchar(180) DEFAULT NULL,
@@ -95,7 +95,7 @@ class MigrationLog extends Base
 
         // Prepare log data
         $log_data = [
-            "job_id" => (int)(isset($data['job_id']) && $data['job_id'] > 0 ? $data['job_id'] : 0),
+            "job_id" => (string)(isset($data['job_id']) && !empty($data['job_id']) ? $data['job_id'] : ''),
             "action" => (string)(isset($data['action']) && $data['action'] ? $data['action'] : ''),
             "user_email" => (string)(isset($data['user_email']) && !empty($data['user_email']) ? $data['user_email'] : ''),
             "referral_code" => (string)(isset($data['referral_code']) && !empty($data['referral_code']) ? $data['referral_code'] : ''),
@@ -142,8 +142,8 @@ class MigrationLog extends Base
         $input = new Input();
         $cron_job_modal = new ScheduledJobs();
         // Determine a representative job for metadata (category, exports)
-        $representative_job_id = is_array($job_id_or_ids) ? (int)reset($job_id_or_ids) : (int)$job_id_or_ids;
-        $where = self::$db->prepare(" uid = %d AND source_app=%s", [$representative_job_id, 'wlr_migration']);
+        $representative_job_id = is_array($job_id_or_ids) ? (string)reset($job_id_or_ids) : (string)$job_id_or_ids;
+        $where = self::$db->prepare(" uid = %s AND source_app=%s", [$representative_job_id, 'wlr_migration']);
         $job_data = $cron_job_modal->getwhere($where);
 
         $settings = get_option('wlrmg_settings');
@@ -158,11 +158,11 @@ class MigrationLog extends Base
         ]);
         if (!empty($job_id_or_ids)) {
             if (is_array($job_id_or_ids)) {
-                $ids = array_map('intval', $job_id_or_ids);
-                $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+                $ids = array_map('strval', $job_id_or_ids);
+                $placeholders = implode(',', array_fill(0, count($ids), '%s'));
                 $where .= self::$db->prepare(" AND job_id IN ($placeholders) ", $ids);
             } else {
-                $where .= self::$db->prepare(" AND job_id=%d ", [(int)$job_id_or_ids]);
+                $where .= self::$db->prepare(" AND job_id=%s ", [(string)$job_id_or_ids]);
             }
         }
         if (!empty($search)) {
@@ -175,8 +175,15 @@ class MigrationLog extends Base
             $where .= self::$db->prepare(" LIMIT %d OFFSET %d ", [$limit, $offset]);
         }
         $log_list = $this->getWhere($where, "*", false);
+        $export_uid = $representative_job_id;
+        if (!empty($job_data) && is_object($job_data) && !empty($job_data->conditions)) {
+            $decoded = json_decode($job_data->conditions, true);
+            if (is_array($decoded) && !empty($decoded['batch_info']['parent_job_id'])) {
+                $export_uid = (string)$decoded['batch_info']['parent_job_id'];
+            }
+        }
 
-        $export_files = $this->exportFileList(['category' => $job_data->category, 'job_id' => $representative_job_id]);
+        $export_files = $this->exportFileList(['category' => $job_data->category, 'job_id' => $export_uid]);
 
         return apply_filters('wlrmg_before_activity_log_list', [
             'data' => $log_list,

@@ -187,7 +187,7 @@ class Common {
 	 * @return string Rendered content of the activity details page.
 	 */
 	public static function getActivityDetailsPage() {
-		$job_id    = (int) Input::get( 'job_id', 0 );
+		$job_id    = (string) Input::get( 'job_id', '' );
 		$args      = [
 			"current_page"     => 'activity',
 			"job_id"           => $job_id,
@@ -214,17 +214,17 @@ class Common {
 	 * The retrieved job data is then processed to include additional information and activity logs related to the job.
 	 * The final result is passed through a filter hook for customization before being returned.
 	 *
-	 * @param int $job_id The ID of the job to retrieve activity details for.
+	 * @param string $job_id The ID of the job to retrieve activity details for.
 	 *
 	 * @return array Contains the job ID and additional data related to the job's activity details.
 	 */
 	protected static function getActivityDetailsData( $job_id ) {
-		if ( empty( $job_id ) || $job_id <= 0 ) {
+		if ( empty( $job_id ) ) {
 			return [];
 		}
 		$job_table = new ScheduledJobs();
 		global $wpdb;
-		$where    = $wpdb->prepare( " uid = %d AND source_app =%s", [ $job_id, 'wlr_migration' ] );
+		$where    = $wpdb->prepare( " uid = %s AND source_app =%s", [ $job_id, 'wlr_migration' ] );
 		$job_data = $job_table->getWhere( $where );
 
 		$result = [
@@ -235,8 +235,8 @@ class Common {
 
 			$parent_uid = $job_data->uid;
 			$decoded = !empty($job_data->conditions) ? json_decode($job_data->conditions, true) : [];
-			if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
-				$parent_uid = (int)$decoded['batch_info']['parent_job_id'];
+			if (isset($decoded['batch_info']['parent_job_id'])) {
+				$parent_uid = (string)$decoded['batch_info']['parent_job_id'];
 			}
 			$all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
 			$total_batches = is_array($all_batches) ? count($all_batches) : 0;
@@ -341,12 +341,12 @@ class Common {
 	 * It creates pagination information based on the retrieved data for easy navigation.
 	 * It assembles and returns an array containing the relevant details for displaying the activity logs.
 	 *
-	 * @param int $job_id The ID of the job for which activity logs data is requested.
+	 * @param string $job_id The ID of the job for which activity logs data is requested.
 	 *
 	 * @return array Fetched activity logs data including pagination and other details.
 	 */
 	protected static function getActivityLogsData( $job_id ) {
-		if ( empty( $job_id ) || $job_id <= 0 ) {
+		if ( empty( $job_id ) ) {
 			return [];
 		}
 		$bulk_action_log  = new MigrationLog();
@@ -359,11 +359,11 @@ class Common {
 		$parent_uid = $job_id;
 		$job_table = new ScheduledJobs();
 		global $wpdb;
-		$parent_or_child = $job_table->getWhere( $wpdb->prepare( " uid = %d AND source_app =%s", [ $job_id, 'wlr_migration' ] ) );
+		$parent_or_child = $job_table->getWhere( $wpdb->prepare( " uid = %s AND source_app =%s", [ $job_id, 'wlr_migration' ] ) );
 		if ( ! empty( $parent_or_child ) && is_object( $parent_or_child ) && ! empty( $parent_or_child->conditions ) ) {
 			$decoded = json_decode( $parent_or_child->conditions, true );
-			if ( isset( $decoded['batch_info']['parent_job_id'] ) && (int) $decoded['batch_info']['parent_job_id'] > 0 ) {
-				$parent_uid = (int) $decoded['batch_info']['parent_job_id'];
+			if ( isset( $decoded['batch_info']['parent_job_id'] ) ) {
+				$parent_uid = (string) $decoded['batch_info']['parent_job_id'];
 			}
 		}
 		$all_batches = ScheduledJobs::getBatchesByParent( $parent_uid );
@@ -371,12 +371,12 @@ class Common {
 		if ( ! empty( $all_batches ) && is_array( $all_batches ) ) {
 			foreach ( $all_batches as $row ) {
 				if ( isset( $row->uid ) ) {
-					$all_batch_ids[] = (int) $row->uid;
+					$all_batch_ids[] = (string) $row->uid;
 				}
 			}
 		}
 		if ( empty( $all_batch_ids ) ) {
-			$all_batch_ids = [ (int) $job_id ];
+			$all_batch_ids = [ (string) $job_id ];
 		}
 
 		$activity_list    = $bulk_action_log->getActivityList( $all_batch_ids, $current_page );

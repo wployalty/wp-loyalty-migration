@@ -28,7 +28,7 @@ class ScheduledJobs extends Base
         $this->table = self::$db->prefix . "wlr_scheduled_jobs";
         $this->primary_key = "id";
         $this->fields = [
-            "uid" => "%d",
+            "uid" => "%s",
             "source_app" => "%s",
             "admin_mail" => "%s",
             "category" => "%s",
@@ -71,7 +71,7 @@ class ScheduledJobs extends Base
         if (!empty($post['job_id'])) {
             $max_uid = $post['job_id'];
         } else {
-            $max_uid = ScheduledJobs::getMaxUid();
+            $max_uid = ScheduledJobs::generateUuid();
         }
 
         $admin_mail = WC::getLoginUserEmail();
@@ -109,20 +109,6 @@ class ScheduledJobs extends Base
         $job_table_model = new ScheduledJobs();
 
         return $job_table_model->insertRow($job_data);
-    }
-
-    public static function getMaxUid()
-    {
-        $cron_job_modal = new ScheduledJobs();
-        $where = self::$db->prepare(' id > %d', [0]);
-
-        $data_job = $cron_job_modal->getWhere($where, 'MAX(uid) as max_uid');
-        $max_uid = 1;
-        if (!empty($data_job) && is_object($data_job) && isset($data_job->max_uid)) {
-            $max_uid = $data_job->max_uid + 1;
-        }
-
-        return $max_uid;
     }
 
     /**
@@ -231,23 +217,23 @@ class ScheduledJobs extends Base
     /**
      * Get all batch jobs for a given parent job ID
      *
-     * @param int $parent_job_id Parent job ID
+     * @param string $parent_job_id Parent job ID
      * @return array Array of batch job objects
      */
     public static function getBatchesByParent($parent_job_id)
     {
-        if (empty($parent_job_id) || $parent_job_id <= 0) {
+        if (empty($parent_job_id)) {
             return [];
         }
         
         $job_table = new ScheduledJobs();
-        $like_numeric = '%"parent_job_id":' . (int)$parent_job_id . '%';
-        $like_string  = '%"parent_job_id":"' . (int)$parent_job_id . '"%';
+        $like_numeric = '%"parent_job_id":' . (string)$parent_job_id . '%';
+        $like_string  = '%"parent_job_id":"' . (string)$parent_job_id . '"%';
         $where = self::$db->prepare(
-            "source_app = %s AND (uid = %d OR conditions LIKE %s OR conditions LIKE %s) ORDER BY uid ASC",
+            "source_app = %s AND (uid = %s OR conditions LIKE %s OR conditions LIKE %s) ORDER BY uid ASC",
             [
                 "wlr_migration",
-                $parent_job_id,
+                (string)$parent_job_id,
                 $like_numeric,
                 $like_string
             ]
@@ -276,7 +262,7 @@ class ScheduledJobs extends Base
         }
 
         $job_table_model = new ScheduledJobs();
-        $max_uid = ScheduledJobs::getMaxUid();
+        $max_uid = ScheduledJobs::generateUuid();
 
         $parent_conditions = [];
         if (!empty($parent_job->conditions)) {
@@ -286,7 +272,7 @@ class ScheduledJobs extends Base
             }
         }
 
-        $parent_uid = isset($parent_job->uid) ? (int)$parent_job->uid : 0;
+        $parent_uid = isset($parent_job->uid) ? (string)$parent_job->uid : '';
         $batch_info = [
             'parent_job_id' => $parent_uid,
             'start_id' => (int)$start_id,
@@ -315,7 +301,7 @@ class ScheduledJobs extends Base
     /**
      * Update parent's last_enqueued_id cursor
      *
-     * @param int $parent_uid
+     * @param string $parent_uid
      * @param int $end_id
      * @return bool
      */
@@ -326,7 +312,7 @@ class ScheduledJobs extends Base
         }
         $job_table = new ScheduledJobs();
         global $wpdb;
-        $parent = $job_table->getWhere($wpdb->prepare(" uid = %d AND source_app = %s", [$parent_uid, 'wlr_migration']));
+        $parent = $job_table->getWhere($wpdb->prepare(" uid = %s AND source_app = %s", [$parent_uid, 'wlr_migration']));
         if (empty($parent) || !is_object($parent)) {
             return false;
         }
@@ -343,7 +329,7 @@ class ScheduledJobs extends Base
             'updated_at' => strtotime(gmdate('Y-m-d h:i:s')),
         ];
         return (bool) $job_table->updateRow($update_data, [
-            'uid' => (int)$parent_uid,
+            'uid' => (string)$parent_uid,
             'source_app' => 'wlr_migration'
         ]);
     }
@@ -381,7 +367,7 @@ class ScheduledJobs extends Base
     {
         $create_table_query = "CREATE TABLE IF NOT EXISTS {$this->table} (
 				 `{$this->getPrimaryKey()}` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-				 `uid` BIGINT UNSIGNED NOT NULL,
+				 `uid` VARCHAR(8) NOT NULL,
 				 `source_app` varchar(180) DEFAULT NULL,
 				 `admin_mail` varchar(180) DEFAULT NULL,
 				 `category` varchar(180) DEFAULT NULL,
@@ -415,6 +401,17 @@ class ScheduledJobs extends Base
             "created_at"
         ];
         $this->insertIndex($index_fields);
+    }
+
+    /**
+     * Generate UUID
+     *
+     * @param int $length
+     * @return string
+     */
+    public static function generateUuid($length = 8)
+    {
+        return substr(md5(uniqid()), -$length);
     }
 
 }

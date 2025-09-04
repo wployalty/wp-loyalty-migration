@@ -61,7 +61,7 @@ class WooPointsRewards implements Base
             return;
         }
 
-        $job_id = (int)($job_data->uid ?? 0);
+        $job_id = (string)($job_data->uid ?? '');
         $admin_mail = (string)($job_data->admin_mail ?? '');
         $action_type = (string)($job_data->action_type ?? "migration_to_wployalty");
 
@@ -87,7 +87,7 @@ class WooPointsRewards implements Base
     /**
      * Logs migration completion
      *
-     * @param int $job_id
+     * @param string $job_id
      * @return void
      */
     private function logMigrationCompletion($job_id)
@@ -104,7 +104,7 @@ class WooPointsRewards implements Base
      * Processes user migration
      *
      * @param array $wp_users
-     * @param int $job_id
+     * @param string $job_id
      * @param object $data
      * @param string $admin_mail
      * @param string $action_type

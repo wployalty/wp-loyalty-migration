@@ -54,7 +54,7 @@ class MigrationProducer
         $batch_limit = (int)($conditions['batch_limit'] ?? (int)$parent_job->limit ?? Settings::get('batch_limit', 50));
         $last_enqueued_id = (int)($conditions['last_enqueued_id'] ?? 0);
 
-        $parent_uid = (int)$parent_job->uid;
+        $parent_uid = (string)$parent_job->uid;
         if (!self::acquireProducerLock($parent_uid)) {
             return;
         }
@@ -96,12 +96,12 @@ class MigrationProducer
     /**
      * Acquire producer lock for a parent job using options API.
      *
-     * @param int $parent_uid
+     * @param string $parent_uid
      * @return bool
      */
     private static function acquireProducerLock($parent_uid)
     {
-        $option_name = 'wlrmg_producer_lock_' . (int)$parent_uid;
+        $option_name = 'wlrmg_producer_lock_' . (string)$parent_uid;
         $now = time();
         if (add_option($option_name, ['locked_at' => $now])) {
             return true;
@@ -118,29 +118,29 @@ class MigrationProducer
     /**
      * Release producer lock for a parent job.
      *
-     * @param int $parent_uid
+     * @param string $parent_uid
      * @return void
      */
     private static function releaseProducerLock($parent_uid)
     {
-        $option_name = 'wlrmg_producer_lock_' . (int)$parent_uid;
+        $option_name = 'wlrmg_producer_lock_' . (string)$parent_uid;
         delete_option($option_name);
     }
 
     /**
      * Finalize parent job if no active children; set failed if any child failed, else completed.
      *
-     * @param int $parent_uid
+     * @param string $parent_uid
      * @return bool
      */
     public static function finalizeParentIfNoActiveChildren($parent_uid)
     {
-        $children = ScheduledJobs::getBatchesByParent((int)$parent_uid);
+        $children = ScheduledJobs::getBatchesByParent((string)$parent_uid);
         $has_active = false;
         $has_failed = false;
         if (!empty($children) && is_array($children)) {
             foreach ($children as $child) {
-                if ((int)$child->uid === (int)$parent_uid) {
+                if ((string)$child->uid === (string)$parent_uid) {
                     continue;
                 }
                 $st = isset($child->status) ? (string)$child->status : '';
@@ -158,7 +158,7 @@ class MigrationProducer
                 'status' => $status,
                 'updated_at' => time()
             ], [
-                'uid' => (int)$parent_uid,
+                'uid' => (string)$parent_uid,
                 'source_app' => 'wlr_migration'
             ]);
             delete_option('wlrmg_active_category');

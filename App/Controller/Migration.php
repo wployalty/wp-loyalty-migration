@@ -332,14 +332,14 @@ class Migration
                 'job_id' => $post['job_id']
             ]));
 
-        $parent_uid = (int)$post['job_id'];
+        $parent_uid = (string)$post['job_id'];
         $job_table = new ScheduledJobs();
         global $wpdb;
-        $job_row = $job_table->getWhere($wpdb->prepare(" uid = %d AND source_app = %s", [$parent_uid, 'wlr_migration']));
+        $job_row = $job_table->getWhere($wpdb->prepare(" uid = %s AND source_app = %s", [$parent_uid, 'wlr_migration']));
         if (!empty($job_row) && is_object($job_row) && !empty($job_row->conditions)) {
             $decoded = json_decode($job_row->conditions, true);
-            if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
-                $parent_uid = (int)$decoded['batch_info']['parent_job_id'];
+            if (isset($decoded['batch_info']['parent_job_id'])) {
+                $parent_uid = (string)$decoded['batch_info']['parent_job_id'];
             }
         }
         $all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
@@ -347,7 +347,7 @@ class Migration
         if (!empty($all_batches) && is_array($all_batches)) {
             foreach ($all_batches as $row) {
                 if (isset($row->uid)) {
-                    $all_batch_ids[] = (int)$row->uid;
+                    $all_batch_ids[] = (string)$row->uid;
                 }
             }
         }
@@ -442,13 +442,13 @@ class Migration
             $where = 'id > 0 AND user_email != ""';
             $where .= $wpdb->prepare(' AND action = %s', [$post['category']]);
 
-            $parent_uid = (int)$post['job_id'];
+            $parent_uid = (string)$post['job_id'];
             $job_table = new ScheduledJobs();
-            $job_row = $job_table->getWhere($wpdb->prepare(' uid = %d AND source_app = %s', [$parent_uid, 'wlr_migration']));
+            $job_row = $job_table->getWhere($wpdb->prepare(' uid = %s AND source_app = %s', [$parent_uid, 'wlr_migration']));
             if (!empty($job_row) && is_object($job_row) && !empty($job_row->conditions)) {
                 $decoded = json_decode($job_row->conditions, true);
-                if (isset($decoded['batch_info']['parent_job_id']) && (int)$decoded['batch_info']['parent_job_id'] > 0) {
-                    $parent_uid = (int)$decoded['batch_info']['parent_job_id'];
+                if (isset($decoded['batch_info']['parent_job_id'])) {
+                    $parent_uid = (string)$decoded['batch_info']['parent_job_id'];
                 }
             }
             $all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
@@ -456,14 +456,14 @@ class Migration
             if (!empty($all_batches) && is_array($all_batches)) {
                 foreach ($all_batches as $row) {
                     if (isset($row->uid)) {
-                        $all_batch_ids[] = (int)$row->uid;
+                        $all_batch_ids[] = (string)$row->uid;
                     }
                 }
             }
             if (empty($all_batch_ids)) {
                 $all_batch_ids = [$parent_uid];
             }
-            $placeholders = implode(',', array_fill(0, count($all_batch_ids), '%d'));
+            $placeholders = implode(',', array_fill(0, count($all_batch_ids), '%s'));
             //phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
             $where .= $wpdb->prepare(" AND job_id IN ($placeholders)", $all_batch_ids);
             $where .= $wpdb->prepare(' ORDER BY id ASC LIMIT %d OFFSET %d', [

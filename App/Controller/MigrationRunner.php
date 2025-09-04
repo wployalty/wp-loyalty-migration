@@ -37,8 +37,8 @@ class MigrationRunner
                 break;
             }
             $time = time() + 10;
-            $uid = isset($job->uid) ? (int)$job->uid : 0;
-            if ($uid <= 0) {
+            $uid = isset($job->uid) ? (string)$job->uid : '';
+            if (empty($uid)) {
                 continue;
             }
             if (false === as_next_scheduled_action('wlrmg_process_migration_job', [['uid' => $uid]], 'wlrmg_migration_queue')) {
@@ -61,7 +61,7 @@ class MigrationRunner
         }
         $job_table = new ScheduledJobs();
         global $wpdb;
-        $loaded = $job_table->getWhere($wpdb->prepare('uid = %d AND source_app = %s', [(int)$job_data['uid'], 'wlr_migration']));
+        $loaded = $job_table->getWhere($wpdb->prepare('uid = %s AND source_app = %s', [$job_data['uid'], 'wlr_migration']));
         if (empty($loaded) || !is_object($loaded)) {
             return;
         }
@@ -103,7 +103,7 @@ class MigrationRunner
                     return;
             }
 
-            $latest = $job_table->getWhere($wpdb->prepare('uid = %d AND source_app = %s', [$job_data->uid, 'wlr_migration']));
+            $latest = $job_table->getWhere($wpdb->prepare('uid = %s AND source_app = %s', [$job_data->uid, 'wlr_migration']));
             $batch_info = ScheduledJobs::getBatchInfo($latest);
             if (!empty($latest) && is_object($latest) && $latest->status !== 'completed') {
                 $job_table->updateRow([
@@ -117,7 +117,7 @@ class MigrationRunner
         } catch (\Exception $e) {
             $job_table = new ScheduledJobs();
             global $wpdb;
-            $latest = $job_table->getWhere($wpdb->prepare('uid = %d AND source_app = %s', [$job_data->uid, 'wlr_migration']));
+            $latest = $job_table->getWhere($wpdb->prepare('uid = %s AND source_app = %s', [$job_data->uid, 'wlr_migration']));
             $conditions = [];
             if (!empty($latest) && is_object($latest) && !empty($latest->conditions)) {
                 $decoded = json_decode($latest->conditions, true);

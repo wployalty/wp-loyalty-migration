@@ -68,7 +68,7 @@ class WPSwings implements Base
      * The user migration includes data like user ID, email, and loyalty points.
      *
      * @param object $job_data The job data containing information required for user migration.
-     *                        - uid: int The unique identifier for the job.
+     *                        - uid: string The unique identifier for the job.
      *                        - admin_mail: string The email address of the administrator.
      *                        - action_type: string The type of action for the migration (default: "migration_to_wployalty").
      *                        - last_processed_id: int The ID of the last processed user.
@@ -83,7 +83,7 @@ class WPSwings implements Base
         if (empty($job_data) || !is_object($job_data)) {
             return;
         }
-        $job_id = (int)isset($job_data->uid) && !empty($job_data->uid) ? $job_data->uid : 0;
+        $job_id = (string)isset($job_data->uid) && !empty($job_data->uid) ? $job_data->uid : '';
         $admin_mail = (string)isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '';
         $action_type = (string)isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : "migration_to_wployalty";
         
@@ -102,7 +102,7 @@ class WPSwings implements Base
      * It processes each user one by one, updating their points and sending appropriate notifications.
      *
      * @param array $wp_users An array of WordPress user objects to be migrated.
-     * @param int $job_id The ID of the migration job.
+     * @param string $job_id The ID of the migration job.
      * @param object $data Additional data for migration.
      * @param string $admin_mail The email of the administrator initiating the migration.
      * @param string $action_type The type of action being performed during migration.

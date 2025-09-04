@@ -63,7 +63,7 @@ class WLPRPointsRewards implements Base
      * This method processes the job data object to extract necessary information for migrating users to the loyalty system.
      *
      * @param object $job_data The data object containing information for the migration job.
-     *                        - $job_data->uid (int) The ID of the job.
+     *                        - $job_data->uid (string) The ID of the job.
      *                        - $job_data->admin_mail (string) The email of the administrator.
      *                        - $job_data->action_type (string) The type of action for migration.
      *                        - $job_data->last_processed_id (int) The ID of the last processed user.
@@ -77,7 +77,7 @@ class WLPRPointsRewards implements Base
         if (empty($job_data) || !is_object($job_data)) {
             return;
         }
-        $job_id = (int)isset($job_data->uid) && !empty($job_data->uid) ? $job_data->uid : 0;
+        $job_id = (string)isset($job_data->uid) && !empty($job_data->uid) ? $job_data->uid : '';
         $admin_mail = (string)isset($job_data->admin_mail) && !empty($job_data->admin_mail) ? $job_data->admin_mail : '';
         $action_type = (string)isset($job_data->action_type) && !empty($job_data->action_type) ? $job_data->action_type : "migration_to_wployalty";
         
@@ -95,7 +95,7 @@ class WLPRPointsRewards implements Base
      * This method migrates user data including loyalty points and rewards based on the provided parameters.
      *
      * @param array $users Array of user data to migrate.
-     * @param int $job_id The ID of the migration job.
+     * @param string $job_id The ID of the migration job.
      * @param object $data Object containing additional migration data.
      * @param string $admin_mail Email of the administrator initiating the migration.
      * @param string $action_type Type of action for migration.
