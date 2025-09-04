@@ -65,6 +65,9 @@ class Setup
     {
         $next_scheduled = wp_next_scheduled("wlrmg_migration_jobs");
         wp_unschedule_event($next_scheduled, "wlrmg_migration_jobs");
+        if (function_exists('as_unschedule_all_actions')) {
+            as_unschedule_all_actions('', [], 'wlrmg_migration_queue');
+        }
     }
 
     /**
