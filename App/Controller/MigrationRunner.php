@@ -43,8 +43,8 @@ class MigrationRunner
             }
             if (false === as_next_scheduled_action('wlrmg_process_migration_job', [['uid' => $uid]], 'wlrmg_migration_queue')) {
                 as_schedule_single_action($time, 'wlrmg_process_migration_job', [['uid' => $uid]], 'wlrmg_migration_queue');
+                $in_flight++;
             }
-            $in_flight++;
         }
     }
 
