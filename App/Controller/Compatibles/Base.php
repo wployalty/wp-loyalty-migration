@@ -5,7 +5,7 @@
  * @link        https://www.wployalty.net
  * */
 
-namespace Wlrm\App\Controller\Compatibles;
+namespace Wlrmg\App\Controller\Compatibles;
 
 defined( 'ABSPATH' ) or die();
 

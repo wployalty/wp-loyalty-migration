@@ -5,12 +5,12 @@
  * @link        https://www.wployalty.net
  * */
 
-namespace Wlrm\App;
+namespace Wlrmg\App;
 
 
-use Wlrm\App\Controller\Common;
-use Wlrm\App\Controller\Migration;
-use Wlrm\App\Controller\MigrationRunner;
+use Wlrmg\App\Controller\Common;
+use Wlrmg\App\Controller\Migration;
+use Wlrmg\App\Controller\MigrationRunner;
 
 defined('ABSPATH') or die();
 

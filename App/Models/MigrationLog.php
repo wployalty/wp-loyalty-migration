@@ -5,7 +5,7 @@
  * @link        https://www.wployalty.net
  * */
 
-namespace Wlrm\App\Models;
+namespace Wlrmg\App\Models;
 
 use stdClass;
 use Wlr\App\Helpers\Input;
@@ -24,9 +24,6 @@ class MigrationLog extends Base
             "user_email" => "%s",
             "referral_code" => "%s",
             "points" => "%d",
-            "used_total_points" => "%d",
-            "earn_total_points" => "%d",
-            "birth_date" => "%d",
             "created_at" => "%d",
             "updated_at" => "%d",
         ];
@@ -70,10 +67,7 @@ class MigrationLog extends Base
                 `action` varchar(180) DEFAULT NULL,
                 `user_email` varchar(180) DEFAULT NULL,
                 `referral_code` varchar(180) DEFAULT NULL,
-                `points` BIGINT DEFAULT NULL,             
-                `used_total_points` BIGINT DEFAULT NULL,             
-                `earn_total_points` BIGINT DEFAULT NULL,             
-                `birth_date` BIGINT DEFAULT 0,
+                `points` BIGINT DEFAULT NULL,
                 `created_at` BIGINT DEFAULT 0,
                 `updated_at` BIGINT DEFAULT 0,
                 PRIMARY KEY (`{$this->getPrimaryKey()}`)
@@ -100,9 +94,6 @@ class MigrationLog extends Base
             "user_email" => (string)(isset($data['user_email']) && !empty($data['user_email']) ? $data['user_email'] : ''),
             "referral_code" => (string)(isset($data['referral_code']) && !empty($data['referral_code']) ? $data['referral_code'] : ''),
             "points" => (int)(isset($data['points']) && $data['points'] > 0 ? $data['points'] : 0),
-            "used_total_points" => (int)(isset($data['used_total_points']) && $data['used_total_points'] > 0 ? $data['used_total_points'] : 0),
-            "earn_total_points" => (int)(isset($data['earn_total_points']) && $data['earn_total_points'] > 0 ? $data['earn_total_points'] : 0),
-            "birth_date" => (int)(isset($data['birth_date']) && $data['birth_date'] > 0 ? $data['birth_date'] : 0),
             "updated_at" => strtotime(gmdate("Y-m-d h:i:s")),
         ];
 

@@ -1,9 +1,9 @@
 <?php
 
-namespace Wlrm\App\Controller;
+namespace Wlrmg\App\Controller;
 
-use Wlrm\App\Models\ScheduledJobs;
-use Wlrm\App\Controller\Migration;
+use Wlrmg\App\Models\ScheduledJobs;
+use Wlrmg\App\Controller\Migration;
 
 defined('ABSPATH') or die();
 
@@ -88,15 +88,15 @@ class MigrationRunner
 
             switch ($category) {
                 case 'wp_swings_migration':
-                    $svc = new \Wlrm\App\Controller\Compatibles\WPSwings();
+                    $svc = new \Wlrmg\App\Controller\Compatibles\WPSwings();
                     $svc->migrateToLoyalty($job_data, $users);
                     break;
                 case 'wlpr_migration':
-                    $svc = new \Wlrm\App\Controller\Compatibles\WLPRPointsRewards();
+                    $svc = new \Wlrmg\App\Controller\Compatibles\WLPRPointsRewards();
                     $svc->migrateToLoyalty($job_data, $users);
                     break;
                 case 'woocommerce_migration':
-                    $svc = new \Wlrm\App\Controller\Compatibles\WooPointsRewards();
+                    $svc = new \Wlrmg\App\Controller\Compatibles\WooPointsRewards();
                     $svc->migrateToLoyalty($job_data, $users);
                     break;
                 default:

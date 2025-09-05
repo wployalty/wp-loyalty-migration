@@ -1,10 +1,10 @@
 <?php
 
-namespace Wlrm\App;
+namespace Wlrmg\App;
 
-use Wlrm\App\Helper\Plugin;
-use Wlrm\App\Models\MigrationLog;
-use Wlrm\App\Models\ScheduledJobs;
+use Wlrmg\App\Helper\Plugin;
+use Wlrmg\App\Models\MigrationLog;
+use Wlrmg\App\Models\ScheduledJobs;
 
 defined('ABSPATH') || exit();
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Wlrm\App\Helper;
+namespace Wlrmg\App\Helper;
 
 defined('ABSPATH') || exit();
 

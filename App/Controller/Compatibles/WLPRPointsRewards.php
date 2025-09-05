@@ -5,13 +5,13 @@
  * @link        https://www.wployalty.net
  * */
 
-namespace Wlrm\App\Controller\Compatibles;
+namespace Wlrmg\App\Controller\Compatibles;
 
 use stdClass;
 use Wlr\App\Helpers\EarnCampaign;
 use Wlr\App\Models\Users;
-use Wlrm\App\Models\MigrationLog;
-use Wlrm\App\Models\ScheduledJobs;
+use Wlrmg\App\Models\MigrationLog;
+use Wlrmg\App\Models\ScheduledJobs;
 
 class WLPRPointsRewards implements Base
 {
@@ -185,7 +185,6 @@ class WLPRPointsRewards implements Base
                 'user_email' => $user_email,
                 'referral_code' => $refer_code,
                 'points' => $new_points,
-                'earn_total_points' => $new_points,
                 'created_at' => strtotime(gmdate("Y-m-d h:i:s")),
             ];
             if (!$wployalty_migration_status) {

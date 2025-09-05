@@ -5,7 +5,7 @@
  * @link        https://www.wployalty.net
  * */
 
-namespace Wlrm\App\Helper;
+namespace Wlrmg\App\Helper;
 
 use Wlr\App\Helpers\Input;
 

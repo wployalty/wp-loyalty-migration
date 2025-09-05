@@ -1,19 +1,19 @@
 <?php
 
-namespace Wlrm\App\Controller;
+namespace Wlrmg\App\Controller;
 
 use Exception;
 use stdClass;
-use Wlrm\App\Controller\Compatibles\WLPRPointsRewards;
-use Wlrm\App\Controller\Compatibles\WooPointsRewards;
-use Wlrm\App\Controller\Compatibles\WPSwings;
-use Wlrm\App\Helper\Input;
-use Wlrm\App\Helper\Pagination;
-use Wlrm\App\Helper\WC;
-use Wlrm\App\Models\MigrationLog;
-use Wlrm\App\Models\ScheduledJobs;
-use Wlrm\App\Controller\MigrationProducer;
-use Wlrm\App\Controller\MigrationRunner;
+use Wlrmg\App\Controller\Compatibles\WLPRPointsRewards;
+use Wlrmg\App\Controller\Compatibles\WooPointsRewards;
+use Wlrmg\App\Controller\Compatibles\WPSwings;
+use Wlrmg\App\Helper\Input;
+use Wlrmg\App\Helper\Pagination;
+use Wlrmg\App\Helper\WC;
+use Wlrmg\App\Models\MigrationLog;
+use Wlrmg\App\Models\ScheduledJobs;
+use Wlrmg\App\Controller\MigrationProducer;
+use Wlrmg\App\Controller\MigrationRunner;
 
 
 defined( 'ABSPATH' ) or die();

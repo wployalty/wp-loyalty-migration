@@ -5,12 +5,12 @@
  * @link        https://www.wployalty.net
  * */
 
-namespace Wlrm\App\Models;
+namespace Wlrmg\App\Models;
 
 use stdClass;
 use Wlr\App\Models\Base;
-use Wlrm\App\Helper\Settings;
-use Wlrm\App\Helper\WC;
+use Wlrmg\App\Helper\Settings;
+use Wlrmg\App\Helper\WC;
 
 defined("ABSPATH") or die();
 

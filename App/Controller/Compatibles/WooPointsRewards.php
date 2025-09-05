@@ -1,12 +1,12 @@
 <?php
 
-namespace Wlrm\App\Controller\Compatibles;
+namespace Wlrmg\App\Controller\Compatibles;
 
 use stdClass;
 use Wlr\App\Helpers\EarnCampaign;
 use Wlr\App\Models\Users;
-use Wlrm\App\Models\MigrationLog;
-use Wlrm\App\Models\ScheduledJobs;
+use Wlrmg\App\Models\MigrationLog;
+use Wlrmg\App\Models\ScheduledJobs;
 
 defined('ABSPATH') or die();
 
@@ -190,7 +190,6 @@ class WooPointsRewards implements Base
                 'user_email' => $user_email,
                 'referral_code' => $refer_code,
                 'points' => $total_points,
-                'earn_total_points' => $total_points,
                 'created_at' => strtotime(gmdate("Y-m-d h:i:s")),
             ];
 	        if (!$migration_status) {

@@ -20,9 +20,9 @@
  */
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
-use Wlrm\App\Helper\Plugin;
-use Wlrm\App\Router;
-use Wlrm\App\Setup;
+use Wlrmg\App\Helper\Plugin;
+use Wlrmg\App\Router;
+use Wlrmg\App\Setup;
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 defined( 'ABSPATH' ) or die();
@@ -92,13 +92,13 @@ add_filter( 'plugins_loaded', function () {
 	if ( ! class_exists( '\Wlr\App\Helpers\Input' ) ) {
 		return;
 	}
-	if ( ! class_exists( '\Wlrm\App\Router' ) ) {
+	if ( ! class_exists( '\Wlrmg\App\Router' ) ) {
 		return;
 	}
 	if ( Plugin::checkDependencies() ) {
 		Router::init();
 	}
 } );
-if ( class_exists( \Wlrm\App\Helper\Plugin::class ) ) {
+if ( class_exists( \Wlrmg\App\Helper\Plugin::class ) ) {
 	Setup::init();
 } // init setup

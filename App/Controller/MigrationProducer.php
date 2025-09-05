@@ -1,10 +1,10 @@
 <?php
 
-namespace Wlrm\App\Controller;
+namespace Wlrmg\App\Controller;
 
-use Wlrm\App\Models\ScheduledJobs;
-use Wlrm\App\Controller\Migration;
-use Wlrm\App\Helper\Settings;
+use Wlrmg\App\Models\ScheduledJobs;
+use Wlrmg\App\Controller\Migration;
+use Wlrmg\App\Helper\Settings;
 
 defined('ABSPATH') or die();
 
