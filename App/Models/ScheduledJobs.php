@@ -178,11 +178,10 @@ class ScheduledJobs extends Base
     {
         $job_table = new ScheduledJobs();
         $where = self::$db->prepare(
-            "source_app = %s AND id > 0 AND status IN (%s,%s) AND (conditions NOT LIKE %s) ORDER BY created_at ASC, id ASC",
+            "source_app = %s AND id > 0 AND status = %s AND (conditions NOT LIKE %s) ORDER BY created_at ASC, id ASC",
             [
                 'wlr_migration',
                 'pending',
-                'processing',
                 '%\"parent_job_id\"%'
             ]
         );
@@ -202,12 +201,11 @@ class ScheduledJobs extends Base
         }
         $job_table = new ScheduledJobs();
         $where = self::$db->prepare(
-            "source_app = %s AND category = %s AND id > 0 AND status IN (%s,%s) AND (conditions NOT LIKE %s) ORDER BY created_at ASC, id ASC",
+            "source_app = %s AND category = %s AND id > 0 AND status = %s AND (conditions NOT LIKE %s) ORDER BY created_at ASC, id ASC",
             [
                 'wlr_migration',
                 $category,
                 'pending',
-                'processing',
                 '%\"parent_job_id\"%'
             ]
         );
