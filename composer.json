@@ -10,6 +10,7 @@
     }
   ],
   "require": {
+    "php": "7.4.*",
     "parsecsv/php-parsecsv": "^1.3",
     "ext-json": "*",
     "yahnis-elsts/plugin-update-checker": ">=v5.0",
