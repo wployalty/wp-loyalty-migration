@@ -5,7 +5,7 @@
  * @link        https://www.wployalty.net
  * */
 defined( 'ABSPATH' ) or die();
-$current_page = ( isset( $current_page ) && ! empty( $current_page ) ) ? $current_page : $current_page = "actions";
+$current_page = ! empty( $current_page ) ? $current_page : $current_page = "actions";
 ?>
 
 <div id="wlrmg-actions"
@@ -17,9 +17,9 @@ $current_page = ( isset( $current_page ) && ! empty( $current_page ) ) ? $curren
             </div>
             <div class="heading-buttons">
                 <button type="button" class="wlrmg-button-action non-colored-button"
-                        onclick="wlrmg.redirectToUrl('<?php echo isset( $back_to_apps_url ) && ! empty( $back_to_apps_url ) ? esc_url( $back_to_apps_url ) : '#'; ?>');">
+                        onclick="wlrmg.redirectToUrl('<?php echo ! empty( $back_to_apps_url ) ? esc_url( $back_to_apps_url ) : '#'; ?>');">
 					<?php //phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
-                    <img src="<?php echo ( isset( $previous ) && ! empty( $previous ) ) ? esc_url( $previous ) : ""; ?>"
+                    <img src="<?php echo ( ! empty( $previous ) ) ? esc_url( $previous ) : ""; ?>"
                          alt="<?php echo esc_html__( "Cancel", "wp-loyalty-migration" ) ?>">
 					<?php esc_html_e( "Back to WPLoyalty", "wp-loyalty-migration" ); ?></button>
             </div>
@@ -32,14 +32,17 @@ $current_page = ( isset( $current_page ) && ! empty( $current_page ) ) ? $curren
                     <div class="wlrmg-migation-card-section">
 						<?php foreach ( $migration_cards as $card ):
 							$is_completed = ( isset( $card['job_data'] ) && is_object( $card['job_data'] ) && isset( $card['job_data']->status ) && $card['job_data']->status == "completed" );
-							$is_active = ( isset( $card['is_active'] ) && $card['is_active'] ); ?>
+							$is_active = ! empty( $card['is_active'] ); ?>
                             <div class="wlrmg-card <?php echo $is_active || $is_completed ? 'active' : ''; ?>">
                                 <div>
-                                    <h5><?php echo ( isset( $card['title'] ) && ! empty( $card['title'] ) ) ? esc_html__( $card['title'], "wp-loyalty-migration" ) : ''; //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
-										?></h5>
+                                    <h5><?php
+										//phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+										echo ( ! empty( $card['title'] ) ) ? esc_html__( $card['title'], "wp-loyalty-migration" ) : ''; ?></h5>
                                 </div>
                                 <div>
-                                    <p><?php echo ( isset( $card['description'] ) && ! empty( $card['description'] ) ) ? esc_html__( $card['description'], "wp-loyalty-migration" ) : ''; // //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+                                    <p><?php
+										//phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+										echo ( ! empty( $card['description'] ) ) ? esc_html__( $card['description'], "wp-loyalty-migration" ) : '';
 										?></p>
                                 </div>
                                 <div class="wlrmg-button-section">
@@ -50,12 +53,12 @@ $current_page = ( isset( $current_page ) && ! empty( $current_page ) ) ? $curren
 									<?php if ( ( isset( $card['job_data'] ) && is_object( $card['job_data'] ) && isset( $card['job_data']->uid ) && $is_active ) || $is_completed ): ?>
                                         <a class="wlrmg-button wlrmg-view-button"
                                            title="<?php echo esc_html__( "View Details", "wp-loyalty-migration" ) ?>"
-                                           href="<?php echo esc_url( admin_url( "admin.php?" . http_build_query( array(
+                                           href="<?php echo esc_url( admin_url( "admin.php?" . http_build_query( [
 												   "page"   => WLRMG_PLUGIN_SLUG,
 												   "view"   => "activity_details",
 												   "type"   => $card['type'],
 												   "job_id" => $card['job_data']->uid
-											   ) ) ) ) ?>">
+											   ] ) ) ) ?>">
 											<?php echo esc_html__( "View Details", "wp-loyalty-migration" ) ?></a>
 									<?php endif; ?>
                                 </div>

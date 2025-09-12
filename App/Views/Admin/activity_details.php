@@ -9,20 +9,20 @@
 use Wlr\App\Helpers\EarnCampaign;
 
 defined( "ABSPATH" ) or die();
-$current_page         = ( isset( $current_page ) && ! empty( $current_page ) ) ? $current_page : $current_page = "activity_details";
+$current_page         = ! empty( $current_page ) ? $current_page : $current_page = "activity_details";
 $activity             = ( isset( $activity ) && ! empty( $activity ) ) ? $activity : [];
-$job_data             = isset( $activity['job_data'] ) && ! empty( $activity['job_data'] ) ? $activity['job_data'] : array();
-$action               = ( isset( $action ) && ! empty( $action ) ) ? $action : '';
+$job_data             = isset( $activity['job_data'] ) && ! empty( $activity['job_data'] ) ? $activity['job_data'] : [];
+$action               = ( ! empty( $action ) ) ? $action : '';
 $earn_campaign_helper = EarnCampaign::getInstance();
 ?>
 <div id="wlrmg-activity-details"
      class="wlrmg-body-active-content <?php echo ( $current_page == "activity_details" ) ? "active-content" : ""; ?>">
     <div class="wlrmg-activity-details-header">
-        <a href="<?php echo esc_url( admin_url( "admin.php?" . http_build_query( array(
+        <a href="<?php echo esc_url( admin_url( "admin.php?" . http_build_query( [
 				"page" => WLRMG_PLUGIN_SLUG,
 				"view" => "actions"
-			) ) ) ) ?>"><img
-                    src="<?php echo ( isset( $back ) && ! empty( $back ) ) ? esc_url( $back ) : ""; ?>"
+			] ) ) ) ?>"><img
+                    src="<?php echo ! empty( $back ) ? esc_url( $back ) : ""; ?>"
                     class="wlrmg-back-btn"
                     alt="<?php echo esc_html__( "Back", "wp-loyalty-migration" ) ?>"></a>
         <h3><?php echo esc_html__( "ACTIVITY DETAILS", "wp-loyalty-migration" ); ?></h3>
@@ -42,7 +42,9 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                         <p class="wlrmg-desc-label">
                             <strong><?php echo esc_html__( "Date created", "wp-loyalty-migration" ) ?></strong></p>
 						<?php if ( isset( $job_data["created_at"] ) && ! empty( $job_data["created_at"] ) ): ?>
-                            <p class="wlrmg-desc-value"><?php echo esc_html__( $job_data["created_at"], "wp-loyalty-migration" ); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+                            <p class="wlrmg-desc-value"><?php
+								//phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+								echo esc_html__( $job_data["created_at"], "wp-loyalty-migration" );
 								?></p>
 						<?php endif; ?>
                     </div>
@@ -53,13 +55,13 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                             <p class="wlrmg-desc-value"><?php echo esc_html( $job_data["processed_items"] ); ?></p>
 						<?php endif; ?>
                     </div>
-					<?php // Batch stats removed from UI; only show status and processed items
-					?>
                     <div>
                         <p class=".wlrmg-desc-label">
                             <strong><?php echo esc_html__( 'Status', 'wp-loyalty-migration' ); ?></strong></p>
                         <p class="wlrmg-desc-value wlrmg-activity-status">
-                            <span class="<?php echo ! empty( $job_data['status'] ) ? "wlrmg-" . esc_attr( $job_data['status'] ) : ""; ?>"><?php echo esc_html__( ucfirst( $job_data['status'] ), 'wp-loyalty-migration' );  //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+                            <span class="<?php echo ! empty( $job_data['status'] ) ? "wlrmg-" . esc_attr( $job_data['status'] ) : ""; ?>"><?php
+	                            //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+	                            echo esc_html__( ucfirst( $job_data['status'] ), 'wp-loyalty-migration' );
 	                            ?></span>
                         </p>
                     </div>
@@ -69,7 +71,9 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                                 <strong><?php echo esc_html__( 'Update points', 'wp-loyalty-migration' ); ?></strong>
                             </p>
                             <p class="wlrmg-desc-value ">
-                                <span><?php echo esc_html__( ucfirst( $job_data['conditions']['update_point'] ), 'wp-loyalty-migration' ); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+                                <span><?php
+	                                //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+	                                echo esc_html__( ucfirst( $job_data['conditions']['update_point'] ), 'wp-loyalty-migration' );
 	                                ?></span>
                             </p>
                         </div>
@@ -90,7 +94,8 @@ $earn_campaign_helper = EarnCampaign::getInstance();
 
 			<?php
 			// Check if a search parameter exists in the URL
-			$search = isset( $_GET['search'] ) ? sanitize_text_field( wp_unslash( $_GET['search'] ) ) : ''; //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$search = isset( $_GET['search'] ) ? sanitize_text_field( wp_unslash( $_GET['search'] ) ) : '';
 
 			if ( ! empty( $search ) ) {
 				$v = new Valitron\Validator( [ 'search' => $search ] );
@@ -139,12 +144,12 @@ $earn_campaign_helper = EarnCampaign::getInstance();
                                     <span id="search_button"
                                           onclick="
                                                   const searchEmail = document.getElementById('search_email').value;
-                                                  const baseUrl = '<?php echo esc_url( admin_url( "admin.php?" . http_build_query( array(
+                                                  const baseUrl = '<?php echo esc_url( admin_url( "admin.php?" . http_build_query( [
 											      "page"   => WLRMG_PLUGIN_SLUG,
 											      "view"   => "activity_details",
 											      "type"   => $action,
 											      "job_id" => $job_id
-										      ) ) ) ); ?>';
+										      ] ) ) ); ?>';
                                                   const newUrl = searchEmail ? baseUrl + '&search=' + encodeURIComponent(searchEmail) : baseUrl;
                                                   window.location.href = newUrl;
                                                   ">
@@ -196,10 +201,10 @@ $earn_campaign_helper = EarnCampaign::getInstance();
 								<?php
 								//phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 								echo $activity['activity']['pagination']->createLinks(
-									array(
+									[
 										'page_number_name' => 'migration_page',
 										'focus_id'         => 'wlrmg-activity-list-table'
-									)
+									]
 								); ?>
                             </div>
 						<?php endif; ?>
@@ -211,7 +216,7 @@ $earn_campaign_helper = EarnCampaign::getInstance();
         <div class="no-activity-block">
             <div>
                 <img
-                        src="<?php echo isset( $no_activity_icon ) && ! empty( $no_activity_icon ) ? esc_url( $no_activity_icon ) : "" ?>"/>
+                        src="<?php echo ! empty( $no_activity_icon ) ? esc_url( $no_activity_icon ) : "" ?>"/>
             </div>
             <div>
                 <span class="no-activity-label-1"><?php echo esc_html__( "No activities yet", "wp-loyalty-migration" ) ?></span>

@@ -5,7 +5,7 @@
  * @link        https://www.wployalty.net
  * */
 defined( "ABSPATH" ) or die();
-$category = isset( $category ) && ! empty( $category ) ? $category : '';
+$category = ! empty( $category ) ? $category : '';
 ?>
 <div id="wlrmg-popup" class="wlrmg-popup">
     <div class="wlrmg-popup-head">

@@ -5,10 +5,10 @@
  * @link        https://www.wployalty.net
  * */
 defined( "ABSPATH" ) or die();
-$current_page       = ( isset( $current_page ) && ! empty( $current_page ) ) ? $current_page : $current_page = "activity";
-$activity_list_data = ( isset( $activity_list ) && ! empty( $activity_list ) ) ? $activity_list : array();
+$current_page       = ! empty( $current_page ) ? $current_page : $current_page = "activity";
+$activity_list_data = ( isset( $activity_list ) && ! empty( $activity_list ) ) ? $activity_list : [];
 $condition          = isset( $condition ) && ! empty( $condition ) ? $condition : "";
-$condition_status   = isset( $condition_status ) && ! empty( $condition_status ) ? $condition_status : array();
+$condition_status   = isset( $condition_status ) && ! empty( $condition_status ) ? $condition_status : [];
 ?>
 <div id="wlrmg-activity"
      class="wlrmg-body-active-content <?php echo ( $current_page == "activity" ) ? "active-content" : ""; ?>">
@@ -21,14 +21,16 @@ $condition_status   = isset( $condition_status ) && ! empty( $condition_status )
                     <h3><?php esc_html_e( "ACTIVITIES", "wp-loyalty-migration" ); ?></h3>
                 </div>
                 <div class="wlrmg-filter-selection-block">
-					<?php if ( isset( $condition_status ) && ! empty( $condition_status ) && isset( $condition ) && ! empty( $condition ) ): ?>
+					<?php if ( ! empty( $condition_status ) && ! empty( $condition ) ): ?>
 						<?php foreach ( $condition_status as $key => $status ): ?>
                             <div class="wlrmg-filter-status">
-                                <a href="<?php echo esc_url( admin_url( "admin.php?" . http_build_query( array(
+                                <a href="<?php echo esc_url( admin_url( "admin.php?" . http_build_query( [
 										"page"      => WLRMG_PLUGIN_SLUG,
 										"view"      => "activity",
 										"condition" => $key
-									) ) ) ); ?>" <?php echo $key === $condition ? 'class="active-filter"' : "" ?>><?php echo esc_html__( $status, "wp-loyalty-migration" ) //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	 ?></a>
+									] ) ) ); ?>" <?php echo $key === $condition ? 'class="active-filter"' : "" ?>><?php
+									//phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+									echo esc_html__( $status, "wp-loyalty-migration" ) ?></a>
                             </div>
 						<?php endforeach; ?>
 					<?php endif; ?>
@@ -45,7 +47,7 @@ $condition_status   = isset( $condition_status ) && ! empty( $condition_status )
             <div class="wlrmg-no-activity-yet">
                 <div>
                     <img
-                            src="<?php echo ( isset( $no_activity_list ) && ! empty( $no_activity_list ) ) ? esc_url( $no_activity_list ) : ""; ?>"
+                            src="<?php echo ( ! empty( $no_activity_list ) ) ? esc_url( $no_activity_list ) : ""; ?>"
                             alt="<?php echo esc_attr__( "Filter", "wp-loyalty-migration" ) ?>">
                 </div>
                 <div>
@@ -76,7 +78,7 @@ $condition_status   = isset( $condition_status ) && ! empty( $condition_status )
                     <div class="wlrmg-activity-list-row">
                         <div class="wlrmg-activity-row-data">
                             <img
-                                    src="<?php echo ( isset( $activity["image_icon"] ) && ! empty( $activity["image_icon"] ) ) ? esc_url( $activity["image_icon"] ) : ""; ?>"
+                                    src="<?php echo ( ! empty( $activity["image_icon"] ) ) ? esc_url( $activity["image_icon"] ) : ""; ?>"
                                     alt="<?php echo esc_attr__( "Order point", "wp-loyalty-migration" ) ?>">
                         </div>
                         <div class="wlrmg-activity-row-data ">
@@ -101,7 +103,9 @@ $condition_status   = isset( $condition_status ) && ! empty( $condition_status )
 							echo esc_html__( $activity["processed_count"], "wp-loyalty-migration" ); ?>
                         </div>
                         <div class="wlrmg-activity-row-data ">
-							<?php echo esc_html__( $activity["status"], "wp-loyalty-migration" ); //phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText	?>
+							<?php
+							//phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+							echo esc_html__( $activity["status"], "wp-loyalty-migration" ); ?>
                         </div>
                         <div class="actions wlba-grid-span-2">
                             <div>
@@ -125,7 +129,9 @@ $condition_status   = isset( $condition_status ) && ! empty( $condition_status )
 	<?php if ( ! empty( $activity_list_data ) ): ?>
         <div class="wlrmg-pagination">
 			<?php if ( isset( $pagination ) && ! empty( $pagination ) ): ?>
-				<?php echo $pagination->createLinks(); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped	?>
+				<?php
+				//phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $pagination->createLinks(); ?>
 			<?php endif; ?>
         </div>
 	<?php endif; ?>
