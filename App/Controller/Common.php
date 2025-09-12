@@ -234,45 +234,45 @@ class Common {
 			$job_info = self::handleJobData( $job_data );
 
 			$parent_uid = $job_data->uid;
-			$decoded = !empty($job_data->conditions) ? json_decode($job_data->conditions, true) : [];
-			if (isset($decoded['batch_info']['parent_job_id'])) {
-				$parent_uid = (string)$decoded['batch_info']['parent_job_id'];
+			$decoded    = ! empty( $job_data->conditions ) ? json_decode( $job_data->conditions, true ) : [];
+			if ( isset( $decoded['batch_info']['parent_job_id'] ) ) {
+				$parent_uid = (string) $decoded['batch_info']['parent_job_id'];
 			}
-			$all_batches = ScheduledJobs::getBatchesByParent($parent_uid);
-			$total_batches = is_array($all_batches) ? count($all_batches) : 0;
+			$all_batches   = ScheduledJobs::getBatchesByParent( $parent_uid );
+			$total_batches = is_array( $all_batches ) ? count( $all_batches ) : 0;
 			$status_counts = [
-				'pending' => 0,
+				'pending'    => 0,
 				'processing' => 0,
-				'completed' => 0,
-				'failed' => 0,
+				'completed'  => 0,
+				'failed'     => 0,
 			];
-			if (!empty($all_batches)) {
-				foreach ($all_batches as $single_job) {
-					$st = isset($single_job->status) ? (string)$single_job->status : '';
-					if (isset($status_counts[$st])) {
-						$status_counts[$st]++;
+			if ( ! empty( $all_batches ) ) {
+				foreach ( $all_batches as $single_job ) {
+					$st = isset( $single_job->status ) ? (string) $single_job->status : '';
+					if ( isset( $status_counts[ $st ] ) ) {
+						$status_counts[ $st ] ++;
 					} else {
-						$status_counts['pending']++;
+						$status_counts['pending'] ++;
 					}
 				}
 			}
 
 			$processed_items = 0;
-			if (!empty($all_batches)) {
-				foreach ($all_batches as $single_job) {
-					$processed_items += (int)($single_job->offset ?? 0);
+			if ( ! empty( $all_batches ) ) {
+				foreach ( $all_batches as $single_job ) {
+					$processed_items += (int) ( $single_job->offset ?? 0 );
 				}
 			}
 			$job_info['processed_items'] = $processed_items;
 
 			$overall_status = 'pending';
-			if ($total_batches > 0 && $status_counts['completed'] === $total_batches) {
+			if ( $total_batches > 0 && $status_counts['completed'] === $total_batches ) {
 				$overall_status = 'completed';
-			} elseif ($status_counts['processing'] > 0) {
+			} elseif ( $status_counts['processing'] > 0 ) {
 				$overall_status = 'processing';
-			} elseif ($status_counts['completed'] > 0 && $status_counts['completed'] < $total_batches) {
+			} elseif ( $status_counts['completed'] > 0 && $status_counts['completed'] < $total_batches ) {
 				$overall_status = 'processing';
-			} elseif ($status_counts['failed'] > 0 && $status_counts['completed'] === 0) {
+			} elseif ( $status_counts['failed'] > 0 && $status_counts['completed'] === 0 ) {
 				$overall_status = 'failed';
 			}
 			$job_info['status'] = $overall_status;
@@ -349,24 +349,27 @@ class Common {
 		if ( empty( $job_id ) ) {
 			return [];
 		}
-		$bulk_action_log  = new MigrationLog();
-		$url              = admin_url( 'admin.php?' . http_build_query( [
+		$bulk_action_log = new MigrationLog();
+		$url             = admin_url( 'admin.php?' . http_build_query( [
 				'page'   => WLRMG_PLUGIN_SLUG,
 				'view'   => 'activity_details',
 				'job_id' => $job_id,
 			] ) );
-		$current_page     = (int) Input::get( 'migration_page', 1 );
-		$parent_uid = $job_id;
-		$job_table = new ScheduledJobs();
+		$current_page    = (int) Input::get( 'migration_page', 1 );
+		$parent_uid      = $job_id;
+		$job_table       = new ScheduledJobs();
 		global $wpdb;
-		$parent_or_child = $job_table->getWhere( $wpdb->prepare( " uid = %s AND source_app =%s", [ $job_id, 'wlr_migration' ] ) );
+		$parent_or_child = $job_table->getWhere( $wpdb->prepare( " uid = %s AND source_app =%s", [
+			$job_id,
+			'wlr_migration'
+		] ) );
 		if ( ! empty( $parent_or_child ) && is_object( $parent_or_child ) && ! empty( $parent_or_child->conditions ) ) {
 			$decoded = json_decode( $parent_or_child->conditions, true );
 			if ( isset( $decoded['batch_info']['parent_job_id'] ) ) {
 				$parent_uid = (string) $decoded['batch_info']['parent_job_id'];
 			}
 		}
-		$all_batches = ScheduledJobs::getBatchesByParent( $parent_uid );
+		$all_batches   = ScheduledJobs::getBatchesByParent( $parent_uid );
 		$all_batch_ids = [];
 		if ( ! empty( $all_batches ) && is_array( $all_batches ) ) {
 			foreach ( $all_batches as $row ) {
@@ -449,27 +452,27 @@ class Common {
 			'select2'
 		], WLRMG_PLUGIN_VERSION . '&t=' . time() );
 		$localize_data = apply_filters( 'wlrmg_before_localize_data', [
-			'ajax_url'      => admin_url( 'admin-ajax.php' ),
-			'migrate_users' => WC::createNonce( 'wlrmg_migrate_users_nonce' ),
-			'save_settings' => WC::createNonce( 'wlrmg_save_settings_nonce' ),
-			'popup_nonce'   => WC::createNonce( 'wlrmg_popup_nonce' ),
-            'yes'           => __( 'Yes, Proceed', 'wp-loyalty-migration' ),
-			'cancel'        => __( 'No, Cancel', 'wp-loyalty-migration' ),
-			'export_warning' => __( 'Are you sure you want to leave?', 'wp-loyalty-migration' ),
-			'migration_warning' => __( 'Migration Warning', 'wp-loyalty-migration' ),
+			'ajax_url'              => admin_url( 'admin-ajax.php' ),
+			'migrate_users'         => WC::createNonce( 'wlrmg_migrate_users_nonce' ),
+			'save_settings'         => WC::createNonce( 'wlrmg_save_settings_nonce' ),
+			'popup_nonce'           => WC::createNonce( 'wlrmg_popup_nonce' ),
+			'yes'                   => __( 'Yes, Proceed', 'wp-loyalty-migration' ),
+			'cancel'                => __( 'No, Cancel', 'wp-loyalty-migration' ),
+			'export_warning'        => __( 'Are you sure you want to leave?', 'wp-loyalty-migration' ),
+			'migration_warning'     => __( 'Migration Warning', 'wp-loyalty-migration' ),
 			'cancel_export_warning' => __( 'Export is in progress. Do you really want to close?', 'wp-loyalty-migration' ),
-			'cancel_warning' => __( 'Make sure you want to close?', 'wp-loyalty-migration' ),
-			'migration_notice' => wp_kses_post( '
-                    <h3>' . __( 'Important Note : ' ,'wp-loyalty-migration') . '</h3>
-					<p>' . __('Please read before starting migration:' ,'wp-loyalty-migration') . '</p>
+			'cancel_warning'        => __( 'Make sure you want to close?', 'wp-loyalty-migration' ),
+			'migration_notice'      => wp_kses_post( '
+                    <h3>' . __( 'Important Note : ', 'wp-loyalty-migration' ) . '</h3>
+					<p>' . __( 'Please read before starting migration:', 'wp-loyalty-migration' ) . '</p>
                     <ol>
-						<li>' . __('Do not deactivate or delete your old point system/program during migration.' ,'wp-loyalty-migration') . '</li>
-                        <li>' . __( 'Before starting the migration in WPLoyalty, ensure that earning and redeeming points is paused in your existing system/program. Its lead to give extra/low points in migration.' ,'wp-loyalty-migration') . '</li>
-                        <li>' . __( 'The default batch limit is set to 50. You can adjust this in the settings.For example, if the batch limit is 50, then 150 customers will be migrated every 3 minutes — resulting in 3000 customers per hour, around 72,000 customers per day.','wp-loyalty-migration' ) . '</li>
-                        <li>' . __( 'Once a migration job is started, it cannot be paused or stopped midway. Please double-check all configurations before initiating the process.' ,'wp-loyalty-migration') . '</li>
+						<li>' . __( 'Do not deactivate or delete your old point system/program during migration.', 'wp-loyalty-migration' ) . '</li>
+                        <li>' . __( 'Before starting the migration in WPLoyalty, ensure that earning and redeeming points is paused in your existing system/program. Its lead to give extra/low points in migration.', 'wp-loyalty-migration' ) . '</li>
+                        <li>' . __( 'The default batch limit is set to 50. You can adjust this in the settings.For example, if the batch limit is 50, then 150 customers will be migrated every 3 minutes — resulting in 3000 customers per hour, around 72,000 customers per day.', 'wp-loyalty-migration' ) . '</li>
+                        <li>' . __( 'Once a migration job is started, it cannot be paused or stopped midway. Please double-check all configurations before initiating the process.', 'wp-loyalty-migration' ) . '</li>
                     </ol>
                 ' ),
-		],true );
+		], true );
 		wp_localize_script( WLRMG_PLUGIN_SLUG . '-main-script', 'wlrmg_localize_data', $localize_data );
 	}
 
@@ -545,7 +548,7 @@ class Common {
 	 * @return array The modified input data array with minutes added if it was an array.
 	 */
 	public static function addMinutes( $data ) {
-		if ( ! is_array( $data ) || isset($data['every_3_minutes']) ) {
+		if ( ! is_array( $data ) || isset( $data['every_3_minutes'] ) ) {
 			return $data;
 		}
 
@@ -561,14 +564,14 @@ class Common {
 		// Produce child batches for the active category first
 		MigrationProducer::produceChildBatches();
 
-		$active_opt = get_option('wlrmg_active_category', []);
-		$active_category = is_array($active_opt) && ! empty($active_opt['category']) ? (string) $active_opt['category'] : '';
-        if (empty($active_category)) {
-            return;
-        }
+		$active_opt      = get_option( 'wlrmg_active_category', [] );
+		$active_category = is_array( $active_opt ) && ! empty( $active_opt['category'] ) ? (string) $active_opt['category'] : '';
+		if ( empty( $active_category ) ) {
+			return;
+		}
 
-		$max_in_flight = (int) apply_filters('wlrmg_max_in_flight_batches', 10);
-		MigrationRunner::schedulePendingChildren($active_category, $max_in_flight);
+		$max_in_flight = (int) apply_filters( 'wlrmg_max_in_flight_batches', 10 );
+		MigrationRunner::schedulePendingChildren( $active_category, $max_in_flight );
 	}
 
 
