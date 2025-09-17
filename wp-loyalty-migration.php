@@ -68,7 +68,7 @@ defined( 'WLRMG_PLUGIN_DIR' ) or define( 'WLRMG_PLUGIN_DIR', str_replace( "\\", 
 defined( 'WLRMG_PLUGIN_URL' ) or define( 'WLRMG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 defined( 'WLRMG_PLUGIN_FILE' ) or define( 'WLRMG_PLUGIN_FILE', __FILE__ );
 defined( 'WLRMG_VIEW_PATH' ) or define( 'WLRMG_VIEW_PATH', str_replace( "\\", '/', __DIR__ ) . '/App/Views' );
-defined( 'WLRMG_MINIMUM_PHP_VERSION' ) or define( 'WLRMG_MINIMUM_PHP_VERSION', '7.0.0' );
+defined( 'WLRMG_MINIMUM_PHP_VERSION' ) or define( 'WLRMG_MINIMUM_PHP_VERSION', '7.4.0' );
 defined( 'WLRMG_MINIMUM_WP_VERSION' ) or define( 'WLRMG_MINIMUM_WP_VERSION', '6.0' );
 defined( 'WLRMG_MINIMUM_WC_VERSION' ) or define( 'WLRMG_MINIMUM_WC_VERSION', '10.0.0' );
 defined( 'WLRMG_MINIMUM_WLR_VERSION' ) or define( 'WLRMG_MINIMUM_WLR_VERSION', '1.4.0' );

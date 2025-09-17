@@ -2,16 +2,16 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: WPLoyalty - Migration 1.0.0\n"
+"Project-Id-Version: WPLoyalty - Migration 1.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-loyalty-migration\n"
 "Last-Translator: wployalty <support@wployalty.net>\n"
 "Language-Team: wployalty <support@wployalty.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-08-19T07:14:49+00:00\n"
+"POT-Creation-Date: 2025-09-17T06:07:19+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0\n"
+"X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-loyalty-migration\n"
 
 #. Plugin Name of the plugin
@@ -62,131 +62,138 @@ msgstr ""
 msgid "Woocommerce points and rewards"
 msgstr ""
 
-#: App/Controller/Common.php:314
+#: App/Controller/Common.php:316
 msgid "WP Swings Migration"
 msgstr ""
 
-#: App/Controller/Common.php:317
+#: App/Controller/Common.php:319
 msgid "Woocommerce Loyalty Points and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:320
+#: App/Controller/Common.php:322
 msgid "Woocommerce Point and Rewards Migration"
 msgstr ""
 
-#: App/Controller/Common.php:328
-#: App/Views/Admin/popup.php:25
+#: App/Controller/Common.php:330
+#: App/Views/Admin/popup.php:26
 msgid "Add points to customer"
 msgstr ""
 
-#: App/Controller/Common.php:329
-#: App/Views/Admin/popup.php:24
+#: App/Controller/Common.php:331
+#: App/Views/Admin/popup.php:25
 msgid "Skip customer"
 msgstr ""
 
-#: App/Controller/Common.php:454
+#: App/Controller/Common.php:459
 msgid "Yes, Proceed"
 msgstr ""
 
-#: App/Controller/Common.php:455
+#: App/Controller/Common.php:460
 msgid "No, Cancel"
 msgstr ""
 
-#: App/Controller/Common.php:456
+#: App/Controller/Common.php:461
 msgid "Are you sure you want to leave?"
 msgstr ""
 
-#: App/Controller/Common.php:457
+#: App/Controller/Common.php:462
 msgid "Migration Warning"
 msgstr ""
 
-#: App/Controller/Common.php:458
+#: App/Controller/Common.php:463
 msgid "Export is in progress. Do you really want to close?"
 msgstr ""
 
-#: App/Controller/Common.php:459
+#: App/Controller/Common.php:464
 msgid "Make sure you want to close?"
 msgstr ""
 
-#: App/Controller/Common.php:461
-msgid "Important Note : Please read before starting migration,Do not deactivate or delete your old point system/program during migration."
+#: App/Controller/Common.php:466
+msgid "Important Note : "
 msgstr ""
 
-#: App/Controller/Common.php:463
+#: App/Controller/Common.php:467
+msgid "Please read before starting migration:"
+msgstr ""
+
+#: App/Controller/Common.php:469
+msgid "Do not deactivate or delete your old point system/program during migration."
+msgstr ""
+
+#: App/Controller/Common.php:470
 msgid "Before starting the migration in WPLoyalty, ensure that earning and redeeming points is paused in your existing system/program. Its lead to give extra/low points in migration."
 msgstr ""
 
-#: App/Controller/Common.php:464
-msgid "The default batch limit is set to 50. You can adjust this in the settings.For example, if the batch limit is 50, then 50 customers will be migrated every 3 minutes — resulting in 1000 customers per hour, 24,400 customers per day."
+#: App/Controller/Common.php:471
+msgid "The default batch limit is set to 50. You can adjust this in the settings.For example, if the batch limit is 50, then 500 customers will be migrated every 3 minutes — resulting in 10,000 customers per hour, around 2,40,000 customers per day."
 msgstr ""
 
-#: App/Controller/Common.php:465
+#: App/Controller/Common.php:472
 msgid "Once a migration job is started, it cannot be paused or stopped midway. Please double-check all configurations before initiating the process."
 msgstr ""
 
-#: App/Controller/Common.php:487
+#: App/Controller/Common.php:494
 msgid "User migrated via WPLoyalty Migration"
 msgstr ""
 
-#: App/Controller/Common.php:550
+#: App/Controller/Common.php:557
 msgid "Every 3 Minutes"
 msgstr ""
 
-#: App/Controller/Compatibles/WLPRPointsRewards.php:129
-#: App/Controller/Compatibles/WPSwings.php:147
+#: App/Controller/Compatibles/WLPRPointsRewards.php:111
+#: App/Controller/Compatibles/WPSwings.php:117
 msgid "No available records for processing."
 msgstr ""
 
-#. translators: 1: number of points, 2: point label (e.g. points), 3: admin email
 #. translators: 1: number of points, 2: point label, 3: admin email
-#: App/Controller/Compatibles/WLPRPointsRewards.php:193
-#: App/Controller/Compatibles/WooPointsRewards.php:196
-#: App/Controller/Compatibles/WPSwings.php:207
+#: App/Controller/Compatibles/WLPRPointsRewards.php:174
+#: App/Controller/Compatibles/WooPointsRewards.php:170
+#: App/Controller/Compatibles/WPSwings.php:176
 msgid "Added %1$d %2$s by site administrator (%3$s) via WPLoyalty migration"
 msgstr ""
 
 #. translators: 1: customer email, 2: number of points, 3: point label, 4: admin email
-#: App/Controller/Compatibles/WLPRPointsRewards.php:195
+#: App/Controller/Compatibles/WLPRPointsRewards.php:176
 msgid "%1$s customer migrated from WooCommerce Loyalty Points and Rewards with %2$d %3$s by administrator (%4$s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Compatibles/WooPointsRewards.php:99
+#: App/Controller/Compatibles/WooPointsRewards.php:76
 msgid "No available records for processing"
 msgstr ""
 
 #. translators: 1: user email, 2: number of points, 3: point label, 4: admin email
-#: App/Controller/Compatibles/WooPointsRewards.php:203
+#: App/Controller/Compatibles/WooPointsRewards.php:177
 msgid "%1$s customer migrated from WooCommerce Points and Rewards with %2$d %3$s by administrator (%4$s) via WPLoyalty migration"
 msgstr ""
 
 #. translators: 1: user email, 2: number of points, 3: point label, 4: admin email
-#: App/Controller/Compatibles/WPSwings.php:211
+#: App/Controller/Compatibles/WPSwings.php:180
 msgid "%1$s customer migrated from WPSwings with %2$d %3$s by administrator (%4$s) via WPLoyalty migration"
 msgstr ""
 
-#: App/Controller/Migration.php:38
-#: App/Controller/Migration.php:68
-#: App/Controller/Migration.php:241
+#: App/Controller/Migration.php:36
+#: App/Controller/Migration.php:65
+#: App/Controller/Migration.php:242
 #: App/Controller/Migration.php:281
-#: App/Controller/Migration.php:388
-#: App/Controller/Migration.php:524
+#: App/Controller/Migration.php:390
+#: App/Controller/Migration.php:530
 msgid "Basic check failed"
 msgstr ""
 
-#: App/Controller/Migration.php:50
+#: App/Controller/Migration.php:48
 msgid "Update points to customers"
 msgstr ""
 
-#: App/Controller/Migration.php:83
-#: App/Controller/Migration.php:255
+#: App/Controller/Migration.php:80
+#: App/Controller/Migration.php:256
 msgid "Invalid fields"
 msgstr ""
 
-#: App/Controller/Migration.php:90
+#: App/Controller/Migration.php:87
 msgid "Migration job already created"
 msgstr ""
 
-#: App/Controller/Migration.php:104
+#: App/Controller/Migration.php:101
 msgid "Unable to create parent job"
 msgstr ""
 
@@ -194,7 +201,7 @@ msgstr ""
 msgid "Migration job created"
 msgstr ""
 
-#: App/Controller/Migration.php:261
+#: App/Controller/Migration.php:262
 msgid "Settings saved"
 msgstr ""
 
@@ -202,73 +209,43 @@ msgstr ""
 msgid "Permission denied to write a file"
 msgstr ""
 
-#: App/Controller/Migration.php:414
+#: App/Controller/Migration.php:416
 msgid "Failed to create directory for job files."
 msgstr ""
 
-#: App/Controller/Migration.php:497
+#: App/Controller/Migration.php:502
 msgid "Export completed successfully."
 msgstr ""
 
 #. translators: %s: limit
-#: App/Controller/Migration.php:508
+#: App/Controller/Migration.php:515
 msgid "Exported %s customer(s)"
 msgstr ""
 
-#: App/Controller/Migration.php:512
+#: App/Controller/Migration.php:519
 msgid "No data to export"
 msgstr ""
 
-#: App/Controller/Migration.php:528
+#: App/Controller/Migration.php:534
 msgid "Invalid job id"
 msgstr ""
 
 #. translators: %s: total row
-#: App/Helper/Pagination.php:101
+#: App/Helper/Pagination.php:97
 msgid "Showing: %d"
 msgstr ""
 
-#. translators: First %s will replace plugin name, Second %s replace minimum PHP version
-#: App/Helper/Plugin.php:19
-msgid "%1$s requires minimum PHP version %2$s"
-msgstr ""
-
-#. translators: First %s will replace plugin name, Second %s replace a minimum WordPress version
-#: App/Helper/Plugin.php:27
-msgid "%1$s requires minimum WordPress version %2$s"
-msgstr ""
-
-#. translators: 1. %s will replace plugin name
-#: App/Helper/Plugin.php:35
-msgid "%1$s requires WooCommerce to be installed and activated in order to be used."
-msgstr ""
-
-#. translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
-#: App/Helper/Plugin.php:43
-msgid "%1$s requires minimum Woocommerce version %2$s"
-msgstr ""
-
-#. translators: 1. %s will replace plugin name
-#: App/Helper/Plugin.php:50
-msgid "%1$s requires WPLoyalty to be installed and activated in order to be used."
-msgstr ""
-
-#. translators: 1. %s will replace plugin name, 2. %s replace WooCommerce version
-#: App/Helper/Plugin.php:58
-msgid "%1$s requires minimum WPLoyalty version %2$s"
-msgstr ""
-
-#: App/Helper/Validation.php:29
-#: App/Helper/Validation.php:54
+#: App/Helper/Validation.php:26
+#: App/Helper/Validation.php:50
 msgid "This field"
 msgstr ""
 
-#: App/Helper/Validation.php:38
-#: App/Helper/Validation.php:61
+#: App/Helper/Validation.php:35
+#: App/Helper/Validation.php:57
 msgid "{field} is required"
 msgstr ""
 
-#: App/Setup.php:92
+#: App/Setup.php:87
 msgid "Support"
 msgstr ""
 
@@ -277,23 +254,23 @@ msgid "MIGRATION ACTION"
 msgstr ""
 
 #: App/Views/Admin/actions.php:23
-#: App/Views/Admin/settings.php:23
+#: App/Views/Admin/settings.php:25
 msgid "Cancel"
 msgstr ""
 
 #: App/Views/Admin/actions.php:24
-#: App/Views/Admin/settings.php:24
+#: App/Views/Admin/settings.php:26
 msgid "Back to WPLoyalty"
 msgstr ""
 
-#: App/Views/Admin/actions.php:45
-#: App/Views/Admin/popup.php:42
+#: App/Views/Admin/actions.php:51
+#: App/Views/Admin/popup.php:44
 msgid "Migrate"
 msgstr ""
 
-#: App/Views/Admin/actions.php:49
-#: App/Views/Admin/actions.php:56
-#: App/Views/Admin/activity.php:103
+#: App/Views/Admin/actions.php:55
+#: App/Views/Admin/actions.php:62
+#: App/Views/Admin/activity.php:113
 msgid "View Details"
 msgstr ""
 
@@ -301,126 +278,126 @@ msgstr ""
 msgid "ACTIVITIES"
 msgstr ""
 
-#: App/Views/Admin/activity.php:49
+#: App/Views/Admin/activity.php:51
 msgid "Filter"
 msgstr ""
 
-#: App/Views/Admin/activity.php:52
-#: App/Views/Admin/activity_details.php:203
+#: App/Views/Admin/activity.php:54
+#: App/Views/Admin/activity_details.php:222
 msgid "No activities yet"
 msgstr ""
 
-#: App/Views/Admin/activity.php:55
+#: App/Views/Admin/activity.php:57
 msgid "Get started by migrate customers from wordpress"
 msgstr ""
 
-#: App/Views/Admin/activity.php:62
+#: App/Views/Admin/activity.php:64
 msgid "JOB ID"
 msgstr ""
 
-#: App/Views/Admin/activity.php:64
+#: App/Views/Admin/activity.php:66
 msgid "ACTIVITY"
 msgstr ""
 
-#: App/Views/Admin/activity.php:66
+#: App/Views/Admin/activity.php:68
 msgid "CATEGORY"
 msgstr ""
 
-#: App/Views/Admin/activity.php:68
+#: App/Views/Admin/activity.php:70
 msgid "PROCESSED"
 msgstr ""
 
-#: App/Views/Admin/activity.php:70
+#: App/Views/Admin/activity.php:72
 msgid "STATUS"
 msgstr ""
 
-#: App/Views/Admin/activity.php:72
+#: App/Views/Admin/activity.php:74
 msgid "ACTION"
 msgstr ""
 
-#: App/Views/Admin/activity.php:80
+#: App/Views/Admin/activity.php:82
 msgid "Order point"
 msgstr ""
 
 #. translators: 1: number of points, 2: point label
-#: App/Views/Admin/activity.php:89
+#: App/Views/Admin/activity.php:93
 msgid "%1$s %2$s updated"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:25
+#: App/Views/Admin/activity_details.php:27
 msgid "Back"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:26
+#: App/Views/Admin/activity_details.php:28
 msgid "ACTIVITY DETAILS"
 msgstr ""
 
 #. translators: %s: Action label
-#: App/Views/Admin/activity_details.php:34
+#: App/Views/Admin/activity_details.php:36
 msgid "Activity - %s "
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:38
+#: App/Views/Admin/activity_details.php:43
 msgid "Date created"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:44
+#: App/Views/Admin/activity_details.php:53
 #: App/Views/Admin/export_logs.php:40
 msgid "Processed items"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:51
+#: App/Views/Admin/activity_details.php:60
 msgid "Status"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:58
+#: App/Views/Admin/activity_details.php:71
 #: App/Views/Admin/popup.php:12
 msgid "Update points"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:66
+#: App/Views/Admin/activity_details.php:84
 msgid "Update banned user"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:68
+#: App/Views/Admin/activity_details.php:87
 msgid "Add point to banned customer"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:68
-#: App/Views/Admin/popup.php:35
+#: App/Views/Admin/activity_details.php:87
+#: App/Views/Admin/popup.php:36
 msgid "Skip banned customer"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:117
+#: App/Views/Admin/activity_details.php:136
 msgid "Action details"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:123
+#: App/Views/Admin/activity_details.php:142
 msgid "Search by email"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:144
+#: App/Views/Admin/activity_details.php:163
 msgid "Show Exported File"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:147
+#: App/Views/Admin/activity_details.php:166
 #: App/Views/Admin/export_logs.php:51
 msgid "Export"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:154
+#: App/Views/Admin/activity_details.php:173
 msgid "User email"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:155
+#: App/Views/Admin/activity_details.php:174
 msgid "Referral code"
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:175
+#: App/Views/Admin/activity_details.php:194
 msgid "No activities found for the entered email."
 msgstr ""
 
-#: App/Views/Admin/activity_details.php:207
+#: App/Views/Admin/activity_details.php:226
 msgid "You are in pending status"
 msgstr ""
 
@@ -441,7 +418,7 @@ msgid "Download"
 msgstr ""
 
 #: App/Views/Admin/main.php:18
-msgid "Note : During the migration, only customer's loyalty points will be transferred. Customer history    or any other data will not be included."
+msgid "Note : During the migration, only customer's loyalty points will be transferred. Customer history or any other data will not be included."
 msgstr ""
 
 #: App/Views/Admin/main.php:30
@@ -456,11 +433,11 @@ msgstr ""
 msgid "Add/skip points to existing customers while migrate?"
 msgstr ""
 
-#: App/Views/Admin/popup.php:31
+#: App/Views/Admin/popup.php:32
 msgid "Add/skip points to banned customers while migrate?"
 msgstr ""
 
-#: App/Views/Admin/popup.php:36
+#: App/Views/Admin/popup.php:37
 msgid "Add points to banned customer"
 msgstr ""
 
@@ -468,14 +445,14 @@ msgstr ""
 msgid "SETTINGS"
 msgstr ""
 
-#: App/Views/Admin/settings.php:27
+#: App/Views/Admin/settings.php:29
 msgid "Save"
 msgstr ""
 
-#: App/Views/Admin/settings.php:36
+#: App/Views/Admin/settings.php:38
 msgid "Batch limit"
 msgstr ""
 
-#: App/Views/Admin/settings.php:56
+#: App/Views/Admin/settings.php:60
 msgid "Pagination limit"
 msgstr ""
