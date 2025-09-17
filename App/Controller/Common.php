@@ -1,19 +1,30 @@
 <?php
 
-namespace Wlrm\App\Controller;
+namespace Wlrmg\App\Controller;
+
+use Exception;
+use stdClass;
+use Wlrmg\App\Controller\Compatibles\WLPRPointsRewards;
+use Wlrmg\App\Controller\Compatibles\WooPointsRewards;
+use Wlrmg\App\Controller\Compatibles\WPSwings;
+use Wlrmg\App\Helper\Input;
+use Wlrmg\App\Helper\Pagination;
+use Wlrmg\App\Helper\WC;
+use Wlrmg\App\Models\MigrationLog;
+use Wlrmg\App\Models\ScheduledJobs;
+use Wlrmg\App\Controller\MigrationProducer;
+use Wlrmg\App\Controller\MigrationRunner;
 
 
 defined( 'ABSPATH' ) or die();
 
-use Wlrm\App\Controller\Compatibles\WLPRPointsRewards;
-use Wlrm\App\Controller\Compatibles\WooPointsRewards;
-use Wlrm\App\Controller\Compatibles\WPSwings;
-use Wlrm\App\Helper\Input;
-use Wlrm\App\Helper\Pagination;
-use Wlrm\App\Helper\WC;
-use Wlrm\App\Models\MigrationLog;
-use Wlrm\App\Models\ScheduledJobs;
 
+/**
+ * Core controller for admin pages, assets, and migration orchestration glue.
+ *
+ * Provides menu setup, views rendering, asset loading, and the cron entrypoint
+ * that delegates migration production and scheduling to dedicated controllers.
+ */
 class Common {
 	/**
 	 * Adds a menu page for WPLoyalty plugin migration if the current user has admin privilege.
@@ -176,8 +187,8 @@ class Common {
 	 * @return string Rendered content of the activity details page.
 	 */
 	public static function getActivityDetailsPage() {
-		$job_id    = (int) Input::get( 'job_id', 0 );
-		$args      = array(
+		$job_id    = (string) Input::get( 'job_id', '' );
+		$args      = [
 			"current_page"     => 'activity',
 			"job_id"           => $job_id,
 			"search"           => (string) Input::get( 'search', '' ),
@@ -185,7 +196,7 @@ class Common {
 			"activity"         => self::getActivityDetailsData( $job_id ),
 			"back"             => WLRMG_PLUGIN_URL . "Assets/svg/back_button.svg",
 			"no_activity_icon" => WLRMG_PLUGIN_URL . "Assets/svg/no_activity_list.svg",
-		);
+		];
 		$args      = apply_filters( 'wlrm_before_activity_details_page', $args );
 		$file_path = get_theme_file_path( 'wp-loyalty-migration/Admin/activity_details.php' );
 		if ( ! file_exists( $file_path ) ) {
@@ -203,28 +214,74 @@ class Common {
 	 * The retrieved job data is then processed to include additional information and activity logs related to the job.
 	 * The final result is passed through a filter hook for customization before being returned.
 	 *
-	 * @param int $job_id The ID of the job to retrieve activity details for.
+	 * @param string $job_id The ID of the job to retrieve activity details for.
 	 *
 	 * @return array Contains the job ID and additional data related to the job's activity details.
 	 */
 	protected static function getActivityDetailsData( $job_id ) {
-		if ( empty( $job_id ) || $job_id <= 0 ) {
+		if ( empty( $job_id ) ) {
 			return [];
 		}
 		$job_table = new ScheduledJobs();
 		global $wpdb;
-		$where    = $wpdb->prepare( " uid = %d AND source_app =%s", [ $job_id, 'wlr_migration' ] );
+		$where    = $wpdb->prepare( " uid = %s AND source_app =%s", [ $job_id, 'wlr_migration' ] );
 		$job_data = $job_table->getWhere( $where );
 
 		$result = [
 			'job_id' => $job_id,
 		];
 		if ( ! empty( $job_data ) && is_object( $job_data ) ) {
-			$result['job_data'] = self::handleJobData( $job_data );
+			$job_info = self::handleJobData( $job_data );
+
+			$parent_uid = $job_data->uid;
+			$decoded    = ! empty( $job_data->conditions ) ? json_decode( $job_data->conditions, true ) : [];
+			if ( isset( $decoded['batch_info']['parent_job_id'] ) ) {
+				$parent_uid = (string) $decoded['batch_info']['parent_job_id'];
+			}
+			$all_batches   = ScheduledJobs::getBatchesByParent( $parent_uid );
+			$total_batches = is_array( $all_batches ) ? count( $all_batches ) : 0;
+			$status_counts = [
+				'pending'    => 0,
+				'processing' => 0,
+				'completed'  => 0,
+				'failed'     => 0,
+			];
+			if ( ! empty( $all_batches ) ) {
+				foreach ( $all_batches as $single_job ) {
+					$st = isset( $single_job->status ) ? (string) $single_job->status : '';
+					if ( isset( $status_counts[ $st ] ) ) {
+						$status_counts[ $st ] ++;
+					} else {
+						$status_counts['pending'] ++;
+					}
+				}
+			}
+
+			$processed_items = 0;
+			if ( ! empty( $all_batches ) ) {
+				foreach ( $all_batches as $single_job ) {
+					$processed_items += (int) ( $single_job->offset ?? 0 );
+				}
+			}
+			$job_info['processed_items'] = $processed_items;
+
+			$overall_status = 'pending';
+			if ( $total_batches > 0 && $status_counts['completed'] === $total_batches ) {
+				$overall_status = 'completed';
+			} elseif ( $status_counts['processing'] > 0 ) {
+				$overall_status = 'processing';
+			} elseif ( $status_counts['completed'] > 0 && $status_counts['completed'] < $total_batches ) {
+				$overall_status = 'processing';
+			} elseif ( $status_counts['failed'] > 0 && $status_counts['completed'] === 0 ) {
+				$overall_status = 'failed';
+			}
+			$job_info['status'] = $overall_status;
+
+			$result['job_data'] = $job_info;
 			$result['activity'] = self::getActivityLogsData( $job_id );
 		}
 
-		return apply_filters( 'wlrm_before_acitivity_view_details_data', $result );
+		return apply_filters( 'wlrmg_before_acitivity_view_details_data', $result );
 	}
 
 	/**
@@ -284,22 +341,48 @@ class Common {
 	 * It creates pagination information based on the retrieved data for easy navigation.
 	 * It assembles and returns an array containing the relevant details for displaying the activity logs.
 	 *
-	 * @param int $job_id The ID of the job for which activity logs data is requested.
+	 * @param string $job_id The ID of the job for which activity logs data is requested.
 	 *
 	 * @return array Fetched activity logs data including pagination and other details.
 	 */
 	protected static function getActivityLogsData( $job_id ) {
-		if ( empty( $job_id ) || $job_id <= 0 ) {
+		if ( empty( $job_id ) ) {
 			return [];
 		}
-		$bulk_action_log  = new MigrationLog();
-		$url              = admin_url( 'admin.php?' . http_build_query( [
+		$bulk_action_log = new MigrationLog();
+		$url             = admin_url( 'admin.php?' . http_build_query( [
 				'page'   => WLRMG_PLUGIN_SLUG,
 				'view'   => 'activity_details',
 				'job_id' => $job_id,
 			] ) );
-		$current_page     = (int) Input::get( 'migration_page', 1 );
-		$activity_list    = $bulk_action_log->getActivityList( $job_id, $current_page );
+		$current_page    = (int) Input::get( 'migration_page', 1 );
+		$parent_uid      = $job_id;
+		$job_table       = new ScheduledJobs();
+		global $wpdb;
+		$parent_or_child = $job_table->getWhere( $wpdb->prepare( " uid = %s AND source_app =%s", [
+			$job_id,
+			'wlr_migration'
+		] ) );
+		if ( ! empty( $parent_or_child ) && is_object( $parent_or_child ) && ! empty( $parent_or_child->conditions ) ) {
+			$decoded = json_decode( $parent_or_child->conditions, true );
+			if ( isset( $decoded['batch_info']['parent_job_id'] ) ) {
+				$parent_uid = (string) $decoded['batch_info']['parent_job_id'];
+			}
+		}
+		$all_batches   = ScheduledJobs::getBatchesByParent( $parent_uid );
+		$all_batch_ids = [];
+		if ( ! empty( $all_batches ) && is_array( $all_batches ) ) {
+			foreach ( $all_batches as $row ) {
+				if ( isset( $row->uid ) ) {
+					$all_batch_ids[] = (string) $row->uid;
+				}
+			}
+		}
+		if ( empty( $all_batch_ids ) ) {
+			$all_batch_ids = [ (string) $job_id ];
+		}
+
+		$activity_list    = $bulk_action_log->getActivityList( $all_batch_ids, $current_page );
 		$per_page         = (int) is_array( $activity_list ) && isset( $activity_list['per_page'] ) ? $activity_list['per_page'] : 0;
 		$current_page     = (int) is_array( $activity_list ) && isset( $activity_list['current_page'] ) ? $activity_list['current_page'] : 0;
 		$pagination_param = [
@@ -361,26 +444,35 @@ class Common {
 		wp_enqueue_style( WLR_PLUGIN_SLUG . '-wlr-font', WLR_PLUGIN_URL . 'Assets/Site/Css/wlr-fonts' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time() );
 		wp_enqueue_style( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Css/alertify' . $suffix . '.css', [], WLR_PLUGIN_VERSION . '&t=' . time() );
 		wp_enqueue_style( WLRMG_PLUGIN_SLUG . '-main-style', WLRMG_PLUGIN_URL . 'Assets/Admin/Css/wlrmg-main.css', [ 'woocommerce_admin_styles' ], WLRMG_PLUGIN_VERSION . '&t=' . time() );
-
+		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_enqueue_script( WLR_PLUGIN_SLUG . '-alertify', WLR_PLUGIN_URL . 'Assets/Admin/Js/alertify' . $suffix . '.js', [], WLR_PLUGIN_VERSION . '&t=' . time() );
+		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_enqueue_script( WLRMG_PLUGIN_SLUG . '-main-script', WLRMG_PLUGIN_URL . 'Assets/Admin/Js/wlrmg-main.js', [
 			'jquery',
 			'select2'
 		], WLRMG_PLUGIN_VERSION . '&t=' . time() );
 		$localize_data = apply_filters( 'wlrmg_before_localize_data', [
-			'ajax_url'      => admin_url( 'admin-ajax.php' ),
-			'migrate_users' => WC::createNonce( 'wlrmg_migrate_users_nonce' ),
-			'save_settings' => WC::createNonce( 'wlrmg_save_settings_nonce' ),
-			'popup_nonce'   => WC::createNonce( 'wlrmg_popup_nonce' ),
-			'migration_notice' => wp_kses_post( '
-                    <h3>' . __( 'Please read before starting migration:' ,'wp-loyalty-migration') . '</h3>
-                    <ul>
-                        <li>' . __( 'Before starting the migration in WPLoyalty, stop earning/redeeming points in the old point system/program. This may lead to giving extra/low points during migration. NOTE: Do not deactivate or delete the old point system/program.' ,'wp-loyalty-migration') . '</li>
-                        <li>' . __( 'The default batch limit is 50. You can reduce the batch limit in settings. If the batch limit is 50, then 50 customers migrate every 5 minutes — resulting in 600 customers per hour, 14,400 customers per day.','wp-loyalty-migration' ) . '</li>
-                        <li>' . __( 'Once a migration job is initiated, it cannot be stopped or interrupted midway. Ensure all configurations are correct before proceeding.' ,'wp-loyalty-migration') . '</li>
-                    </ul>
+			'ajax_url'              => admin_url( 'admin-ajax.php' ),
+			'migrate_users'         => WC::createNonce( 'wlrmg_migrate_users_nonce' ),
+			'save_settings'         => WC::createNonce( 'wlrmg_save_settings_nonce' ),
+			'popup_nonce'           => WC::createNonce( 'wlrmg_popup_nonce' ),
+			'yes'                   => __( 'Yes, Proceed', 'wp-loyalty-migration' ),
+			'cancel'                => __( 'No, Cancel', 'wp-loyalty-migration' ),
+			'export_warning'        => __( 'Are you sure you want to leave?', 'wp-loyalty-migration' ),
+			'migration_warning'     => __( 'Migration Warning', 'wp-loyalty-migration' ),
+			'cancel_export_warning' => __( 'Export is in progress. Do you really want to close?', 'wp-loyalty-migration' ),
+			'cancel_warning'        => __( 'Make sure you want to close?', 'wp-loyalty-migration' ),
+			'migration_notice'      => wp_kses_post( '
+                    <h3>' . __( 'Important Note : ', 'wp-loyalty-migration' ) . '</h3>
+					<p>' . __( 'Please read before starting migration:', 'wp-loyalty-migration' ) . '</p>
+                    <ol>
+						<li>' . __( 'Do not deactivate or delete your old point system/program during migration.', 'wp-loyalty-migration' ) . '</li>
+                        <li>' . __( 'Before starting the migration in WPLoyalty, ensure that earning and redeeming points is paused in your existing system/program. Its lead to give extra/low points in migration.', 'wp-loyalty-migration' ) . '</li>
+                        <li>' . __( 'The default batch limit is set to 50. You can adjust this in the settings.For example, if the batch limit is 50, then 500 customers will be migrated every 3 minutes — resulting in 10,000 customers per hour, around 2,40,000 customers per day.', 'wp-loyalty-migration' ) . '</li>
+                        <li>' . __( 'Once a migration job is started, it cannot be paused or stopped midway. Please double-check all configurations before initiating the process.', 'wp-loyalty-migration' ) . '</li>
+                    </ol>
                 ' ),
-		] );
+		], true );
 		wp_localize_script( WLRMG_PLUGIN_SLUG . '-main-script', 'wlrmg_localize_data', $localize_data );
 	}
 
@@ -437,8 +529,8 @@ class Common {
 		$hook      = 'wlrmg_migration_jobs';
 		$timestamp = wp_next_scheduled( $hook );
 		if ( false === $timestamp ) {
-			$scheduled_time = strtotime( '+5 minutes' );
-			wp_schedule_event( $scheduled_time, 'minutes', $hook );
+			$scheduled_time = strtotime( '+3 minutes' );
+			wp_schedule_event( $scheduled_time, 'every_3_minutes', $hook );
 		}
 	}
 
@@ -456,45 +548,31 @@ class Common {
 	 * @return array The modified input data array with minutes added if it was an array.
 	 */
 	public static function addMinutes( $data ) {
-		if ( ! is_array( $data ) ) {
+		if ( ! is_array( $data ) || isset( $data['every_3_minutes'] ) ) {
 			return $data;
 		}
-		$data['minutes'] = [
-			'interval' => 5 * MINUTE_IN_SECONDS,
-			'display'  => __( 'Minutes', 'wp-loyalty-migration' ),
+
+		$data['every_3_minutes'] = [
+			'interval' => 180,
+			'display'  => __( 'Every 3 Minutes', 'wp-loyalty-migration' ),
 		];
 
 		return $data;
 	}
 
 	public static function triggerMigrations() {
-		$data               = ScheduledJobs::getAvailableJob();
-		$process_identifier = 'wlrmg_cron_job_running';
-		if ( get_transient( $process_identifier ) ) {
+		// Produce child batches for the active category first
+		MigrationProducer::produceChildBatches();
+
+		$active_opt      = get_option( 'wlrmg_active_category', [] );
+		$active_category = is_array( $active_opt ) && ! empty( $active_opt['category'] ) ? (string) $active_opt['category'] : '';
+		if ( empty( $active_category ) ) {
 			return;
 		}
-		set_transient( $process_identifier, true );
-		if ( is_object( $data ) && ! empty( $data ) ) {
-			//process
-			$category = ! empty( $data->category ) ? $data->category : "";
-			switch ( $category ) {
-				case 'wp_swings_migration':
-					$wp_swings = new WPSwings();
-					$wp_swings->migrateToLoyalty( $data );
-					break;
-				case 'wlpr_migration':
-					$wlpr_point_reward = new WLPRPointsRewards();
-					$wlpr_point_reward->migrateToLoyalty( $data );
-					break;
-				case 'woocommerce_migration':
-					$woo_point_reward = new WooPointsRewards();
-					$woo_point_reward->migrateToLoyalty( $data );
-					break;
-				case 'yith_migration':
-				default:
-					return;
-			}
-		}
-		delete_transient( $process_identifier );
+
+		$max_in_flight = (int) apply_filters( 'wlrmg_max_in_flight_batches', 10 );
+		MigrationRunner::schedulePendingChildren( $active_category, $max_in_flight );
 	}
+
+
 }
